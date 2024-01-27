@@ -26,9 +26,10 @@ jobs:
       with:
         java-version: '17'
         distribution: 'temurin'
-        maven-version: 3.9.6
         cache: maven
     - name: Build with Maven
+      with:
+        maven-version: 3.9.6
       run: mvn -B package --file pom.xml
 
     # Optional: Uploads the full dependency graph to GitHub to improve the quality of Dependabot alerts this repository can receive
