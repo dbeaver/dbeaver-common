@@ -2,8 +2,8 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Vendor: DBeaver Corp
 Bundle-Name: DBeaver REST clients
-Bundle-SymbolicName: com.dbeaver.common.rest.client
-Bundle-Version: 1.0.0
+Bundle-SymbolicName: org.jkiss.common.rest
+Bundle-Version: 1.0.0.qualifier
 Bundle-Release-Date: 20231225
 Bundle-RequiredExecutionEnvironment: JavaSE-17
 Export-Package: com.dbeaver.lm.api

@@ -14,7 +14,7 @@
  * is strictly forbidden unless prior written permission is obtained
  * from DBeaver Corp.
  */
-package com.dbeaver.common.rest.client;
+package org.jkiss.common.rest.client;
 
 
 public abstract class AbstractRemoteClient {
