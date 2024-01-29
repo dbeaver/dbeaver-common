@@ -14,7 +14,6 @@
 
     <modules>
         <module>org.jkiss.utils</module>
-        <module>org.jkiss.common.rest</module>
     </modules>
 
 </project>
