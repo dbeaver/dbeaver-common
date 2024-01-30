@@ -3,7 +3,7 @@ Bundle-ManifestVersion: 2
 Bundle-Name: DBeaver Utils
 Bundle-Vendor: DBeaver Corp
 Bundle-SymbolicName: org.jkiss.utils
-Bundle-Version: 2.1.207.qualifier
+Bundle-Version: 2.2.0.qualifier
 Bundle-Release-Date: 20240205
 Bundle-RequiredExecutionEnvironment: JavaSE-17
 Require-Bundle: com.google.gson
