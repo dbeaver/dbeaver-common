@@ -121,10 +121,6 @@ public class RestClient {
 
             final RequestMapping mapping = method.getDeclaredAnnotation(RequestMapping.class);
 
-            if (mapping == null) {
-                throw createException(method, "it's not annotated with @RequestMapping");
-            }
-
             final Parameter[] parameters = method.getParameters();
             final Map<String, JsonElement> values = new LinkedHashMap<>(parameters.length);
 
@@ -132,21 +128,18 @@ public class RestClient {
                 final Parameter p = parameters[i];
                 final RequestParameter param = p.getDeclaredAnnotation(RequestParameter.class);
 
-                if (param == null) {
-                    throw createException(method, "one or more of its parameters are not annotated with @RequestParameter");
+                String paramName = param == null ? p.getName() : param.value();
+                if (CommonUtils.isEmptyTrimmed(paramName)) {
+                    throw createException(method, "one or more of parameters has empty name (it can be specified in @RequestParameter)");
                 }
 
-                if (CommonUtils.isEmptyTrimmed(param.value())) {
-                    throw createException(method, "one or more of its parameters has empty name specified in @RequestParameter");
-                }
-
-                if (values.put(param.value(), gson.toJsonTree(args[i])) != null) {
+                if (values.put(paramName, gson.toJsonTree(args[i])) != null) {
                     throw createException(method, "one or more of its parameters share the same name specified in @RequestParameter");
                 }
             }
 
             try {
-                String endpoint = mapping.value();
+                String endpoint = mapping == null ? null : mapping.value();
                 if (CommonUtils.isEmpty(endpoint)) {
                     endpoint = method.getName();
                 }
@@ -163,7 +156,7 @@ public class RestClient {
                     .header("Content-Type", "application/json")
                     .POST(BodyPublishers.ofString(requestString));
 
-                if (mapping.timeout() > 0) {
+                if (mapping != null && mapping.timeout() > 0) {
                     builder.timeout(Duration.ofSeconds(mapping.timeout()));
                 }
 

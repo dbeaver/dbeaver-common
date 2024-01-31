@@ -28,4 +28,6 @@ public @interface RequestParameter {
      * Name of the parameter.
      */
     String value();
+
+    boolean queryParameter() default false;
 }
