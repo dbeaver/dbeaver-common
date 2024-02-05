@@ -46,11 +46,11 @@ public class RestClient {
     }
 
     @NotNull
-    public static <T> T create(@NotNull URI uri, @NotNull Class<T> cls, @NotNull Gson gson) {
+    public static <T> T create(@NotNull URI uri, @NotNull Class<T> cls, @NotNull Gson gson, @NotNull RestEndpointResolver resolver) {
         final Object proxy = Proxy.newProxyInstance(
             cls.getClassLoader(),
             new Class[]{cls, RestProxy.class},
-            new ClientInvocationHandler(cls, uri, gson)
+            new ClientInvocationHandler(cls, uri, gson, resolver)
         );
 
         return cls.cast(proxy);
@@ -65,11 +65,13 @@ public class RestClient {
         private final URI uri;
         private final Class<T> cls;
         private Gson gson;
+        private RestEndpointResolver resolver;
 
         private Builder(@NotNull URI uri, @NotNull Class<T> cls) {
             this.uri = uri;
             this.cls = cls;
             this.gson = RestConstants.DEFAULT_GSON;
+            this.resolver = methodName -> methodName;
         }
 
         @NotNull
@@ -78,9 +80,14 @@ public class RestClient {
             return this;
         }
 
+        public Builder<T> setEndpointResolver(@NotNull RestEndpointResolver resolver) {
+            this.resolver = resolver;
+            return this;
+        }
+
         @NotNull
         public T create() {
-            return RestClient.create(uri, cls, gson);
+            return RestClient.create(uri, cls, gson, resolver);
         }
     }
 
@@ -89,14 +96,21 @@ public class RestClient {
         private final Class<?> clientClass;
         private final URI uri;
         private final Gson gson;
+        private final RestEndpointResolver resolver;
         private final ExecutorService httpExecutor;
         private final HttpClient client;
         private final ThreadLocal<Type> resultType = new ThreadLocal<>();
 
-        private ClientInvocationHandler(@NotNull Class<?> clientClass, @NotNull URI uri, @NotNull Gson gson) {
+        private ClientInvocationHandler(
+            @NotNull Class<?> clientClass,
+            @NotNull URI uri,
+            @NotNull Gson gson,
+            @NotNull RestEndpointResolver resolver
+        ) {
             this.clientClass = clientClass;
             this.uri = uri;
             this.gson = gson;
+            this.resolver = resolver;
             this.httpExecutor = Executors.newSingleThreadExecutor();
             this.client = HttpClient.newBuilder()
                 .executor(httpExecutor)
@@ -121,10 +135,6 @@ public class RestClient {
 
             final RequestMapping mapping = method.getDeclaredAnnotation(RequestMapping.class);
 
-            if (mapping == null) {
-                throw createException(method, "it's not annotated with @RequestMapping");
-            }
-
             final Parameter[] parameters = method.getParameters();
             final Map<String, JsonElement> values = new LinkedHashMap<>(parameters.length);
 
@@ -132,23 +142,20 @@ public class RestClient {
                 final Parameter p = parameters[i];
                 final RequestParameter param = p.getDeclaredAnnotation(RequestParameter.class);
 
-                if (param == null) {
-                    throw createException(method, "one or more of its parameters are not annotated with @RequestParameter");
+                String paramName = param == null ? p.getName() : param.value();
+                if (CommonUtils.isEmptyTrimmed(paramName)) {
+                    throw createException(method, "one or more of parameters has empty name (it can be specified in @RequestParameter)");
                 }
 
-                if (CommonUtils.isEmptyTrimmed(param.value())) {
-                    throw createException(method, "one or more of its parameters has empty name specified in @RequestParameter");
-                }
-
-                if (values.put(param.value(), gson.toJsonTree(args[i])) != null) {
+                if (values.put(paramName, gson.toJsonTree(args[i])) != null) {
                     throw createException(method, "one or more of its parameters share the same name specified in @RequestParameter");
                 }
             }
 
             try {
-                String endpoint = mapping.value();
+                String endpoint = mapping == null ? null : mapping.value();
                 if (CommonUtils.isEmpty(endpoint)) {
-                    endpoint = method.getName();
+                    endpoint = resolver.generateEndpointName(method.getName());
                 }
                 StringBuilder url = new StringBuilder();
                 url.append(uri);
@@ -163,7 +170,7 @@ public class RestClient {
                     .header("Content-Type", "application/json")
                     .POST(BodyPublishers.ofString(requestString));
 
-                if (mapping.timeout() > 0) {
+                if (mapping != null && mapping.timeout() > 0) {
                     builder.timeout(Duration.ofSeconds(mapping.timeout()));
                 }
 
