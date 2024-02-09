@@ -23,6 +23,7 @@ import org.jkiss.utils.BeanUtils;
 import org.jkiss.utils.CommonUtils;
 
 import java.lang.reflect.*;
+import java.net.CookieManager;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -114,6 +115,7 @@ public class RestClient {
             this.httpExecutor = Executors.newSingleThreadExecutor();
             this.client = HttpClient.newBuilder()
                 .executor(httpExecutor)
+                .cookieHandler(new CookieManager())
                 .build();
         }
 
@@ -186,7 +188,7 @@ public class RestClient {
 
                 Type returnType = resultType.get();
                 if (returnType == null) {
-                    returnType = method.getReturnType();
+                    returnType = method.getGenericReturnType();
                 } else {
                     resultType.remove();
                 }
