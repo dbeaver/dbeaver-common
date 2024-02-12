@@ -420,6 +420,24 @@ public final class IOUtils {
     }
 
     @NotNull
+    public static FileNameParts getFileNameParts(@NotNull File file) {
+        String fileName = file.getName();
+        int divPos = fileName.lastIndexOf('.');
+        if (divPos >= 0) {
+            return new FileNameParts(fileName.substring(0, divPos), fileName.substring(divPos));
+        }
+        return new FileNameParts(fileName, "");
+    }
+
+    @Nullable
+    public static File safeGetParentFile(@Nullable File file) {
+        if (file == null) {
+            return null;
+        }
+        return file.getParentFile();
+    }
+
+    @NotNull
     public static Path getPathFromString(@NotNull String pathOrUri) {
         if (pathOrUri.contains("://")) {
             return Path.of(URI.create(pathOrUri));
@@ -427,7 +445,6 @@ public final class IOUtils {
             return Path.of(pathOrUri);
         }
     }
-
 
     public static boolean isLocalFile(String filePath) {
         return !filePath.contains("://") || filePath.startsWith("file:");
@@ -441,4 +458,5 @@ public final class IOUtils {
         return isLocalURI(filePath.toUri());
     }
 
+    public static record FileNameParts(@NotNull String nameWithoutExtension, @NotNull String extension) {}
 }
