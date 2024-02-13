@@ -429,14 +429,6 @@ public final class IOUtils {
         return new FileNameParts(fileName, "");
     }
 
-    @Nullable
-    public static File safeGetParentFile(@Nullable File file) {
-        if (file == null) {
-            return null;
-        }
-        return file.getParentFile();
-    }
-
     @NotNull
     public static Path getPathFromString(@NotNull String pathOrUri) {
         if (pathOrUri.contains("://")) {
