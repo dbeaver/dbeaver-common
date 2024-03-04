@@ -14,20 +14,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.jkiss.utils.rest;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import org.jkiss.code.NotNull;
 
-@Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.PARAMETER)
-public @interface RequestParameter {
-    /**
-     * Name of the parameter.
-     */
-    String value() default "";
+/**
+ * Rest endpoint resolver.
+ */
+public interface RestEndpointResolver {
 
-    boolean queryParameter() default false;
+    @NotNull
+    String generateEndpointName(String methodName);
 }
