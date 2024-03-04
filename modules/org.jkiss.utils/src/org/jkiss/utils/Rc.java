@@ -88,6 +88,10 @@ public class Rc<T> {
         }
     }
 
+    public int getCount() {
+        return counter.get();
+    }
+
     @Override
     public String toString() {
         return "Rc[refs=" + counter.get() + ", value=" + value + ']';
