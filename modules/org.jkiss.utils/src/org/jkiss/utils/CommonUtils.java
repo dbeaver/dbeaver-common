@@ -371,11 +371,15 @@ public class CommonUtils {
         } else if (object instanceof Number n) {
             return n.intValue();
         } else {
+            String strValue = toString(object);
+            if (strValue.isBlank()) {
+                return 0;
+            }
             try {
-                return Integer.parseInt(toString(object));
+                return Integer.parseInt(strValue);
             } catch (NumberFormatException e) {
                 try {
-                    return (int)Double.parseDouble(toString(object));
+                    return (int)Double.parseDouble(strValue);
                 } catch (NumberFormatException e1) {
                     e1.printStackTrace();
                     return def;
