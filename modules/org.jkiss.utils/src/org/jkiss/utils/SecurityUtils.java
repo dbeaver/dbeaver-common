@@ -16,6 +16,8 @@
  */
 package org.jkiss.utils;
 
+import org.jkiss.code.NotNull;
+
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -208,4 +210,26 @@ public class SecurityUtils {
         '4', '5', '6', '7', '8', '9',
     };
 
+    private static final boolean DISABLE_SECURE_MASKING = CommonUtils.toBoolean(System.getProperty("dbeaver.disable.secure.masking"));
+    private static final String SECURE_REPLACEMENT_MASK = "*****";
+
+    /**
+     * Partially masks the input string. Returns the first and last characters of the input string with a filler in between.
+     * <p>
+     * If the system property {@code dbeaver.disable.secure.masking} is set to {@code true}, the masking will be disabled.
+     *
+     * @param input the input string
+     * @return the masked string
+     */
+    @NotNull
+    public static String mask(@NotNull String input) {
+        if (DISABLE_SECURE_MASKING) {
+            return input;
+        }
+        if (input.length() > 2) {
+            return input.charAt(0) + SECURE_REPLACEMENT_MASK + input.charAt(input.length() - 1);
+        } else {
+            return SECURE_REPLACEMENT_MASK;
+        }
+    }
 }
