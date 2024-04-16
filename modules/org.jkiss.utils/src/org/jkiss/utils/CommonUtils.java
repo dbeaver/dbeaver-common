@@ -371,11 +371,15 @@ public class CommonUtils {
         } else if (object instanceof Number n) {
             return n.intValue();
         } else {
+            String strValue = toString(object);
+            if (strValue.isBlank()) {
+                return 0;
+            }
             try {
-                return Integer.parseInt(toString(object));
+                return Integer.parseInt(strValue);
             } catch (NumberFormatException e) {
                 try {
-                    return (int)Double.parseDouble(toString(object));
+                    return (int)Double.parseDouble(strValue);
                 } catch (NumberFormatException e1) {
                     e1.printStackTrace();
                     return def;
@@ -1022,6 +1026,39 @@ public class CommonUtils {
         }
         matcher.appendTail(sb);
         return sb.toString();
+    }
+
+    /**
+     * Replaces the first occurrence of the specified group in the input
+     * sequence with the result of applying the given replacer function
+     * to the match result of this matcher corresponding to that group.
+     *
+     * @param input    the string to be matched
+     * @param pattern  the pattern to match against
+     * @param group    the index of the group to be replaced
+     * @param replacer the function to apply to the group
+     */
+    @NotNull
+    public static String replaceFirstGroup(
+        @NotNull String input,
+        @NotNull Pattern pattern,
+        int group,
+        @NotNull Function<String, String> replacer
+    ) {
+        final Matcher matcher = pattern.matcher(input);
+
+        if (matcher.find()) {
+            final String original = matcher.group(group);
+            final String replacement = replacer.apply(original);
+
+            if (!replacement.equals(original)) {
+                final String start = input.substring(0, matcher.start(group));
+                final String end = input.substring(matcher.end(group));
+                return start + replacement + end;
+            }
+        }
+
+        return input;
     }
 
     @SafeVarargs
