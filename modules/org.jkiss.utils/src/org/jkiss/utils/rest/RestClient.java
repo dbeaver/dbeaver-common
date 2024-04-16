@@ -148,8 +148,13 @@ public class RestClient {
                 if (CommonUtils.isEmptyTrimmed(paramName)) {
                     throw createException(method, "one or more of parameters has empty name (it can be specified in @RequestParameter)");
                 }
-
-                if (values.put(paramName, gson.toJsonTree(args[i])) != null) {
+                JsonElement argument;
+                try {
+                    argument = gson.toJsonTree(args[i]);
+                } catch (Throwable e) {
+                    throw new RestException("Failed to serialize argument " + i + ": " + e.getMessage(), e);
+                }
+                if (values.put(paramName, argument) != null) {
                     throw createException(method, "one or more of its parameters share the same name specified in @RequestParameter");
                 }
             }
@@ -206,7 +211,12 @@ public class RestClient {
                     returnType = Class.class;
                 }
 
-                return gson.fromJson(contents, returnType);
+                try {
+                    return gson.fromJson(contents, returnType);
+                } catch (Throwable e) {
+                    //just debug breakpoint, rethrow it
+                    throw e;
+                }
             } catch (RuntimeException e) {
                 throw e;
             } catch (Exception e) {
