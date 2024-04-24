@@ -395,13 +395,17 @@ public final class IOUtils {
     }
 
     @NotNull
-    public static String getFileNameWithoutExtension(Path file) {
-        String fileName = file.getFileName().toString();
-        int divPos = fileName.lastIndexOf('.');
+    public static String getFileNameWithoutExtension(@NotNull Path file) {
+        return getPathWithoutFileExtension(file.getFileName().toString());
+    }
+
+    @NotNull
+    public static String getPathWithoutFileExtension(@NotNull String path) {
+        int divPos = path.lastIndexOf('.');
         if (divPos != -1) {
-            return fileName.substring(0, divPos);
+            return path.substring(0, divPos);
         }
-        return fileName;
+        return path;
     }
 
     @Nullable
