@@ -431,6 +431,26 @@ public class BeanUtils {
         return (T) field.get(object);
     }
 
+
+    @SuppressWarnings("unchecked")
+    public static void setFieldValue(@NotNull Object object, @NotNull String name, @Nullable Object value) throws Throwable {
+        for (Class<?> c = object.getClass(); c != Object.class; c = c.getSuperclass()) {
+            try {
+                final Field field = c.getDeclaredField(name);
+                if (!field.canAccess(object)) {
+                    field.setAccessible(true);
+                }
+                field.set(object, value);
+                break;
+            } catch (NoSuchFieldException e) {
+                if (c.getSuperclass() != Object.class) {
+                    continue;
+                }
+                throw e;
+            }
+        }
+    }
+
     @SuppressWarnings("unchecked")
     public static <T> T getInheritedFieldValue(
         @NotNull Object object,
