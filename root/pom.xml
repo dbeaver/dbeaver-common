@@ -45,7 +45,7 @@
         <maven-failsafe-plugin.version>3.0.0-M5</maven-failsafe-plugin.version>
 
         <dbeaver.common.version>2.2.0-SNAPSHOT</dbeaver.common.version>
-        <lm.version>3.0.2-SNAPSHOT</lm.version>
+        <lm.version>3.0.3-SNAPSHOT</lm.version>
         <dm.version>0.0.1-SNAPSHOT</dm.version>
     </properties>
 
