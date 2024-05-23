@@ -1100,4 +1100,9 @@ public class CommonUtils {
     public static String normalizeTableNames(@NotNull String sql, @Nullable String prefix) {
         return sql.replaceAll("\\{table_prefix}", isEmpty(prefix) ? "" : prefix + ".");
     }
+
+    @NotNull
+    public static String getQuotedString(@NotNull String string) {
+        return String.format("\"%s\"", string);
+    }
 }
