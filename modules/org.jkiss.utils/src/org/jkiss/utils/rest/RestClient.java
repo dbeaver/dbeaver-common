@@ -41,17 +41,24 @@ import java.util.regex.Pattern;
 public class RestClient {
 
     private static final Pattern ST_LINE_PATTERN = Pattern.compile("\\s*at\\s+([\\w/.$]+)\\((.+)\\)");
+    private static final String DEFAULT_USER_AGENT = "DBeaver REST Client";
 
     private RestClient() {
         // prevents instantiation
     }
 
     @NotNull
-    public static <T> T create(@NotNull URI uri, @NotNull Class<T> cls, @NotNull Gson gson, @NotNull RestEndpointResolver resolver) {
+    public static <T> T create(
+        @NotNull URI uri,
+        @NotNull Class<T> cls,
+        @NotNull Gson gson,
+        @NotNull RestEndpointResolver resolver,
+        @NotNull String userAgent
+    ) {
         final Object proxy = Proxy.newProxyInstance(
             cls.getClassLoader(),
             new Class[]{cls, RestProxy.class},
-            new ClientInvocationHandler(cls, uri, gson, resolver)
+            new ClientInvocationHandler(cls, uri, gson, resolver, userAgent)
         );
 
         return cls.cast(proxy);
@@ -67,12 +74,14 @@ public class RestClient {
         private final Class<T> cls;
         private Gson gson;
         private RestEndpointResolver resolver;
+        private String userAgent;
 
         private Builder(@NotNull URI uri, @NotNull Class<T> cls) {
             this.uri = uri;
             this.cls = cls;
             this.gson = RestConstants.DEFAULT_GSON;
             this.resolver = methodName -> methodName;
+            this.userAgent = DEFAULT_USER_AGENT;
         }
 
         @NotNull
@@ -86,9 +95,14 @@ public class RestClient {
             return this;
         }
 
+        public Builder<T> setUserAgent(@NotNull String userAgent) {
+            this.userAgent = userAgent;
+            return this;
+        }
+
         @NotNull
         public T create() {
-            return RestClient.create(uri, cls, gson, resolver);
+            return RestClient.create(uri, cls, gson, resolver, userAgent);
         }
     }
 
@@ -100,18 +114,21 @@ public class RestClient {
         private final RestEndpointResolver resolver;
         private final ExecutorService httpExecutor;
         private final HttpClient client;
+        private final String userAgent;
         private final ThreadLocal<Type> resultType = new ThreadLocal<>();
 
         private ClientInvocationHandler(
             @NotNull Class<?> clientClass,
             @NotNull URI uri,
             @NotNull Gson gson,
-            @NotNull RestEndpointResolver resolver
+            @NotNull RestEndpointResolver resolver,
+            @NotNull String userAgent
         ) {
             this.clientClass = clientClass;
             this.uri = uri;
             this.gson = gson;
             this.resolver = resolver;
+            this.userAgent = userAgent;
             this.httpExecutor = Executors.newSingleThreadExecutor();
             this.client = HttpClient.newBuilder()
                 .executor(httpExecutor)
@@ -175,6 +192,7 @@ public class RestClient {
                 final HttpRequest.Builder builder = HttpRequest.newBuilder()
                     .uri(URI.create(url.toString()))
                     .header("Content-Type", "application/json")
+                    .header("User-Agent", userAgent)
                     .POST(BodyPublishers.ofString(requestString));
 
                 if (mapping != null && mapping.timeout() > 0) {
