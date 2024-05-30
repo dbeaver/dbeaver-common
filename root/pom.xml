@@ -13,7 +13,7 @@
 
     <properties>
         <tycho-version>4.0.4</tycho-version>
-        <eclipse-version>2024-06/202405031000/</eclipse-version>
+        <eclipse-version>2024-06</eclipse-version>
         <elk-version>0.8.1</elk-version>
         <eclipse-repo-url>https://download.eclipse.org/releases</eclipse-repo-url>
         <eclipse-p2-repo.url>${eclipse-repo-url}/${eclipse-version}/</eclipse-p2-repo.url>
