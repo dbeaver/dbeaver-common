@@ -20,6 +20,7 @@ package org.jkiss.utils;
 import org.jkiss.code.NotNull;
 import org.jkiss.code.Nullable;
 
+import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 import java.util.function.Function;
@@ -1099,5 +1100,17 @@ public class CommonUtils {
     @NotNull
     public static String normalizeTableNames(@NotNull String sql, @Nullable String prefix) {
         return sql.replaceAll("\\{table_prefix}", isEmpty(prefix) ? "" : prefix + ".");
+    }
+
+    //fixme take out to common
+    public static String makeOsDependencePath(String res) {
+        if (res == null) return null;
+        if (File.separatorChar == '\\') {
+            // From Windows to Linux/Mac
+            return res.replace('/', File.separatorChar);
+        } else {
+            // From Linux/Mac to Windows
+            return res.replace('\\', File.separatorChar);
+        }
     }
 }
