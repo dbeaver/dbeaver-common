@@ -19,11 +19,22 @@ package org.jkiss.utils;
 import com.google.gson.*;
 
 import java.lang.reflect.Type;
+import java.time.*;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.TemporalAccessor;
+import java.time.temporal.TemporalQueries;
+import java.util.Date;
 
 public class GsonUtils {
+
+    private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter
+        .ofPattern("MMM d, yyyy, h:mm:ss a")
+        .withZone(ZoneId.of("UTC"));
+
     public static GsonBuilder gsonBuilder() {
         return new GsonBuilder()
             .registerTypeHierarchyAdapter(byte[].class, new ByteArrayToBase64TypeAdapter())
+            .registerTypeAdapter(Date.class, new DateTypeAdapter())
             .serializeNulls()
             .enableComplexMapKeySerialization()
             .setPrettyPrinting();
@@ -36,6 +47,35 @@ public class GsonUtils {
 
         public JsonElement serialize(byte[] src, Type typeOfSrc, JsonSerializationContext context) {
             return new JsonPrimitive(Base64.encode(src));
+        }
+    }
+
+    public static class DateTypeAdapter implements JsonSerializer<Date>, JsonDeserializer<Date> {
+        @Override
+        public synchronized JsonElement serialize(Date date, Type type, JsonSerializationContext jsonSerializationContext) {
+            try {
+                if (date instanceof java.sql.Time) {
+                    return new JsonPrimitive(DateTimeFormatter.ISO_TIME.format(Instant.ofEpochMilli(date.getTime()).atZone(ZoneId.of("UTC"))));
+                } else if (date instanceof java.sql.Date) {
+                    return new JsonPrimitive(DateTimeFormatter.ISO_DATE.format(((java.sql.Date) date).toLocalDate()));
+                } else {
+                    return new JsonPrimitive(LocalDateTime.ofInstant(date.toInstant(), ZoneId.of("UTC")).format(DATE_TIME_FORMATTER));
+                }
+            } catch (Exception ex) {
+                return new JsonPrimitive(date.toString());
+            }
+        }
+
+        @Override
+        public synchronized Date deserialize(JsonElement jsonElement, Type type, JsonDeserializationContext jsonDeserializationContext) {
+            final TemporalAccessor accessor = DATE_TIME_FORMATTER.parse(jsonElement.getAsString());
+            final LocalDate localDate = accessor.query(TemporalQueries.localDate());
+            final LocalTime localTime = accessor.query(TemporalQueries.localTime());
+            if (localTime != null) {
+                return Date.from(LocalDateTime.of(localDate, localTime).toInstant(ZoneOffset.UTC));
+            } else {
+                return Date.from(localDate.atStartOfDay().toInstant(ZoneOffset.UTC));
+            }
         }
     }
 }
