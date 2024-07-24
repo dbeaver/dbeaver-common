@@ -34,7 +34,7 @@ public class GsonUtils {
     public static GsonBuilder gsonBuilder() {
         return new GsonBuilder()
             .registerTypeHierarchyAdapter(byte[].class, new ByteArrayToBase64TypeAdapter())
-            .registerTypeAdapter(Date.class, new DateTypeAdapter())
+            .registerTypeHierarchyAdapter(Date.class, new DateTypeAdapter())
             .serializeNulls()
             .enableComplexMapKeySerialization()
             .setPrettyPrinting();
