@@ -28,7 +28,7 @@ import java.util.Date;
 public class GsonUtils {
 
     private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter
-        .ofPattern("MMM d, yyyy, h:mm:ss a")
+        .ofPattern("MMM d, yyyy[, h:mm:ss a]")
         .withZone(ZoneId.of("UTC"));
 
     public static GsonBuilder gsonBuilder() {
@@ -53,24 +53,14 @@ public class GsonUtils {
     public static class DateTypeAdapter implements JsonSerializer<Date>, JsonDeserializer<Date> {
         @Override
         public synchronized JsonElement serialize(Date date, Type type, JsonSerializationContext jsonSerializationContext) {
-            try {
-                if (date instanceof java.sql.Time) {
-                    return new JsonPrimitive(DateTimeFormatter.ISO_TIME.format(Instant.ofEpochMilli(date.getTime()).atZone(ZoneId.of("UTC"))));
-                } else if (date instanceof java.sql.Date) {
-                    return new JsonPrimitive(DateTimeFormatter.ISO_DATE.format(((java.sql.Date) date).toLocalDate()));
-                } else {
-                    return new JsonPrimitive(LocalDateTime.ofInstant(date.toInstant(), ZoneId.of("UTC")).format(DATE_TIME_FORMATTER));
-                }
-            } catch (Exception ex) {
-                return new JsonPrimitive(date.toString());
-            }
+            return new JsonPrimitive(LocalDateTime.ofInstant(date.toInstant(), ZoneId.of("UTC")).format(DATE_TIME_FORMATTER));
         }
 
         @Override
         public synchronized Date deserialize(JsonElement jsonElement, Type type, JsonDeserializationContext jsonDeserializationContext) {
-            final TemporalAccessor accessor = DATE_TIME_FORMATTER.parse(jsonElement.getAsString());
-            final LocalDate localDate = accessor.query(TemporalQueries.localDate());
-            final LocalTime localTime = accessor.query(TemporalQueries.localTime());
+            TemporalAccessor accessor = DATE_TIME_FORMATTER.parse(jsonElement.getAsString());
+            LocalDate localDate = accessor.query(TemporalQueries.localDate());
+            LocalTime localTime = accessor.query(TemporalQueries.localTime());
             if (localTime != null) {
                 return Date.from(LocalDateTime.of(localDate, localTime).toInstant(ZoneOffset.UTC));
             } else {
