@@ -24,11 +24,13 @@ import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAccessor;
 import java.time.temporal.TemporalQueries;
 import java.util.Date;
+import java.util.Locale;
 
 public class GsonUtils {
 
     private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter
         .ofPattern("MMM d, yyyy[, h:mm:ss a]")
+        .localizedBy(Locale.ENGLISH)
         .withZone(ZoneId.of("UTC"));
 
     public static GsonBuilder gsonBuilder() {
