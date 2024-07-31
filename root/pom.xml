@@ -12,6 +12,7 @@
     <description>DBeaver build root module</description>
 
     <properties>
+        <maven>3.9.6</maven>
         <tycho-version>4.0.8</tycho-version>
         <eclipse-version>2024-06</eclipse-version>
         <elk-version>0.9.1</elk-version>
