@@ -46,7 +46,7 @@
 
         <dbeaver.common.version>2.2.0-SNAPSHOT</dbeaver.common.version>
         <lm.version>3.0.4-SNAPSHOT</lm.version>
-        <dm.version>0.0.2-SNAPSHOT</dm.version>
+        <dm.version>0.0.3-SNAPSHOT</dm.version>
     </properties>
 
     <dependencyManagement>
