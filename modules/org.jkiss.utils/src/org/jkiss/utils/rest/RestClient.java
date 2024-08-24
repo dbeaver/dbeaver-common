@@ -262,10 +262,10 @@ public class RestClient {
     private static void handleError(String contents) throws RestException {
         if (contents.startsWith("<")) {
             // Seems to be html error page
-            Matcher matcher = Pattern.compile("<title>(.+)</title>").matcher(contents);
-            if (matcher.find()) {
-                throw new RestException("Server error: " + matcher.group(1));
-            }
+//            Matcher matcher = Pattern.compile("<title>(.+)</title>").matcher(contents);
+//            if (matcher.find()) {
+//                throw new RestException("Server error: " + matcher.group(1));
+//            }
             throw new RestException(contents);
         }
         String[] stackTraceRows = contents.split("\n");
