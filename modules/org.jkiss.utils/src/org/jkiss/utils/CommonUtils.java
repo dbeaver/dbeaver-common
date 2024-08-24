@@ -374,7 +374,7 @@ public class CommonUtils {
         } else {
             String strValue = toString(object);
             if (strValue.isBlank()) {
-                return 0;
+                return def;
             }
             try {
                 return Integer.parseInt(strValue);
