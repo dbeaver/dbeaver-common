@@ -19,6 +19,7 @@ package org.jkiss.utils.rest;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.Strictness;
+import com.google.gson.ToNumberPolicy;
 
 public class RpcConstants {
     public static final int SC_OK = 200;
@@ -27,8 +28,9 @@ public class RpcConstants {
     public static final int SC_NOT_FOUND = 404;
     public static final int SC_SERVER_ERROR = 500;
 
-    static final Gson DEFAULT_GSON = new GsonBuilder()
+    public static final Gson DEFAULT_GSON = new GsonBuilder()
         .setStrictness(Strictness.LENIENT)
+        .setObjectToNumberStrategy(ToNumberPolicy.LONG_OR_DOUBLE)
         .disableHtmlEscaping()
         .serializeNulls()
         .create();

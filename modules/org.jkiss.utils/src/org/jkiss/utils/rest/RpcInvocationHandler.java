@@ -25,12 +25,10 @@ import org.jkiss.utils.CommonUtils;
 
 import java.lang.reflect.*;
 import java.net.URI;
-import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 public abstract class RpcInvocationHandler implements InvocationHandler, RestProxy {
-    private static final Pattern ST_LINE_PATTERN = Pattern.compile("\\s*at\\s+([\\w/.$]+)\\((.+)\\)");
 
     @NotNull
     private final Class<?> clientClass;
@@ -94,7 +92,7 @@ public abstract class RpcInvocationHandler implements InvocationHandler, RestPro
         }
 
         try {
-            String contents = invokeRemoteMethod(method, mapping, parameters, values);
+            String contents = invokeRemoteMethod(method, mapping, values);
 
             Type returnType = resultType.get();
             if (returnType == null) {
@@ -134,7 +132,6 @@ public abstract class RpcInvocationHandler implements InvocationHandler, RestPro
     protected abstract String invokeRemoteMethod(
         @NotNull Method method,
         @Nullable RequestMapping mapping,
-        @NotNull Parameter[] parameters,
         @NotNull Map<String, JsonElement> values);
 
     protected abstract void closeClient();
@@ -147,48 +144,6 @@ public abstract class RpcInvocationHandler implements InvocationHandler, RestPro
     @Override
     public void setNextCallResultType(Type type) {
         this.resultType.set(type);
-    }
-
-    protected static void handleRpcError(String contents) throws RpcException {
-        if (contents.startsWith("<")) {
-            // Seems to be html error page
-//            Matcher matcher = Pattern.compile("<title>(.+)</title>").matcher(contents);
-//            if (matcher.find()) {
-//                throw new RestException("Server error: " + matcher.group(1));
-//            }
-            throw new RpcException(contents);
-        }
-        String[] stackTraceRows = contents.split("\n");
-        String errorLine = stackTraceRows[0];
-        List<StackTraceElement> stackTraceElements = new ArrayList<>();
-        for (int i = 1; i < stackTraceRows.length; i++) {
-            Matcher matcher = ST_LINE_PATTERN.matcher(stackTraceRows[i]);
-            if (matcher.find()) {
-                String methodRef = matcher.group(1);
-                int divPos = methodRef.lastIndexOf('.');
-                String className = methodRef.substring(0, divPos);
-                String methodName = methodRef.substring(divPos + 1);
-
-                String classRef = matcher.group(2);
-                divPos = classRef.indexOf(':');
-                String fileName;
-                int fileLine;
-                if (divPos == -1) {
-                    fileName = classRef;
-                    fileLine = -1;
-                } else {
-                    fileName = classRef.substring(0, divPos).trim();
-                    fileLine = CommonUtils.toInt(classRef.substring(divPos + 1).trim());
-                }
-                stackTraceElements.add(
-                    new StackTraceElement(className, methodName, fileName, fileLine));
-            }
-        }
-        RpcException runtimeException = new RpcException(errorLine);
-        Collections.addAll(stackTraceElements, runtimeException.getStackTrace());
-        runtimeException.setStackTrace(stackTraceElements.toArray(new StackTraceElement[0]));
-
-        throw runtimeException;
     }
 
 }
