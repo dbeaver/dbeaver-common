@@ -18,6 +18,7 @@ package org.jkiss.utils.rest;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
+import com.google.gson.JsonSyntaxException;
 import org.jkiss.code.NotNull;
 import org.jkiss.code.Nullable;
 
@@ -77,6 +78,22 @@ public class JsonRpcClient extends RpcClient {
             @NotNull String userAgent
         ) {
             super(clientClass, uri, gson, userAgent);
+        }
+
+        @Override
+        protected void handleHttpError(String contents) throws RpcException {
+            try {
+                Map map = RpcConstants.DEFAULT_GSON.fromJson(contents, Map.class);
+                Map<String, Object> error = (Map<String, Object>) map.get("error");
+                if (error != null) {
+                    Object message = error.get("message");
+                    if (message != null) {
+                        throw new RpcException(message.toString());
+                    }
+                }
+            } catch (JsonSyntaxException ignored) {
+            }
+            super.handleHttpError(contents);
         }
 
         @Override

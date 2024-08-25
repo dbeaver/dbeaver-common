@@ -99,7 +99,7 @@ public abstract class HttpTransportInvocationHandler extends RpcInvocationHandle
         }
     }
 
-    protected static void handleHttpError(String contents) throws RpcException {
+    protected void handleHttpError(String contents) throws RpcException {
         if (contents.startsWith("<")) {
             // Seems to be html error page
 //            Matcher matcher = Pattern.compile("<title>(.+)</title>").matcher(contents);
