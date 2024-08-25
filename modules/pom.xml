@@ -15,6 +15,7 @@
 
     <modules>
         <module>org.jkiss.utils</module>
+        <module>com.dbeaver.rpc</module>
     </modules>
 
 </project>
