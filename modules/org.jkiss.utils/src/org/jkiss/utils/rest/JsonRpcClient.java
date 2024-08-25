@@ -46,7 +46,7 @@ public class JsonRpcClient extends RpcClient {
         private Builder(@NotNull URI uri, @NotNull Class<T> cls) {
             this.uri = uri;
             this.cls = cls;
-            this.gson = RpcConstants.DEFAULT_GSON;
+            this.gson = RpcConstants.COMPACT_GSON;
             this.userAgent = DEFAULT_USER_AGENT;
         }
 
@@ -83,7 +83,7 @@ public class JsonRpcClient extends RpcClient {
         @Override
         protected void handleHttpError(String contents) throws RpcException {
             try {
-                Map map = RpcConstants.DEFAULT_GSON.fromJson(contents, Map.class);
+                Map<?, ?> map = gson.fromJson(contents, Map.class);
                 Map<String, Object> error = (Map<String, Object>) map.get("error");
                 if (error != null) {
                     Object message = error.get("message");

@@ -34,4 +34,12 @@ public class RpcConstants {
         .disableHtmlEscaping()
         .serializeNulls()
         .create();
+
+    public static final Gson COMPACT_GSON = new GsonBuilder()
+        .setStrictness(Strictness.LENIENT)
+        .setObjectToNumberStrategy(ToNumberPolicy.LONG_OR_DOUBLE)
+        .disableHtmlEscaping()
+        .create();
+
+
 }
