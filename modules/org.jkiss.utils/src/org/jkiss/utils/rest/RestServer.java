@@ -131,16 +131,16 @@ public class RestServer<T> {
 
         @Override
         public void handle(HttpExchange exchange) throws IOException {
-            Response<?> response;
-
-            try {
-                response = createResponse(exchange);
-            } catch (IOException e) {
-                log.log(Level.SEVERE, "IO error", e);
-                response = new Response<>(e.getMessage(), String.class, 500);
-            }
 
             try (exchange) {
+                Response<?> response;
+                try {
+                    response = executeRequest(exchange);
+                } catch (IOException e) {
+                    log.log(Level.SEVERE, "IO error", e);
+                    response = new Response<>(e.getMessage(), String.class, 500);
+                }
+
                 Object responseObject = response.object;
                 if (responseObject == null) {
                     responseObject = "Internal error";
@@ -190,7 +190,7 @@ public class RestServer<T> {
         }
 
         @NotNull
-        protected Response<?> createResponse(@NotNull HttpExchange exchange) throws IOException {
+        protected Response<?> executeRequest(@NotNull HttpExchange exchange) throws IOException {
             if (!filter.test(exchange.getRemoteAddress())) {
                 return new Response<>("Access is forbidden", String.class, RpcConstants.SC_FORBIDDEN);
             }
@@ -226,15 +226,13 @@ public class RestServer<T> {
             try {
                 final Object result = method.invoke(object, values);
                 final Type type = method.getGenericReturnType();
-                return new Response<>(result, type, RpcConstants.SC_OK);
+                return createResponseContent(result, type);
             } catch (Throwable e) {
                 if (e instanceof InvocationTargetException ite) {
                     e = ite.getTargetException();
                 }
                 log.log(Level.SEVERE, "RPC call '" + uri + "' failed: " + e.getMessage());
-                StringWriter buf = new StringWriter();
-                e.printStackTrace(new PrintWriter(buf, true));
-                return new Response<>(buf.toString(), String.class, RpcConstants.SC_SERVER_ERROR);
+                return createResponseError(e);
             }
         }
 
@@ -269,6 +267,18 @@ public class RestServer<T> {
 
             return Collections.unmodifiableMap(mappings);
         }
+    }
+
+    @NotNull
+    private static Response<String> createResponseError(Throwable e) {
+        StringWriter buf = new StringWriter();
+        e.printStackTrace(new PrintWriter(buf, true));
+        return new Response<>(buf.toString(), String.class, RpcConstants.SC_SERVER_ERROR);
+    }
+
+    @NotNull
+    private static Response<Object> createResponseContent(Object result, Type type) {
+        return new Response<>(result, type, RpcConstants.SC_OK);
     }
 
     public static final class Builder<T> {
