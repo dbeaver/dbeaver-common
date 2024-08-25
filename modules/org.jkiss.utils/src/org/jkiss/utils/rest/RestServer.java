@@ -129,7 +129,6 @@ public class RestServer<T> {
             this.filter = filter;
         }
 
-        @SuppressWarnings("TryFinallyCanBeTryWithResources")
         @Override
         public void handle(HttpExchange exchange) throws IOException {
             Response<?> response;
@@ -141,12 +140,12 @@ public class RestServer<T> {
                 response = new Response<>(e.getMessage(), String.class, 500);
             }
 
-            try {
+            try (exchange) {
                 Object responseObject = response.object;
                 if (responseObject == null) {
                     responseObject = "Internal error";
                 }
-                if (response.code == RestConstants.SC_OK) {
+                if (response.code == RpcConstants.SC_OK) {
                     String responseText;
                     if (response.type == void.class) {
                         responseText = CommonUtils.toString(response.object);
@@ -157,16 +156,16 @@ public class RestServer<T> {
                         } catch (Throwable e) {
                             // Serialization error
                             StringWriter buf = new StringWriter();
-                            new RestException("JSON serialization error: " + e.getMessage(), e).printStackTrace(new PrintWriter(buf, true));
+                            new RpcException("JSON serialization error: " + e.getMessage(), e).printStackTrace(new PrintWriter(buf, true));
 
-                            sendError(exchange, RestConstants.SC_SERVER_ERROR, buf.toString());
+                            sendError(exchange, RpcConstants.SC_SERVER_ERROR, buf.toString());
                             return;
                         }
                         exchange.getResponseHeaders().add("Content-Type", "application/json");
                     }
                     byte[] responseBytes = responseText.getBytes(StandardCharsets.UTF_8);
 
-                    exchange.sendResponseHeaders(RestConstants.SC_OK, responseBytes.length);
+                    exchange.sendResponseHeaders(RpcConstants.SC_OK, responseBytes.length);
                     try (OutputStream responseBody = exchange.getResponseBody()) {
                         responseBody.write(responseBytes);
                     }
@@ -176,8 +175,6 @@ public class RestServer<T> {
             } catch (Throwable e) {
                 log.log(Level.SEVERE, "Internal IO error", e);
                 throw e;
-            } finally {
-                exchange.close();
             }
         }
 
@@ -195,11 +192,11 @@ public class RestServer<T> {
         @NotNull
         protected Response<?> createResponse(@NotNull HttpExchange exchange) throws IOException {
             if (!filter.test(exchange.getRemoteAddress())) {
-                return new Response<>("Access is forbidden", String.class, RestConstants.SC_FORBIDDEN);
+                return new Response<>("Access is forbidden", String.class, RpcConstants.SC_FORBIDDEN);
             }
 
             if (!exchange.getRequestMethod().equalsIgnoreCase("POST")) {
-                return new Response<>("Unsupported method", String.class, RestConstants.SC_UNSUPPORTED);
+                return new Response<>("Unsupported method", String.class, RpcConstants.SC_UNSUPPORTED);
             }
 
             final URI uri = exchange.getRequestURI();
@@ -207,7 +204,7 @@ public class RestServer<T> {
             final Method method = mappings.get(path);
 
             if (method == null) {
-                return new Response<>("Mapping " + path + " not found", String.class, RestConstants.SC_NOT_FOUND);
+                return new Response<>("Mapping " + path + " not found", String.class, RpcConstants.SC_NOT_FOUND);
             }
 
             final Map<String, JsonElement> request;
@@ -229,15 +226,15 @@ public class RestServer<T> {
             try {
                 final Object result = method.invoke(object, values);
                 final Type type = method.getGenericReturnType();
-                return new Response<>(result, type, RestConstants.SC_OK);
+                return new Response<>(result, type, RpcConstants.SC_OK);
             } catch (Throwable e) {
-                if (e instanceof InvocationTargetException) {
-                    e = ((InvocationTargetException) e).getTargetException();
+                if (e instanceof InvocationTargetException ite) {
+                    e = ite.getTargetException();
                 }
                 log.log(Level.SEVERE, "RPC call '" + uri + "' failed: " + e.getMessage());
                 StringWriter buf = new StringWriter();
                 e.printStackTrace(new PrintWriter(buf, true));
-                return new Response<>(buf.toString(), String.class, RestConstants.SC_SERVER_ERROR);
+                return new Response<>(buf.toString(), String.class, RpcConstants.SC_SERVER_ERROR);
             }
         }
 
@@ -287,7 +284,7 @@ public class RestServer<T> {
         private Builder(@NotNull T object, @NotNull Class<T> cls) {
             this.object = object;
             this.cls = cls;
-            this.gson = RestConstants.DEFAULT_GSON;
+            this.gson = RpcConstants.DEFAULT_GSON;
             this.port = 0;
             this.backlog = 0;
         }

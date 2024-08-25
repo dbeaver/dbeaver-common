@@ -6,6 +6,7 @@ Bundle-SymbolicName: com.dbeaver.rpc
 Bundle-Version: 1.0.0.qualifier
 Bundle-Release-Date: 20240205
 Bundle-RequiredExecutionEnvironment: JavaSE-17
-Require-Bundle: com.google.gson
+Require-Bundle: org.jkiss.utils,
+ com.google.gson
 Export-Package: com.dbeaver.rpc
 Automatic-Module-Name: com.dbeaver.rpc
