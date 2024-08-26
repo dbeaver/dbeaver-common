@@ -8,7 +8,7 @@
     <version>2.2.0-SNAPSHOT</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
-  <artifactId>org.jkiss.rpc</artifactId>
+  <artifactId>com.dbeaver.rpc</artifactId>
   <name>RPC framework</name>
   <packaging>eclipse-plugin</packaging>
 
