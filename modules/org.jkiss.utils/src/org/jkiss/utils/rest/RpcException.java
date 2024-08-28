@@ -16,20 +16,20 @@
  */
 package org.jkiss.utils.rest;
 
-public class RestException extends RuntimeException {
-    public RestException(String message) {
+public class RpcException extends RuntimeException {
+    public RpcException(String message) {
         super(message);
     }
 
-    public RestException(String message, Throwable cause) {
+    public RpcException(String message, Throwable cause) {
         super(message, cause);
     }
 
-    public RestException(Throwable cause) {
+    public RpcException(Throwable cause) {
         super(cause);
     }
 
-    public RestException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
+    public RpcException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
         super(message, cause, enableSuppression, writableStackTrace);
     }
 }

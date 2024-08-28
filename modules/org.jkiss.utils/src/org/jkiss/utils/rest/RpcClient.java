@@ -14,30 +14,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.jkiss.utils.rest;
 
 import org.jkiss.code.NotNull;
-import org.jkiss.utils.CommonUtils;
 
-/**
- * Advanced rest endpoint resolver.
- * Gets first word from the method name and puts it to the end of the result.
- */
-public class RestEndpointResolverAdvanced implements RestEndpointResolver {
+import java.lang.reflect.Proxy;
+
+public abstract class RpcClient {
+
+    protected RpcClient() {
+        // prevents instantiation
+    }
 
     @NotNull
-    @Override
-    public String generateEndpointName(String methodName) {
-        String[] parts = methodName.split("(?=\\p{Lu})");
-        if (parts.length == 1) {
-            return parts[0];
-        }
-        String[] result = new String[parts.length];
-        result[result.length - 1] = parts[0].toLowerCase();
-        for (int i = 1; i < parts.length; i++) {
-            result[i - 1] = parts[i].toLowerCase();
-        }
-        return CommonUtils.joinStrings("/", result);
+    protected static <T> T createProxy(
+        @NotNull Class<T> cls,
+        @NotNull RpcInvocationHandler invocationHandler
+    ) {
+        final Object proxy = Proxy.newProxyInstance(
+            cls.getClassLoader(),
+            new Class[]{cls, RestProxy.class},
+            invocationHandler
+        );
+
+        return cls.cast(proxy);
     }
+
 }

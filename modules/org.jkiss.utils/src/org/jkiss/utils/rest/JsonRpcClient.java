@@ -18,17 +18,19 @@ package org.jkiss.utils.rest;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
+import com.google.gson.JsonSyntaxException;
 import org.jkiss.code.NotNull;
 import org.jkiss.code.Nullable;
-import org.jkiss.utils.CommonUtils;
 
 import java.lang.reflect.Method;
 import java.net.URI;
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
-public class RestClient extends RpcClient {
+public class JsonRpcClient extends RpcClient {
 
-    private static final String DEFAULT_USER_AGENT = "DBeaver RPC Client";
+    private static final String DEFAULT_USER_AGENT = "JsonRpc Client";
 
     @NotNull
     public static <T> Builder<T> builder(@NotNull URI uri, @NotNull Class<T> cls) {
@@ -39,25 +41,18 @@ public class RestClient extends RpcClient {
         private final URI uri;
         private final Class<T> cls;
         private Gson gson;
-        private RestEndpointResolver resolver;
         private String userAgent;
 
         private Builder(@NotNull URI uri, @NotNull Class<T> cls) {
             this.uri = uri;
             this.cls = cls;
-            this.gson = RpcConstants.DEFAULT_GSON;
-            this.resolver = methodName -> methodName;
+            this.gson = RpcConstants.COMPACT_GSON;
             this.userAgent = DEFAULT_USER_AGENT;
         }
 
         @NotNull
         public Builder<T> setGson(@NotNull Gson gson) {
             this.gson = gson;
-            return this;
-        }
-
-        public Builder<T> setEndpointResolver(@NotNull RestEndpointResolver resolver) {
-            this.resolver = resolver;
             return this;
         }
 
@@ -70,23 +65,35 @@ public class RestClient extends RpcClient {
         public T create() {
             return createProxy(
                 cls,
-                new RestInvocationHandler(cls, uri, gson, resolver, userAgent));
+                new JsonRpcInvocationHandler(cls, uri, gson, userAgent));
         }
     }
 
-    static class RestInvocationHandler extends HttpTransportInvocationHandler {
+    private static class JsonRpcInvocationHandler extends HttpTransportInvocationHandler {
 
-        private final RestEndpointResolver resolver;
-
-        RestInvocationHandler(
+        private JsonRpcInvocationHandler(
             @NotNull Class<?> clientClass,
             @NotNull URI uri,
             @NotNull Gson gson,
-            @NotNull RestEndpointResolver resolver,
             @NotNull String userAgent
         ) {
             super(clientClass, uri, gson, userAgent);
-            this.resolver = resolver;
+        }
+
+        @Override
+        protected void handleHttpError(String contents) throws RpcException {
+            try {
+                Map<?, ?> map = gson.fromJson(contents, Map.class);
+                Map<String, Object> error = (Map<String, Object>) map.get("error");
+                if (error != null) {
+                    Object message = error.get("message");
+                    if (message != null) {
+                        throw new RpcException(message.toString());
+                    }
+                }
+            } catch (JsonSyntaxException ignored) {
+            }
+            super.handleHttpError(contents);
         }
 
         @Override
@@ -96,18 +103,12 @@ public class RestClient extends RpcClient {
             @NotNull Map<String, JsonElement> values
         ) {
             try {
-                String endpoint = mapping == null ? null : mapping.value();
-                if (CommonUtils.isEmpty(endpoint)) {
-                    endpoint = resolver.generateEndpointName(method.getName());
-                }
-                StringBuilder url = new StringBuilder();
-                url.append(uri);
-                if (url.charAt(url.length() - 1) != '/') url.append('/');
-                url.append(endpoint);
+                Map<String, Object> fullRequest = new LinkedHashMap<>();
+                List<JsonElement> paramList = values.values().stream().toList();
+                fullRequest.put(method.getName(), paramList);
+                String requestString = gson.toJson(fullRequest);
 
-                String requestString = gson.toJson(values);
-
-                return super.invokeRemoteMethodOverHttp(URI.create(url.toString()), requestString, mapping);
+                return super.invokeRemoteMethodOverHttp(uri, requestString, mapping);
             } catch (RuntimeException e) {
                 throw e;
             } catch (Exception e) {
@@ -116,4 +117,5 @@ public class RestClient extends RpcClient {
         }
 
     }
+
 }
