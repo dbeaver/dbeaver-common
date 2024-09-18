@@ -334,7 +334,7 @@ public class CSVReader implements Closeable {
      *
      * @return true if the reader can no longer be read from.
      */
-    private boolean isClosed() {
+    public boolean isClosed() {
         if (!verifyReader) {
             return false;
         }
