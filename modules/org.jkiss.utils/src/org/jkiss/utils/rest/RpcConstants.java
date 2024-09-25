@@ -38,6 +38,7 @@ public class RpcConstants {
     public static final Gson COMPACT_GSON = new GsonBuilder()
         .setStrictness(Strictness.LENIENT)
         .setObjectToNumberStrategy(ToNumberPolicy.LONG_OR_DOUBLE)
+        .setDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
         .disableHtmlEscaping()
         .create();
 

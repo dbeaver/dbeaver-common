@@ -87,8 +87,11 @@ public class JsonRpcClient extends RpcClient {
                 Map<String, Object> error = (Map<String, Object>) map.get("error");
                 if (error != null) {
                     Object message = error.get("message");
+                    Object stacktrace = error.get("stacktrace");
                     if (message != null) {
-                        throw new RpcException(message.toString());
+                        RpcException rpcException = new RpcException(message.toString());
+                        //rpcException.setStackTrace();
+                        throw rpcException;
                     }
                 }
             } catch (JsonSyntaxException ignored) {
