@@ -362,6 +362,16 @@ public class CommonUtils {
         }
     }
 
+    public static boolean toBoolean(@Nullable Object object, boolean def) {
+        if (object == null) {
+            return def;
+        } else if (object instanceof Boolean b) {
+            return b;
+        } else {
+            return getBoolean(object.toString(), def);
+        }
+    }
+
     public static boolean toBoolean(@Nullable Object object) {
         return object != null && getBoolean(object.toString());
     }
