@@ -109,7 +109,7 @@ public abstract class HttpTransportInvocationHandler extends RpcInvocationHandle
             throw new RpcException(contents);
         }
         String[] stackTraceRows = contents.split("\n");
-        String errorLine = stackTraceRows[0];
+        StringBuilder errorLineBuilder = new StringBuilder(stackTraceRows[0]);
         List<StackTraceElement> stackTraceElements = new ArrayList<>();
         for (int i = 1; i < stackTraceRows.length; i++) {
             Matcher matcher = ST_LINE_PATTERN.matcher(stackTraceRows[i]);
@@ -132,9 +132,13 @@ public abstract class HttpTransportInvocationHandler extends RpcInvocationHandle
                 }
                 stackTraceElements.add(
                     new StackTraceElement(className, methodName, fileName, fileLine));
+            } else {
+                // it may not be stack trace, but message with line separator
+                errorLineBuilder.append(CommonUtils.getLineSeparator());
+                errorLineBuilder.append(stackTraceRows[i]);
             }
         }
-        RpcException runtimeException = new RpcException(errorLine);
+        RpcException runtimeException = new RpcException(errorLineBuilder.toString());
         Collections.addAll(stackTraceElements, runtimeException.getStackTrace());
         runtimeException.setStackTrace(stackTraceElements.toArray(new StackTraceElement[0]));
 
