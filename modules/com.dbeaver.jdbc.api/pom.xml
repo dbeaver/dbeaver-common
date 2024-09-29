@@ -10,7 +10,6 @@
   </parent>
   <artifactId>com.dbeaver.jdbc.api</artifactId>
   <name>JDBC framework</name>
-  <version>1.0.0-SNAPSHOT</version>
   <packaging>eclipse-plugin</packaging>
 
   <dependencies>
