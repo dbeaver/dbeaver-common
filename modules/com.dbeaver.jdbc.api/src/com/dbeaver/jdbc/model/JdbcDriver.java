@@ -46,7 +46,7 @@ public abstract class JdbcDriver implements Driver {
     }
 
     @Override
-    public final Connection connect(String url, Properties info) throws SQLException {
+    public Connection connect(String url, Properties info) throws SQLException {
         validateConnection(url, info);
         return connectImpl(url, info);
     }
@@ -66,7 +66,7 @@ public abstract class JdbcDriver implements Driver {
     }
 
     @Override
-    public DriverPropertyInfo[] getPropertyInfo(String url, Properties info) {
+    public DriverPropertyInfo[] getPropertyInfo(String url, Properties info) throws SQLException {
         return new DriverPropertyInfo[0];
     }
 
