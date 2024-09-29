@@ -1,0 +1,11 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: DBeaver JDBC API Extensions
+Bundle-Vendor: DBeaver Corp
+Bundle-SymbolicName: com.dbeaver.jdbc.api
+Bundle-Version: 1.0.0.qualifier
+Bundle-Release-Date: 20240205
+Bundle-RequiredExecutionEnvironment: JavaSE-17
+Require-Bundle: org.jkiss.utils
+Export-Package: com.dbeaver.jdbc.model
+Automatic-Module-Name: com.dbeaver.jdbc.api
