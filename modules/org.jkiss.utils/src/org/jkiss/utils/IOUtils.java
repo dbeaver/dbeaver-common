@@ -451,4 +451,7 @@ public final class IOUtils {
         return isLocalURI(filePath.toUri());
     }
 
+    public static boolean isFileFromDefaultFS(@NotNull Path path) {
+        return path.getFileSystem().equals(FileSystems.getDefault());
+    }
 }
