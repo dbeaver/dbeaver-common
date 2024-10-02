@@ -23,13 +23,13 @@ import java.sql.SQLException;
 import java.util.Properties;
 import java.util.logging.Logger;
 
-public abstract class JdbcDriver implements Driver {
+public abstract class AbstractJdbcDriver implements Driver {
 
-    private static final Logger rootLogger = Logger.getLogger(JdbcDriver.class.getName());
+    private static final Logger rootLogger = Logger.getLogger(AbstractJdbcDriver.class.getName());
 
-    private String driverUrlPrefix;
+    private final String driverUrlPrefix;
 
-    public JdbcDriver(String driverUrlPrefix) {
+    public AbstractJdbcDriver(String driverUrlPrefix) {
         this.driverUrlPrefix = driverUrlPrefix;
     }
 
