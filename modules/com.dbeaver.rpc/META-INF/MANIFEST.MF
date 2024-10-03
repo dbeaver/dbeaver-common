@@ -3,7 +3,7 @@ Bundle-ManifestVersion: 2
 Bundle-Name: DBeaver RPC
 Bundle-Vendor: DBeaver Corp
 Bundle-SymbolicName: com.dbeaver.rpc
-Bundle-Version: 1.0.0.qualifier
+Bundle-Version: 2.2.0.qualifier
 Bundle-Release-Date: 20240205
 Bundle-RequiredExecutionEnvironment: JavaSE-17
 Require-Bundle: org.jkiss.utils,
