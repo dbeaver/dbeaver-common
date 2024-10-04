@@ -63,6 +63,11 @@
                 <version>${dbeaver.common.version}</version>
             </dependency>
             <dependency>
+                <groupId>com.dbeaver.common</groupId>
+                <artifactId>com.dbeaver.jdbc.api</artifactId>
+                <version>${dbeaver.common.version}</version>
+            </dependency>
+            <dependency>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-dependencies</artifactId>
                 <version>${spring.boot.version}</version>

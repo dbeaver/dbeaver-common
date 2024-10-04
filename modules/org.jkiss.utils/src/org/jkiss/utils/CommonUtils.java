@@ -1123,4 +1123,17 @@ public class CommonUtils {
             return res.replace('\\', File.separatorChar);
         }
     }
+
+    @NotNull
+    public static String getAllExceptionMessages(Throwable e) {
+        List<String> result = new ArrayList<>();
+        while (e != null) {
+            // skip empty messages
+            if (e.getMessage() != null) {
+                result.add(e.getMessage());
+            }
+            e = e.getCause();
+        }
+        return String.join(":\n", result);
+    }
 }

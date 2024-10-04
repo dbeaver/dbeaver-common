@@ -8,15 +8,11 @@
     <version>2.2.0-SNAPSHOT</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
-  <artifactId>com.dbeaver.rpc</artifactId>
-  <name>RPC framework</name>
+  <artifactId>com.dbeaver.jdbc.api</artifactId>
+  <name>JDBC framework</name>
   <packaging>eclipse-plugin</packaging>
 
   <dependencies>
-    <dependency>
-      <groupId>com.google.code.gson</groupId>
-      <artifactId>gson</artifactId>
-    </dependency>
     <dependency>
       <groupId>com.dbeaver.common</groupId>
       <artifactId>org.jkiss.utils</artifactId>
