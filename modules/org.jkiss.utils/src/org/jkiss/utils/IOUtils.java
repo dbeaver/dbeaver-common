@@ -28,10 +28,7 @@ import java.nio.ByteBuffer;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.channels.WritableByteChannel;
-import java.nio.file.Files;
-import java.nio.file.InvalidPathException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Comparator;
 import java.util.stream.Stream;
@@ -375,12 +372,20 @@ public final class IOUtils {
         }
     }
     public static void deleteDirectory(@NotNull Path path) throws IOException {
-        try (Stream<Path> walk = Files.walk(path)) {
-            walk
-                .sorted(Comparator.reverseOrder())
-                .map(Path::toFile)
-                .forEach(File::delete);
-        }
+        Files.walkFileTree(path,
+            new SimpleFileVisitor<>() {
+                @Override
+                public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
+                    Files.delete(dir);
+                    return FileVisitResult.CONTINUE;
+                }
+
+                @Override
+                public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+                    Files.delete(file);
+                    return FileVisitResult.CONTINUE;
+                }
+            });
     }
 
     @Nullable
@@ -448,4 +453,7 @@ public final class IOUtils {
         return isLocalURI(filePath.toUri());
     }
 
+    public static boolean isFileFromDefaultFS(@NotNull Path path) {
+        return path.getFileSystem().equals(FileSystems.getDefault());
+    }
 }
