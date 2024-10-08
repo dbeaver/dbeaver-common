@@ -9,7 +9,6 @@ Bundle-RequiredExecutionEnvironment: JavaSE-17
 Require-Bundle: com.google.gson
 Export-Package: org.jkiss.api,
  org.jkiss.code,
- org.jkiss.spi,
  org.jkiss.utils,
  org.jkiss.utils.csv,
  org.jkiss.utils.io,
