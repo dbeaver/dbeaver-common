@@ -85,6 +85,7 @@
                 <artifactId>guava</artifactId>
                 <version>${google.guava.version}</version>
             </dependency>
+            <dependency>
                 <groupId>com.google.protobuf</groupId>
                 <artifactId>protobuf-java</artifactId>
                 <version>${google.protobuf.version}</version>
