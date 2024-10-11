@@ -25,11 +25,12 @@ import java.util.logging.Logger;
 
 public abstract class AbstractJdbcDriver implements Driver {
 
-    private static final Logger rootLogger = Logger.getLogger(AbstractJdbcDriver.class.getName());
+    private final Logger rootLogger;
 
     private final String driverUrlPrefix;
 
     public AbstractJdbcDriver(String driverUrlPrefix) {
+        this.rootLogger = Logger.getLogger(getClass().getName());
         this.driverUrlPrefix = driverUrlPrefix;
     }
 
