@@ -1,0 +1,25 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [devel]
+  push:
+    branches: [devel]
+
+concurrency:
+  group: |
+      # For pull requests, group by the pull request ID
+      ${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.pull_request.number) }}
+
+      # For pushes to main, group by the branch name (e.g., 'main')
+      ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && 'main-branch' }}
+  cancel-in-progress: true
+
+jobs:
+  build-server:
+    uses: ./.github/workflows/build.yml
+    secrets: inherit
+
+  lint-server:
+    uses: ./.github/workflows/lint.yml
+    secrets: inherit
