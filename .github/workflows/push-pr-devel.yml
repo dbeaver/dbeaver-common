@@ -16,10 +16,10 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  build-server:
+  build:
     uses: ./.github/workflows/build.yml
     secrets: inherit
 
-  lint-server:
+  lint:
     uses: ./.github/workflows/lint.yml
     secrets: inherit
