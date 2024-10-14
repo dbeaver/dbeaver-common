@@ -29,11 +29,9 @@ jobs:
           repository: dbeaver/dbeaver-common
           path: dbeaver-config
 
-      - name: Copy checkstyle config
-        run: cp dbeaver-config/dbeaver-checkstyle-config.xml ./dbeaver-checkstyle-config.xml
-
-      - name: Remove checkstyle config directory
-        run: rm -rf dbeaver-config
+      - run: |
+          cp dbeaver-config/dbeaver-checkstyle-config.xml ./dbeaver-checkstyle-config.xml
+          rm -rf dbeaver-config
 
       - uses: dbeaver/action-java-checkstyle@master
         with:
