@@ -58,9 +58,7 @@ jobs:
           project_deps_path: ${{ inputs.project-deps }}
           token: ${{ secrets.DEVOPS_ISSUE_RO_TOKEN }}
 
-      - uses: stCarolas/setup-maven@v5
-        with:
-          maven-version: 3.9.6
+      - uses: wroud/github-actions/install-maven@ed1b33c49b62e7d7549fff323a80d900a86a0341
 
       - name: Set up JDK 17
         uses: actions/setup-java@v4
