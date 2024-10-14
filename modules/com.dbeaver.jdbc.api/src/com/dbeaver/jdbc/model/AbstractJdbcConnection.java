@@ -58,7 +58,7 @@ public abstract class AbstractJdbcConnection implements Connection {
     }
 
     @Override
-    public CallableStatement prepareCall(String sql, int resultSetType, int resultSetConcurrency, int resultSetHoldability) throws SQLException { // trigger checkstyle check
+    public CallableStatement prepareCall(String sql, int resultSetType, int resultSetConcurrency, int resultSetHoldability) throws SQLException { // trigger checkstyle 
         throw new SQLFeatureNotSupportedException();
     }
 
