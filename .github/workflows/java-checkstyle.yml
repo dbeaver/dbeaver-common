@@ -35,16 +35,7 @@ jobs:
       - name: Remove checkstyle config directory
         run: rm -rf dbeaver-config
 
-      - uses: dbeaver/github-actions/install-maven@devel
-
-      - name: Set up JDK 17
-        uses: actions/setup-java@v4
-        with:
-          distribution: "temurin"
-          java-version: "17"
-          cache: maven
-
-      - uses: Wroud/github-actions/java-checkstyle@ef9739614fe639609a150b2cf5ec86e5b7ac51d1
+      - uses: Wroud/github-actions/java-checkstyle@271a157838b728e5befdadbdd6fba367a44cbe57
         with:
           checkstyle_config: ./dbeaver-checkstyle-config.xml
           checkstyle_version: '10.12.0'
