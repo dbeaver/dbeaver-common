@@ -44,7 +44,7 @@ jobs:
           java-version: "17"
           cache: maven
 
-      - uses: Wroud/github-actions/java-checkstyle@013a4ecdb9d0a654b2636b09678d05a6ca9eede7
+      - uses: Wroud/github-actions/java-checkstyle@87daa273559a7ec68e4e18e9d552226edc89890b
         with:
           checkstyle_config: ./dbeaver-checkstyle-config.xml
 
