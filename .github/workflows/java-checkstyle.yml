@@ -23,9 +23,21 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Checkout checkstyle config repository
+        uses: actions/checkout@v4
+        with:
+          repository: dbeaver/dbeaver-common
+          path: dbeaver-config
+
+      - name: Copy checkstyle config
+        run: cp dbeaver-config/dbeaver-checkstyle-config.xml ./dbeaver-checkstyle-config.xml
+
+      - name: Remove checkstyle config directory
+        run: rm -rf dbeaver-config
+
       - uses: dbelyaev/action-checkstyle@master
         with:
           reporter: github-pr-annotations
           filter_mode: diff_context
-          checkstyle_config: ../dbeaver-common/dbeaver-checkstyle-config.xml
+          checkstyle_config: ./dbeaver-checkstyle-config.xml
           fail_on_error: true
