@@ -18,8 +18,10 @@ concurrency:
 jobs:
   build:
     uses: ./.github/workflows/build.yml
+    name: Check
     secrets: inherit
 
   lint:
     uses: ./.github/workflows/lint.yml
+    name: Check
     secrets: inherit
