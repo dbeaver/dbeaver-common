@@ -35,7 +35,7 @@ jobs:
       - name: Remove checkstyle config directory
         run: rm -rf dbeaver-config
 
-      - uses: dbelyaev/action-checkstyle@master
+      - uses: dbeaver/action-java-checkstyle@master
         with:
           reporter: github-pr-annotations
           filter_mode: diff_context
