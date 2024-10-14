@@ -1,0 +1,77 @@
+name: MVN Package
+
+on:
+  workflow_call:
+    inputs:
+      project-directory:
+        required: false
+        type: string
+        default: '.'
+      timeout-minutes:
+        required: false
+        type: number
+        default: 10
+      project-deps:
+        required: false
+        type: string
+
+    outputs:
+      run-id:
+        value: ${{ jobs.build-and-test.outputs.run-id }}
+
+    secrets:
+      DEVOPS_ISSUE_RO_TOKEN: 
+        required: false
+
+concurrency:
+  group: |
+      # For pull requests, group by the pull request ID
+      ${{ github.event_name == 'pull_request' && format('pr-{0}-mvn-package', github.event.pull_request.number) }}
+
+      # For pushes to main, group by the branch name (e.g., 'main')
+      ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && 'main-branch-mvn-package' }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-test:
+    name: Build
+    runs-on: ubuntu-latest
+    timeout-minutes: ${{ inputs.timeout-minutes }}
+    permissions:
+      contents: read
+
+    outputs:
+      run-id: ${{ github.run_id }}
+
+    steps:
+      - name: Set repository path variable
+        if: ${{ inputs.project-deps != null }}
+        run: echo "CHECKOUT_PATH=${GITHUB_REPOSITORY##*/}" >> $GITHUB_ENV
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          path: ${{ env.CHECKOUT_PATH || '.' }}
+
+      - name: Clone Deps Repositories
+        if: ${{ inputs.project-deps != null }}
+        uses: dbeaver/github-actions/clone-repositories@devel
+        with:
+          project_deps_path: ${{ inputs.project-deps }}
+          token: ${{ secrets.DEVOPS_ISSUE_RO_TOKEN }}
+
+      - uses: stCarolas/setup-maven@v5
+        with:
+          maven-version: 3.9.6
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: "temurin"
+          java-version: "17"
+          cache: maven
+
+      - name: Build
+        run: mvn -B -T 1C clean package
+        working-directory: ${{ inputs.project-directory }}
+

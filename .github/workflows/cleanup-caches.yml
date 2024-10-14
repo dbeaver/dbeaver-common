@@ -1,18 +1,14 @@
-name: Cleanup checks
+name: Cleanup caches
 
 on:
-  pull_request:
-    types: [closed]
-  push:
-    branches:
-      - devel
+  workflow_call:
 
 jobs:
   delete-caches:
     timeout-minutes: 5
     runs-on: ubuntu-latest
     steps:
-      - name: Cleanup
+      - name: Cleanup caches
         run: |
           gh extension install actions/gh-actions-cache
 
