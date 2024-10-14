@@ -6,7 +6,6 @@ on:
       project-directory:
         required: false
         type: string
-        default: '.'
       timeout-minutes:
         required: false
         type: number
@@ -45,7 +44,6 @@ jobs:
 
     steps:
       - name: Set repository path variable
-        if: ${{ inputs.project-deps != null }}
         run: echo "CHECKOUT_PATH=${GITHUB_REPOSITORY##*/}" >> $GITHUB_ENV
 
       - name: Checkout repository
@@ -73,5 +71,5 @@ jobs:
 
       - name: Build
         run: mvn -B -T 1C clean package
-        working-directory: ${{ inputs.project-directory }}
+        working-directory: ${{ inputs.project-directory || env.CHECKOUT_PATH || '.' }}
 

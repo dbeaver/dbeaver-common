@@ -15,7 +15,7 @@ jobs:
     name: Check
     secrets: inherit
     with:
-      timeout-minutes: 10
+      timeout-minutes: 5
 
   lint:
     uses: ./.github/workflows/java-checkstyle.yml
