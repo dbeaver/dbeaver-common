@@ -34,7 +34,10 @@ concurrency:
 jobs:
   build-and-test:
     name: Build
-    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
     timeout-minutes: ${{ inputs.timeout-minutes }}
     permissions:
       contents: read
