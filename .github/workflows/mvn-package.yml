@@ -58,7 +58,7 @@ jobs:
           project_deps_path: ${{ inputs.project-deps }}
           token: ${{ secrets.DEVOPS_ISSUE_RO_TOKEN }}
 
-      - uses: wroud/github-actions/install-maven@684cc4ff99df3ce06634a393e9dded82e26938bb
+      - uses: wroud/github-actions/install-maven@6516cc89c957b79a97cb4432cd44f3d23907d706
 
       - name: Set up JDK 17
         uses: actions/setup-java@v4
