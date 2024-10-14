@@ -35,7 +35,7 @@ jobs:
       - name: Remove checkstyle config directory
         run: rm -rf dbeaver-config
 
-      - uses: Wroud/github-actions/java-checkstyle@9c650e5fec47f08b3f8695ced420d538393e9834
+      - uses: Wroud/github-actions/java-checkstyle@dc56d38bf98f2aa7e4282ea4d465f596028131e6
         with:
           checkstyle_config: ./dbeaver-checkstyle-config.xml
           checkstyle_version: '10.12.0'
