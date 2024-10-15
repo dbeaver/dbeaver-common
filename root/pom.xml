@@ -33,6 +33,7 @@
         <jetty.version>12.0.5</jetty.version>
         <clickhouse.jdbc.version>0.6.0-patch2</clickhouse.jdbc.version>
         <google.gson.version>2.11.0</google.gson.version>
+        <google.guava.version>33.3.0-jre</google.guava.version>
         <google.protobuf.version>3.25.5</google.protobuf.version>
         <org.codehouse.mojo.version>1.7</org.codehouse.mojo.version>
         <maven-shade-plugin.version>2.0</maven-shade-plugin.version>
@@ -78,6 +79,11 @@
                 <groupId>com.google.code.gson</groupId>
                 <artifactId>gson</artifactId>
                 <version>${google.gson.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.google.guava</groupId>
+                <artifactId>guava</artifactId>
+                <version>${google.guava.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.google.protobuf</groupId>
