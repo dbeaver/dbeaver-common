@@ -27,11 +27,11 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: dbeaver/dbeaver-common
-          path: dbeaver-config
+          path: dbeaver-common
 
       - run: |
-          cp dbeaver-config/dbeaver-checkstyle-config.xml ./dbeaver-checkstyle-config.xml
-          rm -rf dbeaver-config
+          cp dbeaver-common/.github/dbeaver-checkstyle-config.xml ./dbeaver-checkstyle-config.xml
+          rm -rf dbeaver-common
 
       - uses: dbeaver/action-java-checkstyle@master
         with:
