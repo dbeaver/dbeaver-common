@@ -1,0 +1,41 @@
+name: Lint
+
+on:
+  # Allows you to reuse workflows by referencing their YAML files
+  workflow_call:
+
+concurrency:
+  group: |
+      # For pull requests, group by the pull request ID
+      ${{ github.event_name == 'pull_request' && format('pr-{0}-java-checkstyle', github.event.pull_request.number) }}
+
+      # For pushes to main, group by the branch name (e.g., 'main')
+      ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && 'main-branch-java-checkstyle' }}
+  cancel-in-progress: true
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Checkout checkstyle config repository
+        uses: actions/checkout@v4
+        with:
+          repository: dbeaver/dbeaver-common
+          path: dbeaver-common
+
+      - run: |
+          cp dbeaver-common/.github/dbeaver-checkstyle-config.xml ./dbeaver-checkstyle-config.xml
+          rm -rf dbeaver-common
+
+      - uses: dbeaver/action-java-checkstyle@master
+        with:
+          reporter: github-pr-annotations
+          filter_mode: diff_context
+          checkstyle_config: ./dbeaver-checkstyle-config.xml
+          fail_on_error: true

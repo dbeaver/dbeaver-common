@@ -1,0 +1,23 @@
+name: CI
+
+on:
+  pull_request:
+    types:
+      - opened
+      - synchronize
+      - reopened
+  push:
+    branches: [devel]
+
+jobs:
+  build:
+    uses: ./.github/workflows/mvn-package.yml
+    name: Check
+    secrets: inherit
+    with:
+      timeout-minutes: 5
+
+  lint:
+    uses: ./.github/workflows/java-checkstyle.yml
+    name: Check
+    secrets: inherit
