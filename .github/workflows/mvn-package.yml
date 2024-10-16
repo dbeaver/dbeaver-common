@@ -26,12 +26,7 @@ on:
         required: false
 
 concurrency:
-  group: |
-      # For pull requests, group by the pull request ID
-      ${{ github.event_name == 'pull_request' && format('pr-{0}-mvn-package', github.event.pull_request.number) }}
-
-      # For pushes to main, group by the branch name (e.g., 'main')
-      ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && 'main-branch-mvn-package' }}
+  group: ${{ github.event_name == 'pull_request' && format('pr-{0}-mvn-package', github.event.pull_request.number) || (github.event_name == 'push' && github.ref == 'refs/heads/main' && 'main-branch-mvn-package') || 'mvn-package' }}
   cancel-in-progress: true
 
 jobs:
