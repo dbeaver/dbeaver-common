@@ -13,6 +13,9 @@ on:
       project-deps:
         required: false
         type: string
+      mvn-args:
+        required: false
+        type: string
 
     outputs:
       run-id:
@@ -64,6 +67,6 @@ jobs:
           cache: maven
 
       - name: Build
-        run: mvn -B -T 1C clean package
+        run: mvn clean package --non-interactive -T 1C ${{ inputs.mvn-args }}
         working-directory: ${{ inputs.project-directory || env.CHECKOUT_PATH || '.' }}
 
