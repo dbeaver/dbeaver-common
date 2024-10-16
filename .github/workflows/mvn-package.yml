@@ -67,6 +67,6 @@ jobs:
           cache: maven
 
       - name: Build
-        run: mvn clean package -null -T 1C ${{ inputs.mvn-args }}
+        run: mvn clean package -B -T 1C ${{ inputs.mvn-args }}
         working-directory: ${{ inputs.project-directory || env.CHECKOUT_PATH || '.' }}
 
