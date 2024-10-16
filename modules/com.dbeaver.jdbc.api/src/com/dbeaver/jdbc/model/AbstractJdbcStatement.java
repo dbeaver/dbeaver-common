@@ -33,7 +33,7 @@ public abstract class AbstractJdbcStatement<CON extends AbstractJdbcConnection> 
     protected int fetchSize;
     protected long maxRows;
     protected String cursorName;
-    private int maxFieldSize;
+    protected int maxFieldSize;
 
     public AbstractJdbcStatement(@NotNull CON connection) throws SQLException {
         this.connection = connection;
