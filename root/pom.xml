@@ -12,7 +12,7 @@
     <description>DBeaver build root module</description>
 
     <properties>
-        <tycho-version>4.0.8</tycho-version>
+        <tycho-version>4.0.9</tycho-version>
         <eclipse-version>2024-09</eclipse-version>
         <elk-version>0.9.1</elk-version>
         <eclipse-repo-url>https://download.eclipse.org/releases</eclipse-repo-url>
