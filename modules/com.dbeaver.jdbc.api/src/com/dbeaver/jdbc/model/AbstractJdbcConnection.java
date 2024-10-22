@@ -204,7 +204,7 @@ public abstract class AbstractJdbcConnection implements Connection {
     }
 
     @Override
-    public String getSchema() {
+    public String getSchema() throws SQLException {
         return null;
     }
 
