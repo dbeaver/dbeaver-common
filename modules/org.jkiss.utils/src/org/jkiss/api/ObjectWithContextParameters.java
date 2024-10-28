@@ -16,6 +16,9 @@
  */
 package org.jkiss.api;
 
+import org.jkiss.code.NotNull;
+import org.jkiss.code.Nullable;
+
 import java.util.Map;
 
 /**
@@ -23,10 +26,12 @@ import java.util.Map;
  */
 public interface ObjectWithContextParameters {
 
+    @NotNull
     Map<String, Object> getObjectContextParameters();
 
-    Object getObjectContextParameter(String name);
+    @Nullable
+    Object getObjectContextParameter(@NotNull String name);
 
-    void setObjectContextParameter(String name, Object value);
+    void setObjectContextParameter(@NotNull String name, @Nullable Object value);
 
 }
