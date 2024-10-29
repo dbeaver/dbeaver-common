@@ -31,7 +31,10 @@ import java.util.regex.Pattern;
  * Common utils
  */
 public class CommonUtils {
-
+    /**
+     * A cached java.lang.Object instance useful for avoiding allocations. It's not safe to use it as a mutex!
+     */
+    public static final Object DUMMY = new Object();
     public static final char PARAGRAPH_CHAR = (char) 182;
 
     public static boolean isJavaIdentifier(@NotNull CharSequence str) {
