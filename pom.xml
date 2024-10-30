@@ -18,6 +18,12 @@
     <description>DBeaver Common Modules</description>
     <url>https://github.com/dbeaver/dbeaver-common</url>
 
+    <scm>
+        <connection>scm:git:git@github.com:dbeaver/dbeaver-common.git</connection>
+        <developerConnection>scm:git:git@github.com:dbeaver/dbeaver-common.git</developerConnection>
+        <url>git@github.com:dbeaver/dbeaver-common.git</url>
+    </scm>
+
     <issueManagement>
         <system>github</system>
         <url>https://github.com/dbeaver/dbeaver/issues</url>
