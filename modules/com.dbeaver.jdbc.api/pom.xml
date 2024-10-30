@@ -1,29 +1,55 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-  <modelVersion>4.0.0</modelVersion>
-  <parent>
-    <groupId>com.dbeaver.common</groupId>
-    <artifactId>com.dbeaver.common.modules</artifactId>
-    <version>2.2.0-SNAPSHOT</version>
-    <relativePath>../pom.xml</relativePath>
-  </parent>
-  <artifactId>com.dbeaver.jdbc.api</artifactId>
-  <packaging>eclipse-plugin</packaging>
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
+         xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>com.dbeaver.common</groupId>
+        <artifactId>com.dbeaver.common.modules</artifactId>
+        <version>2.2.0-SNAPSHOT</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
+    <artifactId>com.dbeaver.jdbc.api</artifactId>
+    <packaging>eclipse-plugin</packaging>
 
-  <name>JDBC framework</name>
-  <description>Framework for JDBC drivers development.</description>
-  <url>https://github.com/dbeaver/dbeaver-common</url>
+    <name>JDBC framework</name>
+    <description>Framework for JDBC drivers development.</description>
+    <url>https://github.com/dbeaver/dbeaver-common</url>
 
-  <dependencies>
-    <dependency>
-      <groupId>com.dbeaver.common</groupId>
-      <artifactId>org.jkiss.utils</artifactId>
-    </dependency>
-  </dependencies>
+    <dependencies>
+        <dependency>
+            <groupId>com.dbeaver.common</groupId>
+            <artifactId>org.jkiss.utils</artifactId>
+        </dependency>
+    </dependencies>
 
-  <build>
-    <sourceDirectory>${project.basedir}/src/</sourceDirectory>
-  </build>
+
+    <licenses>
+        <license>
+            <name>The Apache Software License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+    <developers>
+        <developer>
+            <name>Serge Rider</name>
+            <email>serge@dbeaver.com</email>
+            <url>https://github.com/serge-rider</url>
+            <organization>DBeaver Corp</organization>
+            <organizationUrl>https://github.com/dbeaver</organizationUrl>
+        </developer>
+    </developers>
+
+    <scm>
+        <connection>scm:git:git@github.com:dbeaver/dbeaver-common.git</connection>
+        <developerConnection>scm:git:git@github.com:dbeaver/dbeaver-common.git</developerConnection>
+        <url>git@github.com:dbeaver/dbeaver-common.git</url>
+    </scm>
+
+    <build>
+        <sourceDirectory>${project.basedir}/src/</sourceDirectory>
+    </build>
 
 </project>

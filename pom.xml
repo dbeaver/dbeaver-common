@@ -16,6 +16,7 @@
 
     <name>DBeaver Common dependencies</name>
     <description>DBeaver Common Modules</description>
+    <url>https://github.com/dbeaver/dbeaver-common</url>
 
     <licenses>
         <license>
@@ -35,16 +36,17 @@
         </developer>
     </developers>
 
-    <issueManagement>
-        <system>github</system>
-        <url>https://github.com/dbeaver/dbeaver/issues</url>
-    </issueManagement>
-
     <scm>
         <connection>scm:git:git@github.com:dbeaver/dbeaver-common.git</connection>
         <developerConnection>scm:git:git@github.com:dbeaver/dbeaver-common.git</developerConnection>
         <url>git@github.com:dbeaver/dbeaver-common.git</url>
     </scm>
+
+    <issueManagement>
+        <system>github</system>
+        <url>https://github.com/dbeaver/dbeaver/issues</url>
+    </issueManagement>
+
 
     <modules>
         <module>modules</module>
@@ -59,12 +61,12 @@
                     <plugin>
                         <groupId>org.sonatype.central</groupId>
                         <artifactId>central-publishing-maven-plugin</artifactId>
-                        <version>0.6.0</version>
                         <extensions>true</extensions>
                         <configuration>
                             <publishingServerId>central</publishingServerId>
                             <autoPublish>false</autoPublish>
                             <waitUntil>validated</waitUntil>
+                            <excludeArtifacts>com.dbeaver.common.modules,com.dbeaver.common.main</excludeArtifacts>
                         </configuration>
                     </plugin>
                     <plugin>
