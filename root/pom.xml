@@ -48,6 +48,9 @@
         <maven-install-plugin.version>2.5.1</maven-install-plugin.version>
         <maven-site-plugin.version>3.3</maven-site-plugin.version>
         <maven-failsafe-plugin.version>3.0.0-M5</maven-failsafe-plugin.version>
+        <maven-source-plugin.version>3.3.0</maven-source-plugin.version>
+        <maven-javadoc-plugin.version>3.6.3</maven-javadoc-plugin.version>
+        <maven-gpg-plugin.version>3.1.0</maven-gpg-plugin.version>
         <junit-jupiter-version>5.11.0</junit-jupiter-version>
         <junit-platform-version>1.11.0</junit-platform-version>
 
@@ -211,6 +214,22 @@
                     <version>${maven-failsafe-plugin.version}</version>
                 </plugin>
                 <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-source-plugin</artifactId>
+                    <version>${maven-source-plugin.version}</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-javadoc-plugin</artifactId>
+                    <version>${maven-javadoc-plugin.version}</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-gpg-plugin</artifactId>
+                    <version>${maven-gpg-plugin.version}</version>
+                </plugin>
+                <!-- JUnit -->
+                <plugin>
                     <groupId>org.junit.jupiter</groupId>
                     <artifactId>junit-jupiter-api</artifactId>
                     <version>${junit-jupiter-version}</version>
@@ -225,7 +244,7 @@
                     <artifactId>junit-platform-runner</artifactId>
                     <version>${junit-platform-version}</version>
                 </plugin>
-
+                <!-- Tycho -->
                 <plugin>
                     <groupId>org.eclipse.tycho</groupId>
                     <artifactId>tycho-p2-plugin</artifactId>

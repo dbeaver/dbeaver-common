@@ -69,7 +69,7 @@ public class IntKeyMap<VALUE> implements Map<Integer, VALUE> {
 	transient volatile int modCount;
 
 	/**
-	 * Constructs an empty <tt>IntKeyMap</tt> with the specified initial
+	 * Constructs an empty IntKeyMap with the specified initial
 	 * capacity and load factor.
 	 *
 	 * @param  initialCapacity The initial capacity.
@@ -98,7 +98,7 @@ public class IntKeyMap<VALUE> implements Map<Integer, VALUE> {
 	}
 
 	/**
-	 * Constructs an empty <tt>IntKeyMap</tt> with the specified initial
+	 * Constructs an empty IntKeyMap with the specified initial
 	 * capacity and the default load factor (0.75).
 	 *
 	 * @param  initialCapacity the initial capacity.
@@ -109,7 +109,7 @@ public class IntKeyMap<VALUE> implements Map<Integer, VALUE> {
 	}
 
 	/**
-	 * Constructs an empty <tt>IntKeyMap</tt> with the default initial capacity
+	 * Constructs an empty IntKeyMap with the default initial capacity
 	 * (16) and the default load factor (0.75).
 	 */
 	public IntKeyMap() {
@@ -145,9 +145,9 @@ public class IntKeyMap<VALUE> implements Map<Integer, VALUE> {
 	}
 
 	/**
-	 * Returns <tt>true</tt> if this map contains no key-value mappings.
+	 * Returns true if this map contains no key-value mappings.
 	 *
-	 * @return <tt>true</tt> if this map contains no key-value mappings.
+	 * @return true if this map contains no key-value mappings.
 	 */
 	@Override
     public boolean isEmpty()
@@ -163,15 +163,15 @@ public class IntKeyMap<VALUE> implements Map<Integer, VALUE> {
 
 	/**
 	 * Returns the value to which the specified key is mapped in this identity
-	 * hash map, or <tt>null</tt> if the map contains no mapping for this key.
-	 * A return value of <tt>null</tt> does not <i>necessarily</i> indicate
+	 * hash map, or null if the map contains no mapping for this key.
+	 * A return value of null does not <i>necessarily</i> indicate
 	 * that the map contains no mapping for the key; it is also possible that
-	 * the map explicitly maps the key to <tt>null</tt>. The
-	 * <tt>containsKey</tt> method may be used to distinguish these two cases.
+	 * the map explicitly maps the key to null. The
+	 * containsKey method may be used to distinguish these two cases.
 	 *
 	 * @param   key the key whose associated value is to be returned.
 	 * @return  the value to which this map maps the specified key, or
-	 *          <tt>null</tt> if the map contains no mapping for this key.
+	 *          null if the map contains no mapping for this key.
 	 * @see #put(int, Object)
 	 */
 	public VALUE get(int key) {
@@ -188,7 +188,7 @@ public class IntKeyMap<VALUE> implements Map<Integer, VALUE> {
 	}
 
 	/**
-	 * Returns <tt>true</tt> if this map contains a mapping for the
+	 * Returns true if this map contains a mapping for the
 	 * specified key.
 	 */
 	public boolean containsKey(int key)
@@ -225,10 +225,10 @@ public class IntKeyMap<VALUE> implements Map<Integer, VALUE> {
 	 *
 	 * @param key key with which the specified value is to be associated.
 	 * @param value value to be associated with the specified key.
-	 * @return previous value associated with specified key, or <tt>null</tt>
-	 *	       if there was no mapping for key.  A <tt>null</tt> return can
+	 * @return previous value associated with specified key, or null
+	 *	       if there was no mapping for key.  A null return can
 	 *	       also indicate that the IntKeyMap previously associated
-	 *	       <tt>null</tt> with the specified key.
+	 *	       null with the specified key.
 	 */
 	public VALUE put(int key, VALUE value) {
 		int hash = hash(key);
@@ -280,7 +280,7 @@ public class IntKeyMap<VALUE> implements Map<Integer, VALUE> {
 	}
 
 	/**
-	 * Rehashes the contents of this map into a new <tt>IntKeyMap</tt> instance
+	 * Rehashes the contents of this map into a new IntKeyMap instance
 	 * with a larger capacity. This method is called automatically when the
 	 * number of keys in this map exceeds its capacity and load factor.
 	 *
@@ -355,9 +355,9 @@ public class IntKeyMap<VALUE> implements Map<Integer, VALUE> {
 	 * Removes the mapping for this key from this map if present.
 	 *
 	 * @param  key key whose mapping is to be removed from the map.
-	 * @return previous value associated with specified key, or <tt>null</tt>
-	 *	       if there was no mapping for key.  A <tt>null</tt> return can
-	 *	       also indicate that the map previously associated <tt>null</tt>
+	 * @return previous value associated with specified key, or null
+	 *	       if there was no mapping for key.  A null return can
+	 *	       also indicate that the map previously associated null
 	 *	       with the specified key.
 	 */
 	public VALUE remove(int key) {
@@ -438,11 +438,11 @@ public class IntKeyMap<VALUE> implements Map<Integer, VALUE> {
 	}
 
 	/**
-	 * Returns <tt>true</tt> if this map maps one or more keys to the
+	 * Returns true if this map maps one or more keys to the
 	 * specified value.
 	 *
 	 * @param value value whose presence in this map is to be tested.
-	 * @return <tt>true</tt> if this map maps one or more keys to the
+	 * @return true if this map maps one or more keys to the
 	 *         specified value.
 	 */
 	@Override
@@ -687,10 +687,10 @@ public class IntKeyMap<VALUE> implements Map<Integer, VALUE> {
 	 * Returns a set view of the keys contained in this map.  The set is
 	 * backed by the map, so changes to the map are reflected in the set, and
 	 * vice-versa.  The set supports element removal, which removes the
-	 * corresponding mapping from this map, via the <tt>Iterator.remove</tt>,
-	 * <tt>Set.remove</tt>, <tt>removeAll</tt>, <tt>retainAll</tt>, and
-	 * <tt>clear</tt> operations.  It does not support the <tt>add</tt> or
-	 * <tt>addAll</tt> operations.
+	 * corresponding mapping from this map, via the Iterator.remove,
+	 * Set.remove, removeAll, retainAll, and
+	 * clear operations.  It does not support the add or
+	 * addAll operations.
 	 *
 	 * @return a set view of the keys contained in this map.
 	 */
@@ -736,9 +736,9 @@ public class IntKeyMap<VALUE> implements Map<Integer, VALUE> {
 	 * collection is backed by the map, so changes to the map are reflected in
 	 * the collection, and vice-versa.  The collection supports element
 	 * removal, which removes the corresponding mapping from this map, via the
-	 * <tt>Iterator.remove</tt>, <tt>Collection.remove</tt>,
-	 * <tt>removeAll</tt>, <tt>retainAll</tt>, and <tt>clear</tt> operations.
-	 * It does not support the <tt>add</tt> or <tt>addAll</tt> operations.
+	 * Iterator.remove, Collection.remove,
+	 * removeAll, retainAll, and clear operations.
+	 * It does not support the add or addAll operations.
 	 *
 	 * @return a collection view of the values contained in this map.
 	 */
