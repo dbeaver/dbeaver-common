@@ -11,6 +11,11 @@
     <name>DBeaver build root</name>
     <description>DBeaver build root module</description>
 
+    <organization>
+        <name>DBeaver Corp</name>
+        <url>https://dbeaver.com</url>
+    </organization>
+
     <properties>
         <tycho-version>4.0.9</tycho-version>
         <eclipse-version>2024-09</eclipse-version>

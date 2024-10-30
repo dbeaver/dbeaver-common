@@ -17,8 +17,111 @@
     <name>DBeaver Common dependencies</name>
     <description>DBeaver Common Modules</description>
 
+    <licenses>
+        <license>
+            <name>The Apache Software License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+    <developers>
+        <developer>
+            <name>Serge Rider</name>
+            <email>serge@dbeaver.com</email>
+            <url>https://github.com/serge-rider</url>
+            <organization>DBeaver Corp</organization>
+            <organizationUrl>https://github.com/dbeaver</organizationUrl>
+        </developer>
+    </developers>
+
+    <issueManagement>
+        <system>github</system>
+        <url>https://github.com/dbeaver/dbeaver/issues</url>
+    </issueManagement>
+
+    <scm>
+        <connection>scm:git:git@github.com:dbeaver/dbeaver-common.git</connection>
+        <developerConnection>scm:git:git@github.com:dbeaver/dbeaver-common.git</developerConnection>
+        <url>git@github.com:dbeaver/dbeaver-common.git</url>
+    </scm>
+
     <modules>
         <module>modules</module>
     </modules>
+
+    <profiles>
+        <profile>
+            <!-- Sonatype deploy -->
+            <id>sonatypeDeploy</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.sonatype.central</groupId>
+                        <artifactId>central-publishing-maven-plugin</artifactId>
+                        <version>0.6.0</version>
+                        <extensions>true</extensions>
+                        <configuration>
+                            <publishingServerId>central</publishingServerId>
+                            <autoPublish>false</autoPublish>
+                            <waitUntil>validated</waitUntil>
+                        </configuration>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-source-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>attach-sources</id>
+                                <goals>
+                                    <goal>jar-no-fork</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-javadoc-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>attach-javadocs</id>
+                                <goals>
+                                    <goal>jar</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-gpg-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>sign-artifacts</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>sign</goal>
+                                </goals>
+                                <configuration>
+                                    <gpgArguments>
+                                        <arg>--pinentry-mode</arg>
+                                        <arg>loopback</arg>
+                                    </gpgArguments>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+
+        <profile>
+            <id>gpg-key-1</id>
+            <properties>
+                <gpg.keyname>${SONATYPE_GPG_KEY_ID}</gpg.keyname>
+                <gpg.passphrase>${SONATYPE_GPG_SECRET}</gpg.passphrase>
+            </properties>
+        </profile>
+
+    </profiles>
 
 </project>

@@ -9,8 +9,11 @@
     <relativePath>../pom.xml</relativePath>
   </parent>
   <artifactId>com.dbeaver.rpc</artifactId>
-  <name>RPC framework</name>
   <packaging>eclipse-plugin</packaging>
+
+  <name>RPC framework</name>
+  <description>RPC over HTTP.</description>
+  <url>https://github.com/dbeaver/dbeaver-common</url>
 
   <dependencies>
     <dependency>

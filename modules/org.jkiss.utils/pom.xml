@@ -10,8 +10,11 @@
         <relativePath>../pom.xml</relativePath>
     </parent>
     <artifactId>org.jkiss.utils</artifactId>
-    <name>DBeaver Common Utils</name>
     <packaging>eclipse-plugin</packaging>
+
+    <name>DBeaver Common Utils</name>
+    <description>Various utilities for DBeaver projects. Similar to commons-utils or guava.</description>
+    <url>https://github.com/dbeaver/dbeaver-common</url>
 
     <dependencies>
         <dependency>

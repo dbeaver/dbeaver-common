@@ -9,8 +9,11 @@
     <relativePath>../pom.xml</relativePath>
   </parent>
   <artifactId>com.dbeaver.jdbc.api</artifactId>
-  <name>JDBC framework</name>
   <packaging>eclipse-plugin</packaging>
+
+  <name>JDBC framework</name>
+  <description>Framework for JDBC drivers development.</description>
+  <url>https://github.com/dbeaver/dbeaver-common</url>
 
   <dependencies>
     <dependency>
