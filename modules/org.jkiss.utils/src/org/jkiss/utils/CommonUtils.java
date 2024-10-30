@@ -987,7 +987,7 @@ public class CommonUtils {
     /**
      * Groups values into a map of their shared key and a list of matching values using that key.
      * <p>
-     * <h3>Group strings by their first character</h3>
+     * Group strings by their first character
      * <pre>{@code
      * final List<String> values = Arrays.asList("aaa", "abb", "bbb", "bab", "ccc");
      * final Map<Character, List<String>> groups = group(values, x -> x.charAt(0));

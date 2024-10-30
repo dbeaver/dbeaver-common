@@ -236,7 +236,7 @@ public class XMLUtils {
     }
 
     /**
-     * Encodes a char to XML-valid form replacing &,',",<,> with special XML encoding.
+     * Encodes a char to XML-valid form replacing &amp;,',",&lt;,&gt; with special XML encoding.
      *
      * @param ch char to convert
      * @return XML-encoded text
