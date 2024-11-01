@@ -619,7 +619,7 @@ public abstract class AbstractJdbcResultSet<
     @Override
     public BigDecimal getBigDecimal(int columnIndex) throws SQLException {
         final String value = getString(columnIndex);
-        if (value == null || value.trim().isEmpty()) {
+        if (value == null || value.isBlank()) {
             return null;
         }
 
