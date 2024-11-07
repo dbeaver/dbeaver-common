@@ -14,5 +14,6 @@ Export-Package: org.jkiss.api,
  org.jkiss.utils.io,
  org.jkiss.utils.rest,
  org.jkiss.utils.time,
- org.jkiss.utils.xml
+ org.jkiss.utils.xml,
+ org.jkiss.utils.function
 Automatic-Module-Name: org.jkiss.utils
