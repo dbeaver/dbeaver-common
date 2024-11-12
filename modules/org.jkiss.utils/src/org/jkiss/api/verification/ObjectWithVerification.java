@@ -17,6 +17,6 @@
 package org.jkiss.api.verification;
 
 public interface ObjectWithVerification {
-    String CONTEXT_PARAMETER_DRIVER_VERIFIER = "dbeaver.verifier";
+    String CONTEXT_PARAMETER_FILE_SYSTEM_VERIFIER = "fs.verifier";
 
 }

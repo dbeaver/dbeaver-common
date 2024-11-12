@@ -22,7 +22,7 @@ import java.nio.file.Path;
 
 public interface FileSystemAccessVerifyer {
     /**
-     * @param path - the path the driver is trying to access
+     * @param path - the path the object is trying to access
      * @return true if access is allowed
      */
     boolean isPathReadAllowed(@NotNull Path path);
