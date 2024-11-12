@@ -16,5 +16,14 @@
  */
 package org.jkiss.api.verification;
 
-public interface VerifiableDriver {
+import org.jkiss.code.NotNull;
+
+import java.nio.file.Path;
+
+public interface FileSystemAccessVerifyer {
+    /**
+     * @param path - the path the driver is trying to access
+     * @return true if access is allowed
+     */
+    boolean isPathReadAllowed(@NotNull Path path);
 }

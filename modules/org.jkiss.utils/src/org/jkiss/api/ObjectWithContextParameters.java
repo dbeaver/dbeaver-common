@@ -25,8 +25,6 @@ import java.util.Map;
  * Object with contextual information
  */
 public interface ObjectWithContextParameters {
-    String CONTEXT_PARAMETER_DRIVER_VERIFIER = "dbeaver.driver.verifier";
-
     @NotNull
     Map<String, Object> getObjectContextParameters();
 

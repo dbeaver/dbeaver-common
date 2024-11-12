@@ -16,14 +16,7 @@
  */
 package org.jkiss.api.verification;
 
-import org.jkiss.code.NotNull;
+public interface ObjectWithVerification {
+    String CONTEXT_PARAMETER_DRIVER_VERIFIER = "dbeaver.verifier";
 
-import java.nio.file.Path;
-
-public interface DriverAccessVerifier {
-    /**
-     * @param path - the path the driver is trying to access
-     * @return true if access is allowed
-     */
-    boolean isPathReadAllowed(@NotNull Path path);
 }
