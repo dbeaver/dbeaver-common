@@ -8,6 +8,7 @@ Bundle-Release-Date: 20240205
 Bundle-RequiredExecutionEnvironment: JavaSE-17
 Require-Bundle: com.google.gson
 Export-Package: org.jkiss.api,
+ org.jkiss.api.verification,
  org.jkiss.code,
  org.jkiss.utils,
  org.jkiss.utils.csv,
