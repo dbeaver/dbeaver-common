@@ -6,7 +6,7 @@
     <parent>
         <groupId>com.dbeaver.common</groupId>
         <artifactId>root</artifactId>
-        <version>2.2.0-SNAPSHOT</version>
+        <version>2.3.1-SNAPSHOT</version>
         <relativePath>root/pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
@@ -16,9 +16,105 @@
 
     <name>DBeaver Common dependencies</name>
     <description>DBeaver Common Modules</description>
+    <url>https://github.com/dbeaver/dbeaver-common</url>
+
+    <scm>
+        <connection>scm:git:git@github.com:dbeaver/dbeaver-common.git</connection>
+        <developerConnection>scm:git:git@github.com:dbeaver/dbeaver-common.git</developerConnection>
+        <url>git@github.com:dbeaver/dbeaver-common.git</url>
+    </scm>
+
+    <issueManagement>
+        <system>github</system>
+        <url>https://github.com/dbeaver/dbeaver/issues</url>
+    </issueManagement>
+
 
     <modules>
         <module>modules</module>
     </modules>
+
+    <profiles>
+        <profile>
+            <!-- Sonatype deploy -->
+            <id>sonatypeDeploy</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.sonatype.central</groupId>
+                        <artifactId>central-publishing-maven-plugin</artifactId>
+                        <extensions>true</extensions>
+                        <configuration>
+                            <publishingServerId>central</publishingServerId>
+                            <autoPublish>false</autoPublish>
+                            <waitUntil>validated</waitUntil>
+                            <excludeArtifacts>com.dbeaver.common.modules,com.dbeaver.common.main</excludeArtifacts>
+                        </configuration>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-source-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>attach-sources</id>
+                                <goals>
+                                    <goal>jar-no-fork</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-javadoc-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>attach-javadocs</id>
+                                <goals>
+                                    <goal>jar</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-gpg-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>sign-artifacts</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>sign</goal>
+                                </goals>
+                                <configuration>
+                                    <gpgArguments>
+                                        <arg>--pinentry-mode</arg>
+                                        <arg>loopback</arg>
+                                    </gpgArguments>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-release-plugin</artifactId>
+                        <configuration>
+                            <tagNameFormat>v@{project.version}</tagNameFormat>
+                            <projectVersionPolicyId>SemVerVersionPolicy</projectVersionPolicyId>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+
+        <profile>
+            <id>gpg-key-1</id>
+            <properties>
+                <gpg.keyname>${SONATYPE_GPG_KEY_ID}</gpg.keyname>
+                <gpg.passphrase>${SONATYPE_GPG_SECRET}</gpg.passphrase>
+            </properties>
+        </profile>
+
+    </profiles>
 
 </project>

@@ -14,27 +14,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.jkiss.api;
 
-/*
- * This package contains a slightly modified version of opencsv library
- * without unwanted functionality and dependencies, licensed under Apache 2.0.
- *
- * See https://search.maven.org/artifact/com.opencsv/opencsv/3.4/bundle
- * See http://opencsv.sf.net/
- */
-package org.jkiss.utils.csv;
+import org.jkiss.code.NotNull;
+
+import java.io.IOException;
+import java.nio.file.Path;
 
 /**
- * Enumeration used to tell the CSVParser what to consider null.
- * <p>
- * EMPTY_SEPARATORS - two sequential separators are null.
- * EMPTY_QUOTES - two sequential quotes are null
- * BOTH - both are null
- * NEITHER - default.  Both are considered empty string.
+ * Provides implementation of file system Path by URI
  */
-public enum CSVReaderNullFieldIndicator {
-    EMPTY_SEPARATORS,
-    EMPTY_QUOTES,
-    BOTH,
-    NEITHER;
+public interface NioPathProvider {
+
+    @NotNull
+    Path getPathByStringOrUri(@NotNull ObjectWithContextParameters context, @NotNull String pathOrUri) throws IOException;
+
 }

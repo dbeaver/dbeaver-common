@@ -308,6 +308,33 @@ public class CommonUtils {
         return rootCause;
     }
 
+    @Nullable
+    public static <T extends Exception> T getCauseOfType(@NotNull Throwable ex, Class<T> causeClass) {
+        Throwable rootCause = ex;
+        for (; ; ) {
+            if (causeClass.isInstance(rootCause)) {
+                return causeClass.cast(rootCause);
+            }
+            if (rootCause.getCause() != null) {
+                rootCause = rootCause.getCause();
+            } else if (rootCause instanceof InvocationTargetException ite && ite.getTargetException() != null) {
+                rootCause = ite.getTargetException();
+            } else {
+                break;
+            }
+        }
+        return null;
+    }
+
+    public static boolean hasCause(Throwable ex, Class<? extends Throwable> causeClass) {
+        for (Throwable e = ex; e != null; e = e.getCause()) {
+            if (causeClass.isAssignableFrom(e.getClass())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public static boolean equalObjects(@Nullable Object o1, @Nullable Object o2) {
         if (o1 == o2) {
             return true;
@@ -987,7 +1014,7 @@ public class CommonUtils {
     /**
      * Groups values into a map of their shared key and a list of matching values using that key.
      * <p>
-     * <h3>Group strings by their first character</h3>
+     * Group strings by their first character
      * <pre>{@code
      * final List<String> values = Arrays.asList("aaa", "abb", "bbb", "bab", "ccc");
      * final Map<Character, List<String>> groups = group(values, x -> x.charAt(0));
@@ -1129,11 +1156,15 @@ public class CommonUtils {
         List<String> result = new ArrayList<>();
         while (e != null) {
             // skip empty messages
-            if (e.getMessage() != null) {
-                result.add(e.getMessage());
+            String message = e.getMessage();
+            if (message != null) {
+                if (result.isEmpty() || !result.get(result.size() - 1).contains(message)) {
+                    result.add(message);
+                }
             }
             e = e.getCause();
         }
         return String.join(":\n", result);
     }
+
 }
