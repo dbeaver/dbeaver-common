@@ -46,6 +46,11 @@ public class DriverPropertyInfoBuilder {
             .withChoices(info.choices);
     }
 
+    /**
+     * Create a new builder from name and value.
+     *
+     * @return the new builder.
+     */
     public static DriverPropertyInfoBuilder from(String name, String value) {
         return new DriverPropertyInfoBuilder()
             .withName(name)
