@@ -50,7 +50,7 @@ public abstract class RpcInvocationHandler implements InvocationHandler, RestPro
     }
 
     @Override
-    public synchronized Object invoke(Object proxy, Method method, Object[] args) throws RpcException {
+    public synchronized Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
         // Client-side API
         Class<?> declaringClass = method.getDeclaringClass();
         if (declaringClass == Object.class) {
@@ -120,6 +120,26 @@ public abstract class RpcInvocationHandler implements InvocationHandler, RestPro
                 //just debug breakpoint, rethrow it
                 throw e;
             }
+        } catch (RpcException e) {
+            if (e.getErrorClass() != null) {
+                Throwable error = null;
+                try {
+                    Class<?> errorClass = Class.forName(e.getErrorClass(), true, proxy.getClass().getClassLoader());
+                    try {
+                        error = (Throwable) errorClass.getConstructor(String.class, Throwable.class)
+                            .newInstance(e.getMessage(), e);
+                    } catch (Exception ex) {
+                        error = (Throwable) errorClass.getConstructor(String.class)
+                            .newInstance(e.getMessage());
+                    }
+                } catch (Throwable ignored) {
+                    // ignore - use raw RPC exception
+                }
+                if (error != null) {
+                    throw error;
+                }
+            }
+            throw e;
         } catch (RuntimeException e) {
             throw e;
         } catch (Exception e) {
