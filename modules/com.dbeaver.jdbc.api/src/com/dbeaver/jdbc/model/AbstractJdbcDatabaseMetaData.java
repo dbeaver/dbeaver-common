@@ -135,7 +135,7 @@ public abstract class AbstractJdbcDatabaseMetaData<CON extends AbstractJdbcConne
 
     @Override
     public String getIdentifierQuoteString() throws SQLException {
-        return null;
+        return "\"";
     }
 
     @Override
@@ -165,27 +165,27 @@ public abstract class AbstractJdbcDatabaseMetaData<CON extends AbstractJdbcConne
 
     @Override
     public String getSearchStringEscape() throws SQLException {
-        return null;
+        return "\\";
     }
 
     @Override
     public String getExtraNameCharacters() throws SQLException {
-        return null;
+        return "";
     }
 
     @Override
     public boolean supportsAlterTableWithAddColumn() throws SQLException {
-        return false;
+        return true;
     }
 
     @Override
     public boolean supportsAlterTableWithDropColumn() throws SQLException {
-        return false;
+        return true;
     }
 
     @Override
     public boolean supportsColumnAliasing() throws SQLException {
-        return false;
+        return true;
     }
 
     @Override
@@ -195,12 +195,12 @@ public abstract class AbstractJdbcDatabaseMetaData<CON extends AbstractJdbcConne
 
     @Override
     public boolean supportsConvert() throws SQLException {
-        return false;
+        return true;
     }
 
     @Override
     public boolean supportsConvert(int fromType, int toType) throws SQLException {
-        return false;
+        return true;
     }
 
     @Override
@@ -225,7 +225,7 @@ public abstract class AbstractJdbcDatabaseMetaData<CON extends AbstractJdbcConne
 
     @Override
     public boolean supportsGroupBy() throws SQLException {
-        return false;
+        return true;
     }
 
     @Override
@@ -260,12 +260,12 @@ public abstract class AbstractJdbcDatabaseMetaData<CON extends AbstractJdbcConne
 
     @Override
     public boolean supportsMinimumSQLGrammar() throws SQLException {
-        return false;
+        return true;
     }
 
     @Override
     public boolean supportsCoreSQLGrammar() throws SQLException {
-        return false;
+        return true;
     }
 
     @Override
@@ -275,17 +275,17 @@ public abstract class AbstractJdbcDatabaseMetaData<CON extends AbstractJdbcConne
 
     @Override
     public boolean supportsANSI92EntryLevelSQL() throws SQLException {
-        return false;
+        return true;
     }
 
     @Override
     public boolean supportsANSI92IntermediateSQL() throws SQLException {
-        return false;
+        return true;
     }
 
     @Override
     public boolean supportsANSI92FullSQL() throws SQLException {
-        return false;
+        return true;
     }
 
     @Override
@@ -295,12 +295,12 @@ public abstract class AbstractJdbcDatabaseMetaData<CON extends AbstractJdbcConne
 
     @Override
     public boolean supportsOuterJoins() throws SQLException {
-        return false;
+        return true;
     }
 
     @Override
     public boolean supportsFullOuterJoins() throws SQLException {
-        return false;
+        return true;
     }
 
     @Override
@@ -325,7 +325,7 @@ public abstract class AbstractJdbcDatabaseMetaData<CON extends AbstractJdbcConne
 
     @Override
     public boolean isCatalogAtStart() throws SQLException {
-        return false;
+        return true;
     }
 
     @Override
@@ -335,52 +335,52 @@ public abstract class AbstractJdbcDatabaseMetaData<CON extends AbstractJdbcConne
 
     @Override
     public boolean supportsSchemasInDataManipulation() throws SQLException {
-        return false;
+        return true;
     }
 
     @Override
     public boolean supportsSchemasInProcedureCalls() throws SQLException {
-        return false;
+        return true;
     }
 
     @Override
     public boolean supportsSchemasInTableDefinitions() throws SQLException {
-        return false;
+        return true;
     }
 
     @Override
     public boolean supportsSchemasInIndexDefinitions() throws SQLException {
-        return false;
+        return true;
     }
 
     @Override
     public boolean supportsSchemasInPrivilegeDefinitions() throws SQLException {
-        return false;
+        return true;
     }
 
     @Override
     public boolean supportsCatalogsInDataManipulation() throws SQLException {
-        return false;
+        return true;
     }
 
     @Override
     public boolean supportsCatalogsInProcedureCalls() throws SQLException {
-        return false;
+        return true;
     }
 
     @Override
     public boolean supportsCatalogsInTableDefinitions() throws SQLException {
-        return false;
+        return true;
     }
 
     @Override
     public boolean supportsCatalogsInIndexDefinitions() throws SQLException {
-        return false;
+        return true;
     }
 
     @Override
     public boolean supportsCatalogsInPrivilegeDefinitions() throws SQLException {
-        return false;
+        return true;
     }
 
     @Override
