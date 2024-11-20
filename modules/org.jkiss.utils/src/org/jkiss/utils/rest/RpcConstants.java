@@ -20,6 +20,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.Strictness;
 import com.google.gson.ToNumberPolicy;
+import org.jkiss.utils.StandardConstants;
 
 public class RpcConstants {
     public static final int SC_OK = 200;
@@ -38,7 +39,7 @@ public class RpcConstants {
     public static final Gson COMPACT_GSON = new GsonBuilder()
         .setStrictness(Strictness.LENIENT)
         .setObjectToNumberStrategy(ToNumberPolicy.LONG_OR_DOUBLE)
-        .setDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
+        .setDateFormat(StandardConstants.ISO_TIMESTAMP_PATTERN)
         .disableHtmlEscaping()
         .create();
 

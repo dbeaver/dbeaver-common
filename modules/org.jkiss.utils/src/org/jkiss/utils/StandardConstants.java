@@ -42,4 +42,5 @@ public abstract class StandardConstants {
 
     public static final int MIN_PORT_VALUE = 0;
     public static final int MAX_PORT_VALUE = 65535;
+    public static final String ISO_TIMESTAMP_PATTERN = "yyyy-MM-dd'T'HH:mm:ss'Z'";
 }

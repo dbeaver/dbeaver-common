@@ -24,7 +24,6 @@ import java.math.BigDecimal;
 import java.net.URL;
 import java.sql.*;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Map;
 
@@ -33,9 +32,6 @@ public abstract class AbstractJdbcResultSet<
     META extends AbstractJdbcResultSetMetaData<STMT>>
     implements ResultSet
 {
-    public static final SimpleDateFormat ISO_TIMESTAMP_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
-    public static final SimpleDateFormat ISO_TIME_FORMAT = new SimpleDateFormat("HH:mm:ss'Z'");
-    public static final SimpleDateFormat ISO_DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd");
 
     protected static final Object NULL_MARKER = new Object();
 
@@ -184,11 +180,11 @@ public abstract class AbstractJdbcResultSet<
     protected <T extends java.util.Date> T parseDate(Class<T> type, String value) throws SQLException {
         try {
             if (type == Time.class) {
-                return type.cast(new Time(ISO_TIME_FORMAT.parse(value).getTime()));
+                return type.cast(new Time(CommonJdbcConstants.ISO_TIME_FORMAT.parse(value).getTime()));
             } else if (type == Date.class) {
-                return type.cast(new Date(ISO_DATE_FORMAT.parse(value).getTime()));
+                return type.cast(new Date(CommonJdbcConstants.ISO_DATE_FORMAT.parse(value).getTime()));
             } else {
-                return type.cast(new Date(ISO_TIMESTAMP_FORMAT.parse(value).getTime()));
+                return type.cast(new Timestamp(CommonJdbcConstants.ISO_TIMESTAMP_FORMAT.parse(value).getTime()));
             }
         } catch (ParseException e) {
             throw new SQLException("Error parsing ISO date format", e);
