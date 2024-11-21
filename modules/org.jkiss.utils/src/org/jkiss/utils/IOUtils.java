@@ -30,8 +30,6 @@ import java.nio.channels.ReadableByteChannel;
 import java.nio.channels.WritableByteChannel;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.util.Comparator;
-import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
@@ -410,7 +408,7 @@ public final class IOUtils {
     @NotNull
     public static String getPathWithoutFileExtension(@NotNull String path) {
         int divPos = path.lastIndexOf('.');
-        if (divPos != -1) {
+        if (divPos > 0) {
             return path.substring(0, divPos);
         }
         return path;
