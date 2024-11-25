@@ -546,11 +546,11 @@ public class CSVParser {
      */
     protected boolean isAllWhiteSpace(CharSequence sb) {
         for (int i = 0; i < sb.length(); i++) {
-            if (Character.isWhitespace(sb.charAt(i))) {
-                return true;
+            if (!Character.isWhitespace(sb.charAt(i))) {
+                return false;
             }
         }
-        return false;
+        return true;
     }
 
     /**
