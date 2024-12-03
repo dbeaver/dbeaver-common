@@ -14,23 +14,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jkiss.api;
+package com.dbeaver.jdbc.model;
 
-import org.jkiss.code.NotNull;
-import org.jkiss.code.Nullable;
+import org.jkiss.utils.StandardConstants;
 
-import java.util.Map;
+import java.text.SimpleDateFormat;
 
-/**
- * Object with contextual information
- */
-public interface ObjectWithContextParameters {
-    @NotNull
-    Map<String, Object> getObjectContextParameters();
+public abstract class CommonJdbcConstants {
 
-    @Nullable
-    Object getObjectContextParameter(@NotNull String name);
-
-    void setObjectContextParameter(@NotNull String name, @Nullable Object value);
-
+    public static final SimpleDateFormat ISO_TIMESTAMP_FORMAT = new SimpleDateFormat(StandardConstants.ISO_TIMESTAMP_PATTERN);
+    public static final SimpleDateFormat ISO_TIME_FORMAT = new SimpleDateFormat(StandardConstants.ISO_TIME_PATTERN);
+    public static final SimpleDateFormat ISO_DATE_FORMAT = new SimpleDateFormat(StandardConstants.ISO_DATE_PATTERN);
 }

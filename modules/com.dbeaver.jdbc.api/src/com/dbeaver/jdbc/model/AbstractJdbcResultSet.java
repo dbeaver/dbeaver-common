@@ -16,11 +16,14 @@
  */
 package com.dbeaver.jdbc.model;
 
+import org.jkiss.utils.CommonUtils;
+
 import java.io.InputStream;
 import java.io.Reader;
 import java.math.BigDecimal;
 import java.net.URL;
 import java.sql.*;
+import java.text.ParseException;
 import java.util.Calendar;
 import java.util.Map;
 
@@ -92,62 +95,56 @@ public abstract class AbstractJdbcResultSet<
 
     @Override
     public String getString(int columnIndex) throws SQLException {
-        throw new SQLFeatureNotSupportedException();
+        return CommonUtils.toString(getObject(columnIndex));
     }
 
     @Override
     public boolean getBoolean(int columnIndex) throws SQLException {
-        throw new SQLFeatureNotSupportedException();
+        return CommonUtils.toBoolean(getObject(columnIndex));
     }
 
     @Override
     public byte getByte(int columnIndex) throws SQLException {
-        throw new SQLFeatureNotSupportedException();
+        return (byte) CommonUtils.toInt(getObject(columnIndex));
     }
 
     @Override
     public short getShort(int columnIndex) throws SQLException {
-        throw new SQLFeatureNotSupportedException();
+        return (short) CommonUtils.toInt(getObject(columnIndex));
     }
 
     @Override
     public int getInt(int columnIndex) throws SQLException {
-        throw new SQLFeatureNotSupportedException();
+        return CommonUtils.toInt(getObject(columnIndex));
     }
 
     @Override
     public long getLong(int columnIndex) throws SQLException {
-        throw new SQLFeatureNotSupportedException();
+        return CommonUtils.toLong(getObject(columnIndex));
     }
 
     @Override
     public float getFloat(int columnIndex) throws SQLException {
-        throw new SQLFeatureNotSupportedException();
+        return CommonUtils.toFloat(getObject(columnIndex));
     }
 
     @Override
     public double getDouble(int columnIndex) throws SQLException {
-        throw new SQLFeatureNotSupportedException();
+        return CommonUtils.toDouble(getObject(columnIndex));
+    }
+
+    @Override
+    public BigDecimal getBigDecimal(int columnIndex, int scale) throws SQLException {
+        Object object = getObject(columnIndex);
+        return object == null ? null :
+            object instanceof BigDecimal bd ? bd :
+                object instanceof Long str ? BigDecimal.valueOf(str) : BigDecimal.valueOf(CommonUtils.toDouble(object));
     }
 
     @Override
     public byte[] getBytes(int columnIndex) throws SQLException {
-        throw new SQLFeatureNotSupportedException();
-    }
-
-    @Override
-    public Date getDate(int columnIndex, Calendar cal) throws SQLException {
-        throw new SQLFeatureNotSupportedException();
-    }
-
-    @Override
-    public Time getTime(int columnIndex, Calendar cal) throws SQLException {
-        throw new SQLFeatureNotSupportedException();
-    }
-
-    @Override
-    public Timestamp getTimestamp(int columnIndex, Calendar cal) throws SQLException {
-        throw new SQLFeatureNotSupportedException();
+        Object object = getObject(columnIndex);
+        return object == null ? null : object.toString().getBytes();
     }
 
     @Override
@@ -166,11 +163,6 @@ public abstract class AbstractJdbcResultSet<
     }
 
     @Override
-    public BigDecimal getBigDecimal(int columnIndex, int scale) throws SQLException {
-        throw new SQLFeatureNotSupportedException();
-    }
-
-    @Override
     public InputStream getAsciiStream(int columnIndex) throws SQLException {
         throw new SQLFeatureNotSupportedException();
     }
@@ -183,6 +175,43 @@ public abstract class AbstractJdbcResultSet<
     @Override
     public InputStream getBinaryStream(int columnIndex) throws SQLException {
         throw new SQLFeatureNotSupportedException();
+    }
+
+    protected <T extends java.util.Date> T parseDate(Class<T> type, String value) throws SQLException {
+        try {
+            if (type == Time.class) {
+                return type.cast(new Time(CommonJdbcConstants.ISO_TIME_FORMAT.parse(value).getTime()));
+            } else if (type == Date.class) {
+                return type.cast(new Date(CommonJdbcConstants.ISO_DATE_FORMAT.parse(value).getTime()));
+            } else {
+                return type.cast(new Timestamp(CommonJdbcConstants.ISO_TIMESTAMP_FORMAT.parse(value).getTime()));
+            }
+        } catch (ParseException e) {
+//            StringWriter buf = new StringWriter();
+//            e.printStackTrace(new PrintWriter(buf, true));
+            throw new SQLException("Error parsing ISO date format: " + e.getMessage(), e);
+        }
+    }
+
+    @Override
+    public Date getDate(int columnIndex, Calendar cal) throws SQLException {
+        Object object = getObject(columnIndex);
+        return object == null ? null :
+            object instanceof Date date ? date : parseDate(Date.class, object.toString());
+    }
+
+    @Override
+    public Time getTime(int columnIndex, Calendar cal) throws SQLException {
+        Object object = getObject(columnIndex);
+        return object == null ? null :
+            object instanceof Time time ? time : parseDate(Time.class, object.toString());
+    }
+
+    @Override
+    public Timestamp getTimestamp(int columnIndex, Calendar cal) throws SQLException {
+        Object object = getObject(columnIndex);
+        return object == null ? null :
+            object instanceof Timestamp timestamp ? timestamp : parseDate(Timestamp.class, object.toString());
     }
 
     @Override
@@ -619,7 +648,11 @@ public abstract class AbstractJdbcResultSet<
     @Override
     public BigDecimal getBigDecimal(int columnIndex) throws SQLException {
         final String value = getString(columnIndex);
-        return value != null ? new BigDecimal(value) : null;
+        if (value == null || value.isBlank()) {
+            return null;
+        }
+
+        return new BigDecimal(value);
     }
 
     @Override

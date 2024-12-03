@@ -17,8 +17,16 @@
 package org.jkiss.utils.rest;
 
 public class RpcException extends RuntimeException {
+
+    private String errorClass;
+
     public RpcException(String message) {
         super(message);
+    }
+
+    public RpcException(String message, String errorClass) {
+        super(message);
+        this.errorClass = errorClass;
     }
 
     public RpcException(String message, Throwable cause) {
@@ -31,5 +39,9 @@ public class RpcException extends RuntimeException {
 
     public RpcException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
         super(message, cause, enableSuppression, writableStackTrace);
+    }
+
+    public String getErrorClass() {
+        return errorClass;
     }
 }

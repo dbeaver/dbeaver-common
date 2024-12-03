@@ -86,10 +86,13 @@ public class JsonRpcClient extends RpcClient {
                 Map<?, ?> map = gson.fromJson(contents, Map.class);
                 Map<String, Object> error = (Map<String, Object>) map.get("error");
                 if (error != null) {
+                    Object errorClass = error.get("exceptionClass");
                     Object message = error.get("message");
                     Object stacktrace = error.get("stacktrace");
                     if (message != null) {
-                        RpcException rpcException = new RpcException(message.toString());
+                        RpcException rpcException = new RpcException(
+                            message.toString(),
+                            errorClass == null ? null : errorClass.toString());
                         //rpcException.setStackTrace();
                         throw rpcException;
                     }

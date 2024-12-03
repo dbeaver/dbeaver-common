@@ -20,6 +20,7 @@ public class RpcErrorInfo {
 
     private String code;
     private String message;
+    private String exceptionClass;
     private String stacktrace;
 
     public String getCode() {
@@ -36,6 +37,14 @@ public class RpcErrorInfo {
 
     public void setMessage(String message) {
         this.message = message;
+    }
+
+    public String getExceptionClass() {
+        return exceptionClass;
+    }
+
+    public void setExceptionClass(String exceptionClass) {
+        this.exceptionClass = exceptionClass;
     }
 
     public String getStacktrace() {

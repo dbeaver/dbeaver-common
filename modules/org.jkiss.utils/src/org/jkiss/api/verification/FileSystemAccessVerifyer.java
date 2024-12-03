@@ -14,23 +14,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jkiss.api;
+package org.jkiss.api.verification;
 
 import org.jkiss.code.NotNull;
-import org.jkiss.code.Nullable;
 
-import java.util.Map;
+import java.nio.file.Path;
 
-/**
- * Object with contextual information
- */
-public interface ObjectWithContextParameters {
-    @NotNull
-    Map<String, Object> getObjectContextParameters();
-
-    @Nullable
-    Object getObjectContextParameter(@NotNull String name);
-
-    void setObjectContextParameter(@NotNull String name, @Nullable Object value);
-
+public interface FileSystemAccessVerifyer {
+    /**
+     * @param path - the path the object is trying to access
+     * @return true if access is allowed
+     */
+    boolean isPathReadAllowed(@NotNull Path path);
 }

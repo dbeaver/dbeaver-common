@@ -22,7 +22,10 @@ import java.util.concurrent.Executor;
 
 public abstract class AbstractJdbcConnection implements Connection {
 
+    public static final String APPLICATION_NAME_CLIENT_PROPERTY = "ApplicationName";
+
     protected int holdability = ResultSet.HOLD_CURSORS_OVER_COMMIT;
+    private final Properties clientInfo = new Properties();
 
     public AbstractJdbcConnection() {
     }
@@ -170,22 +173,31 @@ public abstract class AbstractJdbcConnection implements Connection {
 
     @Override
     public void setClientInfo(String name, String value) {
-        // unsupported
+        clientInfo.setProperty(name, value);
     }
 
     @Override
     public void setClientInfo(Properties properties) {
-        // unsupported
+        clientInfo.clear();
+        clientInfo.putAll(properties);
+    }
+
+    public String getClientApplicationName() {
+        String appName = getClientInfo(APPLICATION_NAME_CLIENT_PROPERTY);
+        if (appName == null) {
+            appName = "JDBC Driver " + getClass().getSimpleName();
+        }
+        return appName;
     }
 
     @Override
-    public String getClientInfo(String name) throws SQLException {
-        throw new SQLFeatureNotSupportedException();
+    public String getClientInfo(String name) {
+        return this.clientInfo.getProperty(name);
     }
 
     @Override
-    public Properties getClientInfo() throws SQLException {
-        throw new SQLFeatureNotSupportedException();
+    public Properties getClientInfo() {
+        return this.clientInfo;
     }
 
     @Override

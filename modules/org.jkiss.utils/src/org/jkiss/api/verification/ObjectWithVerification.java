@@ -14,23 +14,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jkiss.api;
+package org.jkiss.api.verification;
 
-import org.jkiss.code.NotNull;
-import org.jkiss.code.Nullable;
-
-import java.util.Map;
-
-/**
- * Object with contextual information
- */
-public interface ObjectWithContextParameters {
-    @NotNull
-    Map<String, Object> getObjectContextParameters();
-
-    @Nullable
-    Object getObjectContextParameter(@NotNull String name);
-
-    void setObjectContextParameter(@NotNull String name, @Nullable Object value);
+public interface ObjectWithVerification {
+    String CONTEXT_PARAMETER_FILE_SYSTEM_VERIFIER = "fs.verifier";
 
 }
