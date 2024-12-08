@@ -5,7 +5,7 @@ Bundle-Vendor: DBeaver Corp
 Bundle-SymbolicName: com.dbeaver.jdbc.api
 Bundle-Version: 2.3.1.qualifier
 Bundle-Release-Date: 20240205
-Bundle-RequiredExecutionEnvironment: JavaSE-17
+Bundle-RequiredExecutionEnvironment: JavaSE-11
 Require-Bundle: org.jkiss.utils
 Export-Package: com.dbeaver.jdbc.model
 Automatic-Module-Name: com.dbeaver.jdbc.api

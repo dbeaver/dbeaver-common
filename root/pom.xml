@@ -27,6 +27,7 @@
         <local-p2-repo.url>https://p2.dev.dbeaver.com/eclipse-repo/</local-p2-repo.url>
 
         <java.version>17</java.version>
+        <java.version.min>11</java.version.min>
         <maven.compiler.source>${java.version}</maven.compiler.source>
         <maven.compiler.target>${java.version}</maven.compiler.target>
 

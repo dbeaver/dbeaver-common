@@ -24,6 +24,7 @@ import org.jkiss.code.Nullable;
 
 import java.lang.reflect.Method;
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -110,7 +111,7 @@ public class JsonRpcClient extends RpcClient {
         ) {
             try {
                 Map<String, Object> fullRequest = new LinkedHashMap<>();
-                List<JsonElement> paramList = values.values().stream().toList();
+                List<JsonElement> paramList = new ArrayList<>(values.values());
                 fullRequest.put(method.getName(), paramList);
                 String requestString = gson.toJson(fullRequest);
 
