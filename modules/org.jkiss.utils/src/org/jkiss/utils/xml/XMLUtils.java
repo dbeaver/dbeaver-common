@@ -242,14 +242,20 @@ public class XMLUtils {
      * @return XML-encoded text
      */
     public static String encodeXMLChar(char ch) {
-        return switch (ch) {
-            case '&' -> "&amp;";
-            case '\"' -> "&quot;";
-            case '\'' -> "&#39;";
-            case '<' -> "&lt;";
-            case '>' -> "&gt;";
-            default -> null;
-        };
+        switch (ch) {
+            case '&':
+                return "&amp;";
+            case '\"':
+                return "&quot;";
+            case '\'':
+                return "&#39;";
+            case '<':
+                return "&lt;";
+            case '>':
+                return "&gt;";
+            default:
+                return null;
+        }
     }
 
     public static XMLException adaptSAXException(Exception toCatch) {

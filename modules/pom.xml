@@ -22,4 +22,21 @@
         <module>com.dbeaver.rpc</module>
     </modules>
 
+    <build>
+        <plugins>
+            <!-- Use minimum supported Java -->
+            <plugin>
+                <groupId>org.eclipse.tycho</groupId>
+                <artifactId>tycho-compiler-plugin</artifactId>
+                <version>${tycho-version}</version>
+                <configuration>
+                    <useProjectSettings>false</useProjectSettings>
+                    <source>${java.version.min}</source>
+                    <target>${java.version.min}</target>
+                    <compilerVersion>${java.version.min}</compilerVersion>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
 </project>
