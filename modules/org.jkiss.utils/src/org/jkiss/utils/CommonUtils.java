@@ -31,6 +31,10 @@ import java.util.regex.Pattern;
  * Common utils
  */
 public class CommonUtils {
+    /**
+     * A pattern that matches one or more whitespace characters.
+     */
+    public static final Pattern WHITESPACE_PATTERN = Pattern.compile("\\s+");
 
     public static final char PARAGRAPH_CHAR = (char) 182;
 
@@ -873,7 +877,7 @@ public class CommonUtils {
     }
 
     public static String compactWhiteSpaces(String str) {
-        return str.replaceAll("\\s+", " ");
+        return WHITESPACE_PATTERN.matcher(str).replaceAll(" ");
     }
 
     public static String getSingleLineString(String displayString) {
