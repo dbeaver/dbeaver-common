@@ -17,6 +17,9 @@
 package com.dbeaver.rpc.ws;
 
 import jakarta.websocket.*;
+import org.eclipse.jetty.client.HttpClient;
+import org.eclipse.jetty.ee10.websocket.jakarta.client.JakartaWebSocketClientContainer;
+import org.eclipse.jetty.util.component.LifeCycle;
 
 import java.io.IOException;
 import java.net.URI;
@@ -86,6 +89,7 @@ public class WsClientBuilder {
             @Override
             public void onOpen(Session session, EndpointConfig endpointConfig) {
                 session.setMaxIdleTimeout(timeout.toMillis());
+                session.setMaxTextMessageBufferSize(Integer.MAX_VALUE);
             }
 
             @Override
@@ -99,9 +103,10 @@ public class WsClientBuilder {
             }
         };
 
-        Session session = ContainerProvider
-            .getWebSocketContainer()
-            .connectToServer(endpoint, config, URI.create(url));
+        JakartaWebSocketClientContainer clientContainer = new JakartaWebSocketClientContainer((HttpClient) null);
+        LifeCycle.start(clientContainer);
+
+        Session session = clientContainer.connectToServer(endpoint, config, URI.create(url));
 
         return new WsClient(session);
     }
