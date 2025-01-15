@@ -8,7 +8,10 @@ Bundle-Release-Date: 20240205
 Bundle-RequiredExecutionEnvironment: JavaSE-11
 Import-Package: jakarta.websocket,
  jakarta.websocket.server,
- org.eclipse.jetty.ee10.websocket.jakarta.client
+ org.eclipse.jetty.ee10.websocket.jakarta.client,
+ org.eclipse.jetty.util,
+ org.eclipse.jetty.util.component,
+ org.eclipse.jetty.client
 Require-Bundle: org.jkiss.utils,
  com.google.gson,
  slf4j.api
