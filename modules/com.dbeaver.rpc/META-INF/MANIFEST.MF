@@ -8,8 +8,7 @@ Bundle-Release-Date: 20240205
 Bundle-RequiredExecutionEnvironment: JavaSE-11
 Require-Bundle: org.jkiss.utils,
  org.jkiss.bundle.jakarta.jetty.websocket,
- com.google.gson,
- slf4j.api
+ com.google.gson
 Export-Package: com.dbeaver.rpc,
  com.dbeaver.rpc.ws
 Automatic-Module-Name: com.dbeaver.rpc
