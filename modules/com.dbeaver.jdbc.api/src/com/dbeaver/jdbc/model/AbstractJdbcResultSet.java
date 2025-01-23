@@ -137,8 +137,8 @@ public abstract class AbstractJdbcResultSet<
     public BigDecimal getBigDecimal(int columnIndex, int scale) throws SQLException {
         Object object = getObject(columnIndex);
         return object == null ? null :
-            object instanceof BigDecimal bd ? bd :
-                object instanceof Long str ? BigDecimal.valueOf(str) : BigDecimal.valueOf(CommonUtils.toDouble(object));
+            object instanceof BigDecimal ? (BigDecimal) object :
+                object instanceof Long ? BigDecimal.valueOf((Long) object) : BigDecimal.valueOf(CommonUtils.toDouble(object));
     }
 
     @Override
@@ -197,21 +197,21 @@ public abstract class AbstractJdbcResultSet<
     public Date getDate(int columnIndex, Calendar cal) throws SQLException {
         Object object = getObject(columnIndex);
         return object == null ? null :
-            object instanceof Date date ? date : parseDate(Date.class, object.toString());
+            object instanceof Date ? (Date) object : parseDate(Date.class, object.toString());
     }
 
     @Override
     public Time getTime(int columnIndex, Calendar cal) throws SQLException {
         Object object = getObject(columnIndex);
         return object == null ? null :
-            object instanceof Time time ? time : parseDate(Time.class, object.toString());
+            object instanceof Time ? (Time) object : parseDate(Time.class, object.toString());
     }
 
     @Override
     public Timestamp getTimestamp(int columnIndex, Calendar cal) throws SQLException {
         Object object = getObject(columnIndex);
         return object == null ? null :
-            object instanceof Timestamp timestamp ? timestamp : parseDate(Timestamp.class, object.toString());
+            object instanceof Timestamp ? (Timestamp) object : parseDate(Timestamp.class, object.toString());
     }
 
     @Override

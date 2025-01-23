@@ -35,6 +35,12 @@ public class CommonUtils {
      * A cached java.lang.Object instance useful for avoiding allocations. It's not safe to use it as a mutex!
      */
     public static final Object DUMMY = new Object();
+ 
+    /**
+     * A pattern that matches one or more whitespace characters.
+     */
+    public static final Pattern WHITESPACE_PATTERN = Pattern.compile("\\s+");
+
     public static final char PARAGRAPH_CHAR = (char) 182;
 
     public static boolean isJavaIdentifier(@NotNull CharSequence str) {
@@ -55,11 +61,21 @@ public class CommonUtils {
         for (int i = 0; i < str.length(); i++) {
             char c = str.charAt(i);
             switch (c) {
-                case '"' -> res.append("\\\"");
-                case '\n' -> res.append("\\n");
-                case '\r' -> res.append("\\r");
-                case '\t' -> res.append("\\t");
-                default -> res.append(c);
+                case '"':
+                    res.append("\\\"");
+                    break;
+                case '\n':
+                    res.append("\\n");
+                    break;
+                case '\r':
+                    res.append("\\r");
+                    break;
+                case '\t':
+                    res.append("\\t");
+                    break;
+                default:
+                    res.append(c);
+                    break;
             }
         }
         return res.toString();
@@ -283,7 +299,8 @@ public class CommonUtils {
     public static boolean getBoolean(@Nullable Object value, boolean defaultValue) {
         if (value == null) {
             return defaultValue;
-        } else if (value instanceof Boolean b) {
+        } else if (value instanceof Boolean) {
+            Boolean b = (Boolean) value;
             return b;
         } else {
             return getBoolean(value.toString(), defaultValue);
@@ -302,7 +319,8 @@ public class CommonUtils {
         for (; ; ) {
             if (rootCause.getCause() != null) {
                 rootCause = rootCause.getCause();
-            } else if (rootCause instanceof InvocationTargetException ite && ite.getTargetException() != null) {
+            } else if (rootCause instanceof InvocationTargetException && ((InvocationTargetException) rootCause).getTargetException() != null) {
+                InvocationTargetException ite = (InvocationTargetException) rootCause;
                 rootCause = ite.getTargetException();
             } else {
                 break;
@@ -320,7 +338,8 @@ public class CommonUtils {
             }
             if (rootCause.getCause() != null) {
                 rootCause = rootCause.getCause();
-            } else if (rootCause instanceof InvocationTargetException ite && ite.getTargetException() != null) {
+            } else if (rootCause instanceof InvocationTargetException && ((InvocationTargetException) rootCause).getTargetException() != null) {
+                InvocationTargetException ite = (InvocationTargetException) rootCause;
                 rootCause = ite.getTargetException();
             } else {
                 break;
@@ -374,7 +393,8 @@ public class CommonUtils {
     public static String toString(@Nullable Object object) {
         if (object == null) {
             return "";
-        } else if (object instanceof String s) {
+        } else if (object instanceof String) {
+            String s = (String) object;
             return s;
         } else {
             String strValue = object.toString();
@@ -385,7 +405,8 @@ public class CommonUtils {
     public static String toString(@Nullable Object object, String def) {
         if (object == null) {
             return def;
-        } else if (object instanceof String s) {
+        } else if (object instanceof String) {
+            String s = (String) object;
             return s;
         } else {
             return object.toString();
@@ -395,7 +416,8 @@ public class CommonUtils {
     public static boolean toBoolean(@Nullable Object object, boolean def) {
         if (object == null) {
             return def;
-        } else if (object instanceof Boolean b) {
+        } else if (object instanceof Boolean) {
+            Boolean b = (Boolean) object;
             return b;
         } else {
             return getBoolean(object.toString(), def);
@@ -409,7 +431,8 @@ public class CommonUtils {
     public static int toInt(@Nullable Object object, int def) {
         if (object == null) {
             return def;
-        } else if (object instanceof Number n) {
+        } else if (object instanceof Number) {
+            Number n = (Number) object;
             return n.intValue();
         } else {
             String strValue = toString(object);
@@ -454,7 +477,8 @@ public class CommonUtils {
     public static long toLong(@Nullable Object object, long defValue) {
         if (object == null) {
             return defValue;
-        } else if (object instanceof Number n) {
+        } else if (object instanceof Number) {
+            Number n = (Number) object;
             return n.longValue();
         } else {
             try {
@@ -858,7 +882,7 @@ public class CommonUtils {
     }
 
     public static String compactWhiteSpaces(String str) {
-        return str.replaceAll("\\s+", " ");
+        return WHITESPACE_PATTERN.matcher(str).replaceAll(" ");
     }
 
     public static String getSingleLineString(String displayString) {

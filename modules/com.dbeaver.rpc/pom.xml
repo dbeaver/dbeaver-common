@@ -16,6 +16,14 @@
     <description>RPC over HTTP.</description>
     <url>https://github.com/dbeaver/dbeaver-common</url>
 
+    <repositories>
+        <repository>
+            <id>local-contrib</id>
+            <url>${local-p2-repo.url}</url>
+            <layout>p2</layout>
+        </repository>
+    </repositories>
+
     <dependencies>
         <dependency>
             <groupId>com.google.code.gson</groupId>

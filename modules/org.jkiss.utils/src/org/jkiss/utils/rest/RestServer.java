@@ -132,7 +132,7 @@ public class RestServer<T> {
         @Override
         public void handle(HttpExchange exchange) throws IOException {
 
-            try (exchange) {
+            try {
                 Response<?> response;
                 try {
                     response = executeRequest(exchange);
@@ -175,6 +175,8 @@ public class RestServer<T> {
             } catch (Throwable e) {
                 log.log(Level.SEVERE, "Internal IO error", e);
                 throw e;
+            } finally {
+                exchange.close();
             }
         }
 
@@ -228,7 +230,8 @@ public class RestServer<T> {
                 final Type type = method.getGenericReturnType();
                 return createResponseContent(result, type);
             } catch (Throwable e) {
-                if (e instanceof InvocationTargetException ite) {
+                if (e instanceof InvocationTargetException) {
+                    InvocationTargetException ite = (InvocationTargetException) e;
                     e = ite.getTargetException();
                 }
                 log.log(Level.SEVERE, "RPC call '" + uri + "' failed: " + e.getMessage());

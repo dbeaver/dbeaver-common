@@ -18,15 +18,27 @@ package org.jkiss.api;
 
 import org.jkiss.code.NotNull;
 
+import java.util.Objects;
+
 /**
  * Represents a reference to a driver. Instead of storing two separate fields,
  * it encapsulates them into one entity that is easily searchable through the code base.
- *
- * @param providerId id of the provider
- * @param driverId   id of the driver
  */
-public record DriverReference(@NotNull String providerId, @NotNull String driverId) {
+public final class DriverReference {
     public static final DriverReference UNKNOWN = new DriverReference("", "");
+    @NotNull
+    private final String providerId;
+    @NotNull
+    private final String driverId;
+
+    /**
+     * @param providerId id of the provider
+     * @param driverId   id of the driver
+     */
+    public DriverReference(@NotNull String providerId, @NotNull String driverId) {
+        this.providerId = providerId;
+        this.driverId = driverId;
+    }
 
     @NotNull
     public static DriverReference of(@NotNull String shortId) {
@@ -51,4 +63,29 @@ public record DriverReference(@NotNull String providerId, @NotNull String driver
     public String toString() {
         return shortId();
     }
+
+    @NotNull
+    public String providerId() {
+        return providerId;
+    }
+
+    @NotNull
+    public String driverId() {
+        return driverId;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == this) return true;
+        if (obj == null || obj.getClass() != this.getClass()) return false;
+        var that = (DriverReference) obj;
+        return Objects.equals(this.providerId, that.providerId) &&
+            Objects.equals(this.driverId, that.driverId);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(providerId, driverId);
+    }
+
 }
