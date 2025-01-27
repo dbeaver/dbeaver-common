@@ -32,6 +32,7 @@
 
     <modules>
         <module>modules</module>
+        <module>plugins</module>
     </modules>
 
     <profiles>
