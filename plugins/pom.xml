@@ -17,7 +17,7 @@
     <url>https://github.com/dbeaver/dbeaver-common</url>
 
     <modules>
-        <module>com.dbeaver.p2.collector</module>
+        <module>com.dbeaver.maven.p2.collector</module>
     </modules>
 
     <build>
