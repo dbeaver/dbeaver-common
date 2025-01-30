@@ -27,9 +27,6 @@ import java.io.*;
 import java.nio.file.*;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 import java.util.jar.JarEntry;
 import java.util.jar.JarInputStream;
 
@@ -39,7 +36,6 @@ import java.util.jar.JarInputStream;
     threadSafe = true
 )
 public class P2Collector extends AbstractMojo {
-    private static final ExecutorService POOL = Executors.newWorkStealingPool();
     private static final String P2_DEPENDENCIES_FILE = "skippedP2Dependencies.txt";
     private static final String P2_DEPENDENCIES_DIRECTORY = "p2-dependencies";
     private static final String DIST_DIRECTORY = "dist";
@@ -80,19 +76,14 @@ public class P2Collector extends AbstractMojo {
         Path distDirectory = buildDirectory().resolve(DIST_DIRECTORY);
         Files.createDirectories(distDirectory);
 
-        Future<?> future = POOL.submit(() -> {
-            parseSkippedP2DependenciesFile(skippedP2Dependencies).stream()
-                .parallel()
-                .filter(it -> excludeMatchers.stream().noneMatch(matcher -> matcher.matches(it.getFileName())))
-                .peek(it -> copy(
-                    it,
-                    distDirectory.resolve(it.getFileName()),
-                    StandardCopyOption.REPLACE_EXISTING
-                ))
-                .forEach(it -> extractJar(it, outputDirectory));
-        });
-
-        future.get();
+        parseSkippedP2DependenciesFile(skippedP2Dependencies).stream()
+            .filter(it -> excludeMatchers.stream().noneMatch(matcher -> matcher.matches(it.getFileName())))
+            .peek(it -> copy(
+                it,
+                distDirectory.resolve(it.getFileName()),
+                StandardCopyOption.REPLACE_EXISTING
+            ))
+            .forEach(it -> extractJar(it, outputDirectory));
     }
 
     private Path buildDirectory() {
