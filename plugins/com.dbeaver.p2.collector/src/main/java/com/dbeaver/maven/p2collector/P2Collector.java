@@ -86,19 +86,15 @@ public class P2Collector extends AbstractMojo {
         return new File(project.getBuild().getDirectory()).toPath();
     }
 
-    private static List<Path> parseSkippedP2DependenciesFile(Path path) {
-        try {
-            return Files.readAllLines(path)
-                .stream()
-                .map(it -> it.split("@"))
-                .filter(it -> it.length == 2)
-                .map(it -> it[1].trim())
-                .distinct()
-                .map(Path::of)
-                .toList();
-        } catch (IOException e) {
-            throw new IORuntimeException("Error reading P2 dependencies file " + path + " " + e.getMessage());
-        }
+    private static List<Path> parseSkippedP2DependenciesFile(Path path) throws IOException {
+        return Files.readAllLines(path)
+            .stream()
+            .map(it -> it.split("@"))
+            .filter(it -> it.length == 2)
+            .map(it -> it[1].trim())
+            .distinct()
+            .map(Path::of)
+            .toList();
     }
 
     private static void extractJar(Path jarPath, Path target) {
