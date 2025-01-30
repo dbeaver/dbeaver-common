@@ -78,11 +78,7 @@ public class P2Collector extends AbstractMojo {
 
         parseSkippedP2DependenciesFile(skippedP2Dependencies).stream()
             .filter(it -> excludeMatchers.stream().noneMatch(matcher -> matcher.matches(it.getFileName())))
-            .peek(it -> copy(
-                it,
-                distDirectory.resolve(it.getFileName()),
-                StandardCopyOption.REPLACE_EXISTING
-            ))
+            .peek(it -> copy(it, distDirectory.resolve(it.getFileName())))
             .forEach(it -> extractJar(it, outputDirectory));
     }
 
