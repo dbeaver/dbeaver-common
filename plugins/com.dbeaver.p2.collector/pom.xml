@@ -9,7 +9,7 @@
         <version>2.3.1-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
-    <artifactId>com.dbeaver.p2.collector.maven.plugin</artifactId>
+    <artifactId>com.dbeaver.maven.p2.collector</artifactId>
     <packaging>maven-plugin</packaging>
 
     <name>DBeaver P2 Collector Maven Plugin</name>

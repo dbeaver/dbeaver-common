@@ -2,9 +2,9 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: DBeaver P2 Collector Maven Plugin
 Bundle-Vendor: DBeaver Corp
-Bundle-SymbolicName: com.dbeaver.p2.collector.maven.plugin
+Bundle-SymbolicName: com.dbeaver.maven.p2.collector
 Bundle-Version: 2.3.1.qualifier
 Bundle-Release-Date: 20240205
 Bundle-RequiredExecutionEnvironment: JavaSE-11
 Export-Package: com.dbeaver
-Automatic-Module-Name: com.dbeaver.p2.collector.maven.plugin
+Automatic-Module-Name: com.dbeaver.maven.p2.collector
