@@ -440,7 +440,14 @@ public final class IOUtils {
 
 
     public static boolean isLocalFile(String filePath) {
-        return !filePath.contains("://") || filePath.startsWith("file:");
+        // Local paths:
+        // rel-path
+        // /abs/path
+        // \abs\path
+        // c:/abs/path
+        // c:\abs\path
+        int divPos = filePath.indexOf(":/");
+        return divPos < 0 || divPos == 1 || filePath.startsWith("file:");
     }
 
     public static boolean isLocalURI(URI uri) {
