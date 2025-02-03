@@ -23,12 +23,19 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
 
-import java.io.*;
-import java.nio.file.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.PathMatcher;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.jar.JarEntry;
-import java.util.jar.JarInputStream;
+import java.util.jar.JarFile;
 
 @Mojo(
     name = "copy-dependencies",
@@ -37,7 +44,6 @@ import java.util.jar.JarInputStream;
 )
 public class P2Collector extends AbstractMojo {
     private static final String P2_DEPENDENCIES_FILE = "skippedP2Dependencies.txt";
-    private static final String P2_DEPENDENCIES_DIRECTORY = "p2-dependencies";
     private static final String DIST_DIRECTORY = "dist";
 
     @Parameter(property = "project", readonly = true, required = true)
@@ -70,16 +76,12 @@ public class P2Collector extends AbstractMojo {
             return;
         }
 
-        Path outputDirectory = buildDirectory().resolve(P2_DEPENDENCIES_DIRECTORY);
-        Files.createDirectories(outputDirectory);
-
         Path distDirectory = buildDirectory().resolve(DIST_DIRECTORY);
         Files.createDirectories(distDirectory);
 
         parseSkippedP2DependenciesFile(skippedP2Dependencies).stream()
             .filter(it -> excludeMatchers.stream().noneMatch(matcher -> matcher.matches(it.getFileName())))
-            .peek(it -> copy(it, distDirectory.resolve(it.getFileName())))
-            .forEach(it -> extractJar(it, outputDirectory));
+            .forEach(it -> copyJar(it, distDirectory));
     }
 
     private Path buildDirectory() {
@@ -97,62 +99,31 @@ public class P2Collector extends AbstractMojo {
             .toList();
     }
 
-    private static void extractJar(Path jarPath, Path target) {
-        // Open the main JAR as a stream
-        try (InputStream fileStream = Files.newInputStream(jarPath);
-             JarInputStream jarInputStream = new JarInputStream(fileStream)) {
-
-            // Recursively extract contents
-            extractEntriesRecursively(jarInputStream, target);
-        } catch (IOException e) {
-            throw new IORuntimeException("Error extracting JAR " + jarPath + " " + e.getMessage());
-        }
-    }
-
-    private static void extractEntriesRecursively(JarInputStream jarInputStream, Path target) throws IOException {
-        JarEntry entry;
-        while ((entry = jarInputStream.getNextJarEntry()) != null) {
-            String entryName = entry.getName();
-            Path outputPath = target.resolve(entryName);
-
-            if (entry.isDirectory()) {
-                // Create the folder
-                Files.createDirectories(outputPath);
-            } else if (entryName.toLowerCase().endsWith(".jar")) {
-                // 1) Read nested JAR bytes into memory
-                ByteArrayOutputStream jarBuffer = new ByteArrayOutputStream();
-                jarInputStream.transferTo(jarBuffer);
-
-                // 2) Wrap bytes in a new JarInputStream
-                try (JarInputStream nestedJarInputStream =
-                         new JarInputStream(new ByteArrayInputStream(jarBuffer.toByteArray()))) {
-
-                    // 3) Recursively extract the nested JAR
-                    extractEntriesRecursively(nestedJarInputStream, target);
-                }
-
+    private static void copyJar(Path jarPath, Path toFolder) {
+        try {
+            if (jarPath.getFileName().toString().startsWith("org.jkiss.bundle")) {
+                extractBundle(jarPath, toFolder);
             } else {
-                // Ordinary file: create parent directory (in case it's nested) and copy
-                Files.createDirectories(outputPath.getParent());
-                try (OutputStream fos = Files.newOutputStream(outputPath)) {
-                    jarInputStream.transferTo(fos);
+                Path jarTargetPath = toFolder.resolve(jarPath.getFileName());
+                if (!Files.exists(jarTargetPath)) {
+                    Files.copy(jarPath, jarTargetPath);
                 }
             }
-
-            // Close the current entry before moving on
-            jarInputStream.closeEntry();
+        } catch (IOException e) {
+            throw new IORuntimeException("Failed to copy " + jarPath, e);
         }
     }
 
-    private static void copy(
-        Path source,
-        Path target,
-        CopyOption... options
-    ) {
-        try {
-            Files.copy(source, target, options);
-        } catch (IOException e) {
-            throw new IORuntimeException(e.getMessage(), e);
+    private static void extractBundle(Path bundlePath, Path target) throws IOException {
+        try (JarFile bundle = new JarFile(bundlePath.toFile())) {
+            for (JarEntry entry : Collections.list(bundle.entries())) {
+                if (entry.getName().startsWith("lib/") && entry.getName().endsWith(".jar")) {
+                    try (InputStream is = bundle.getInputStream(entry);
+                         OutputStream os = Files.newOutputStream(target.resolve(entry.getName().substring("lib/".length())))) {
+                        is.transferTo(os);
+                    }
+                }
+            }
         }
     }
 }
