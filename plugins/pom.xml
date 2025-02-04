@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
+         xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>com.dbeaver.common</groupId>
+        <artifactId>com.dbeaver.common.main</artifactId>
+        <version>2.3.1-SNAPSHOT</version>
+        <relativePath>../</relativePath>
+    </parent>
+    <artifactId>com.dbeaver.common.plugins</artifactId>
+    <packaging>pom</packaging>
+
+    <name>Common plugins</name>
+    <description>Common plugins</description>
+    <url>https://github.com/dbeaver/dbeaver-common</url>
+
+    <modules>
+        <module>com.dbeaver.maven.p2.collector</module>
+    </modules>
+
+    <build>
+        <plugins>
+            <!-- Use minimum supported Java -->
+            <plugin>
+                <groupId>org.eclipse.tycho</groupId>
+                <artifactId>tycho-compiler-plugin</artifactId>
+                <version>${tycho-version}</version>
+                <configuration>
+                    <useProjectSettings>false</useProjectSettings>
+                    <source>${java.version.min}</source>
+                    <target>${java.version.min}</target>
+                    <compilerVersion>${java.version.min}</compilerVersion>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+</project>
