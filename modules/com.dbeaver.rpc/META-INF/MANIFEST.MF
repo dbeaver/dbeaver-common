@@ -6,13 +6,9 @@ Bundle-SymbolicName: com.dbeaver.rpc
 Bundle-Version: 2.3.1.qualifier
 Bundle-Release-Date: 20240205
 Bundle-RequiredExecutionEnvironment: JavaSE-11
-Import-Package: jakarta.websocket,
- jakarta.websocket.server,
- org.eclipse.jetty.ee10.websocket.jakarta.client,
- org.eclipse.jetty.util,
- org.eclipse.jetty.util.component,
- org.eclipse.jetty.client
 Require-Bundle: org.jkiss.utils,
+ com.dbeaver.rpc.api,
+ org.jkiss.bundle.jakarta.jetty11.websocket,
  com.google.gson,
  slf4j.api
 Export-Package: com.dbeaver.rpc,

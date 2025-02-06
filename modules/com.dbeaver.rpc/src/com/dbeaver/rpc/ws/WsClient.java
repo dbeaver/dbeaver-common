@@ -16,6 +16,8 @@
  */
 package com.dbeaver.rpc.ws;
 
+import com.dbeaver.rpc.api.WsRequest;
+import com.dbeaver.rpc.api.WsResponse;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 import jakarta.websocket.MessageHandler;

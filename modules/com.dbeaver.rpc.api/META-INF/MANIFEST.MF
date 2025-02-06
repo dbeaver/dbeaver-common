@@ -1,0 +1,10 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: DBeaver RPC API
+Bundle-Vendor: DBeaver Corp
+Bundle-SymbolicName: com.dbeaver.rpc.api
+Bundle-Version: 2.3.1.qualifier
+Bundle-Release-Date: 20240205
+Bundle-RequiredExecutionEnvironment: JavaSE-11
+Export-Package: com.dbeaver.rpc.api
+Automatic-Module-Name: com.dbeaver.rpc.api

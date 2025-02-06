@@ -14,24 +14,30 @@
  * is strictly forbidden unless prior written permission is obtained
  * from DBeaver Corp.
  */
-package com.dbeaver.rpc.ws;
+package com.dbeaver.rpc.api;
 
 import java.util.UUID;
 
-public class WsRequest {
+public class WsResponse {
     private final UUID messageId;
-    private final String payload;
+    private final String result;
+    private final String error;
 
-    public WsRequest(UUID messageId, String payload) {
+    public WsResponse(UUID messageId, String result, String error) {
         this.messageId = messageId;
-        this.payload = payload;
+        this.result = result;
+        this.error = error;
     }
 
     public UUID messageId() {
         return messageId;
     }
 
-    public String payload() {
-        return payload;
+    public String result() {
+        return result;
+    }
+
+    public String error() {
+        return error;
     }
 }
