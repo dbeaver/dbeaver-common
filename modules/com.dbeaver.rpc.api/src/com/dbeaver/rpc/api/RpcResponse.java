@@ -18,20 +18,26 @@ package com.dbeaver.rpc.api;
 
 import java.util.UUID;
 
-public class WsRequest {
+public class RpcResponse {
     private final UUID messageId;
-    private final String payload;
+    private final String result;
+    private final String error;
 
-    public WsRequest(UUID messageId, String payload) {
+    public RpcResponse(UUID messageId, String result, String error) {
         this.messageId = messageId;
-        this.payload = payload;
+        this.result = result;
+        this.error = error;
     }
 
     public UUID messageId() {
         return messageId;
     }
 
-    public String payload() {
-        return payload;
+    public String result() {
+        return result;
+    }
+
+    public String error() {
+        return error;
     }
 }
