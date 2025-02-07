@@ -19,6 +19,7 @@
     <modules>
         <module>org.jkiss.utils</module>
         <module>com.dbeaver.jdbc.api</module>
+        <module>com.dbeaver.rpc.api</module>
         <module>com.dbeaver.rpc</module>
     </modules>
 
