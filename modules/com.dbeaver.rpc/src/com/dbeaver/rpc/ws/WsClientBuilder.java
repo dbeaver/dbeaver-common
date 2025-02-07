@@ -18,8 +18,8 @@ package com.dbeaver.rpc.ws;
 
 import jakarta.websocket.*;
 import org.eclipse.jetty.client.HttpClient;
-import org.eclipse.jetty.ee10.websocket.jakarta.client.JakartaWebSocketClientContainer;
 import org.eclipse.jetty.util.component.LifeCycle;
+import org.eclipse.jetty.websocket.jakarta.client.internal.JakartaWebSocketClientContainer;
 
 import java.io.IOException;
 import java.net.URI;
@@ -72,7 +72,7 @@ public class WsClientBuilder {
 
             @Override
             public void afterResponse(HandshakeResponse hr) {
-                List<String> error = hr.getHeaders().get(WsConstants.HANDSHAKE_ERROR_HEADER);
+                List<String> error = hr.getHeaders().get("X-Handshake-Error");
                 if (error != null && !error.isEmpty()) {
                     throw new RuntimeException("Handshake error: " + error.get(0));
                 }

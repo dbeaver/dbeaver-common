@@ -14,11 +14,30 @@
  * is strictly forbidden unless prior written permission is obtained
  * from DBeaver Corp.
  */
-package com.dbeaver.rpc.ws;
+package com.dbeaver.rpc.api;
 
-public final class WsConstants {
-    public static final String HANDSHAKE_ERROR_HEADER = "X-Handshake-Error";
+import java.util.UUID;
 
-    private WsConstants() {
+public class RpcResponse {
+    private final UUID messageId;
+    private final String result;
+    private final String error;
+
+    public RpcResponse(UUID messageId, String result, String error) {
+        this.messageId = messageId;
+        this.result = result;
+        this.error = error;
+    }
+
+    public UUID messageId() {
+        return messageId;
+    }
+
+    public String result() {
+        return result;
+    }
+
+    public String error() {
+        return error;
     }
 }

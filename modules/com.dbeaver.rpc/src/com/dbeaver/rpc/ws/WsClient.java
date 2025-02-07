@@ -16,6 +16,8 @@
  */
 package com.dbeaver.rpc.ws;
 
+import com.dbeaver.rpc.api.RpcRequest;
+import com.dbeaver.rpc.api.RpcResponse;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 import jakarta.websocket.MessageHandler;
@@ -69,7 +71,7 @@ public final class WsClient implements MessageHandler.Whole<String> {
         UUID messageId = UUID.randomUUID();
 
         // Send the text message over the WebSocket.
-        WsRequest methodInvocation = new WsRequest(messageId, payload);
+        RpcRequest methodInvocation = new RpcRequest(messageId, payload);
         String message = GSON.toJson(methodInvocation);
         session.getBasicRemote().sendText(message);
 
@@ -82,7 +84,7 @@ public final class WsClient implements MessageHandler.Whole<String> {
 
     @Override
     public void onMessage(String rawMessage) {
-        WsResponse result = GSON.fromJson(rawMessage, WsResponse.class);
+        RpcResponse result = GSON.fromJson(rawMessage, RpcResponse.class);
 
         CompletableFuture<String> future = pendingMessages.remove(result.messageId());
         if (future == null) {
