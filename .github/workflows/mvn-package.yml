@@ -60,8 +60,7 @@ jobs:
         run: |
           sudo apt install git-restore-mtime
           git restore-mtime
-        with:
-          working-directory: ${{ env.CHECKOUT_PATH || '.' }}
+        working-directory: ${{ env.CHECKOUT_PATH || '.' }}
 
       - uses: dbeaver/github-actions/clone-repositories@3f851489138fa707ccdc10dc864f1362c419f8d3
         id: clone-repositories
