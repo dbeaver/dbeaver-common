@@ -54,7 +54,7 @@ jobs:
         with:
           path: ${{ env.CHECKOUT_PATH || '.' }}
 
-      - uses: dbeaver/github-actions/clone-repositories@a9c8157cf1f0370b8c044c2e271c1d5f7104c836
+      - uses: dbeaver/github-actions/clone-repositories@dcdf8c2c96eb14d767929875ecce7e07fc1ffecf
         id: clone-repositories
         if: ${{ inputs.project-deps != null }}
         with:
@@ -64,13 +64,19 @@ jobs:
       - name: Setup caching paths
         id: cache-paths
         run: |
-          CACHE_PATHS="${{ env.CHECKOUT_PATH || '.' }}/**/target/ "
-          for repo in ${{ steps.clone-repositories.outputs.cloned-folders }}; do
-            CACHE_PATHS+="$repo/**/target/ "
-          done
-          if [[ -n "${{ inputs.cache-target }}" ]]; then
-            CACHE_PATHS+="${{ inputs.cache-target }}"
+          CACHE_PATHS="${{ env.CHECKOUT_PATH || '.' }}/**/target/"
+          CLONED_FOLDERS_JSON='${{ steps.clone-repositories.outputs.cloned-folders }}'
+
+          if [[ "$CLONED_FOLDERS_JSON" != "[]" && "$CLONED_FOLDERS_JSON" != "" ]]; then
+            for repo in $(echo "$CLONED_FOLDERS_JSON" | jq -r '.[]'); do
+              CACHE_PATHS+=" $repo/**/target/"
+            done
           fi
+
+          if [[ -n "${{ inputs.cache-target }}" ]]; then
+            CACHE_PATHS+=" ${{ inputs.cache-target }}"
+          fi
+
           echo "mvn-target-cache-paths=$CACHE_PATHS" >> "$GITHUB_OUTPUT"
 
       - name: Cache target folders
