@@ -54,7 +54,7 @@ jobs:
         with:
           path: ${{ env.CHECKOUT_PATH || '.' }}
 
-      - uses: dbeaver/github-actions/clone-repositories@8a01d0d00282f8b370bea826cc3f5b7ded67aad4
+      - uses: dbeaver/github-actions/clone-repositories@41dfb8cc6044623f9f29f3a58863aafd79d31f1f
         id: clone-repositories
         if: ${{ inputs.project-deps != null }}
         with:
