@@ -21,7 +21,6 @@ jobs:
     secrets: inherit
     with:
       timeout-minutes: 5
-      cache-target: ./**/target/
       clean: ${{ inputs.mvn-clean || false }}
 
   lint:

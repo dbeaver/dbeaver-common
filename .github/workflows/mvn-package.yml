@@ -64,7 +64,7 @@ jobs:
       - name: Setup caching paths
         id: cache-paths
         run: |
-          CACHE_PATHS=""
+          CACHE_PATHS="${{ env.CHECKOUT_PATH || '.' }}/**/target/ "
           for repo in ${{ steps.clone-repositories.outputs.cloned-folders }}; do
             CACHE_PATHS+="$repo/**/target/ "
           done
