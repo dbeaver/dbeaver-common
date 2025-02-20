@@ -62,7 +62,7 @@ jobs:
           git restore-mtime
         working-directory: ${{ env.CHECKOUT_PATH || '.' }}
 
-      - uses: dbeaver/github-actions/clone-repositories@3f851489138fa707ccdc10dc864f1362c419f8d3
+      - uses: dbeaver/github-actions/clone-repositories@9ae7fb89d39d5c4d4850b98b2dbd44c6704e01c7
         id: clone-repositories
         if: ${{ inputs.project-deps != null }}
         with:
