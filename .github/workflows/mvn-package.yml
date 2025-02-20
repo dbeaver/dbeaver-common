@@ -71,12 +71,12 @@ jobs:
           if [[ -n "${{ inputs.cache-target }}" ]]; then
             CACHE_PATHS+="${{ inputs.cache-target }}"
           fi
-          echo "CACHE_PATHS=$CACHE_PATHS" >> $GITHUB_ENV
+          echo "mvn-target-cache-paths=$CACHE_PATHS" >> "$GITHUB_OUTPUT"
 
       - name: Cache target folders
         uses: actions/cache@v4
         with:
-          path: ${{ env.CACHE_PATHS }}
+          path: ${{ steps.cache-paths.outputs.mvn-target-cache-paths }}
           key: mvn-build-cache-${{ runner.os }}-${{ github.sha }}
           restore-keys: |
             mvn-build-cache-${{ runner.os }}-
