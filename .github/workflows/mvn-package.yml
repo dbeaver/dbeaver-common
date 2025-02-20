@@ -64,20 +64,22 @@ jobs:
       - name: Setup caching paths
         id: cache-paths
         run: |
-          CACHE_PATHS="${{ env.CHECKOUT_PATH || '.' }}/**/target/"
-          CLONED_FOLDERS_JSON='${{ steps.clone-repositories.outputs.cloned-folders }}'
-
-          if [[ "$CLONED_FOLDERS_JSON" != "[]" && "$CLONED_FOLDERS_JSON" != "" ]]; then
-            for repo in $(echo "$CLONED_FOLDERS_JSON" | jq -r '.[]'); do
-              CACHE_PATHS+=" $repo/**/target/"
-            done
-          fi
-
-          if [[ -n "${{ inputs.cache-target }}" ]]; then
-            CACHE_PATHS+=" ${{ inputs.cache-target }}"
-          fi
-
-          echo "mvn-target-cache-paths=$CACHE_PATHS" >> "$GITHUB_OUTPUT"
+          {
+            echo 'mvn-target-cache-paths<<EOF'
+            echo '${{ env.CHECKOUT_PATH || '.' }}/**/target/'
+            CLONED_FOLDERS_JSON='${{ steps.clone-repositories.outputs.cloned-folders }}'
+            
+            if [[ "$CLONED_FOLDERS_JSON" != "[]" && "$CLONED_FOLDERS_JSON" != "" ]]; then
+              for repo in $(echo "$CLONED_FOLDERS_JSON" | jq -r '.[]'); do
+                echo "$repo/**/target/"
+              done
+            fi
+            
+            if [[ -n "${{ inputs.cache-target }}" ]]; then
+              echo "${{ inputs.cache-target }}"
+            fi
+            echo EOF
+          } >> "$GITHUB_OUTPUT"
 
       - name: Cache target folders
         uses: actions/cache@v4
