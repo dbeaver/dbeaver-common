@@ -85,8 +85,9 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ${{ steps.cache-paths.outputs.mvn-target-cache-paths }}
-          key: mvn-build-cache-${{ runner.os }}-${{ github.sha }}
+          key: mvn-build-cache-${{ runner.os }}-${{ hashFiles('**/pom.xml') }}-${{ github.sha }}
           restore-keys: |
+            mvn-build-cache-${{ runner.os }}-${{ hashFiles('**/pom.xml') }}-
             mvn-build-cache-${{ runner.os }}-
             mvn-build-cache-
 
