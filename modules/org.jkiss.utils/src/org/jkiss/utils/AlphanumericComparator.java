@@ -1,6 +1,6 @@
 /*
  * DBeaver - Universal Database Manager
- * Copyright (C) 2010-2024 DBeaver Corp and others
+ * Copyright (C) 2010-2025 DBeaver Corp and others
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,7 +49,7 @@ public class AlphanumericComparator implements Comparator<CharSequence> {
 
         while (i < len1 && j < len2) {
             final char ch1 = Character.toUpperCase(o1.charAt(i));
-            final char ch2 = Character.toUpperCase(o2.charAt(i));
+            final char ch2 = Character.toUpperCase(o2.charAt(j));
 
             if (Character.isDigit(ch1) && Character.isDigit(ch2)) {
                 int num1 = 0;
