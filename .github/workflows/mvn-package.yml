@@ -16,6 +16,12 @@ on:
       mvn-args:
         required: false
         type: string
+      cache-target:
+        required: false
+        type: string
+      clean:
+        required: false
+        type: boolean
 
     outputs:
       run-id:
@@ -48,11 +54,33 @@ jobs:
         with:
           path: ${{ env.CHECKOUT_PATH || '.' }}
 
-      - uses: dbeaver/github-actions/clone-repositories@devel
+      - uses: dbeaver/github-actions/clone-repositories@5edf74b77b3fc713854721f626de26774df7d3c0
+        id: clone-repositories
         if: ${{ inputs.project-deps != null }}
         with:
           project_deps_path: ${{ inputs.project-deps }}
           token: ${{ secrets.DEVOPS_ISSUE_RO_TOKEN }}
+
+      - name: Setup caching paths
+        id: cache-paths
+        run: |
+          CACHE_PATHS=""
+          for repo in ${{ steps.clone-repositories.outputs.cloned-folders }}; do
+            CACHE_PATHS+="$repo/**/target/ "
+          done
+          if [[ -n "${{ inputs.cache-target }}" ]]; then
+            CACHE_PATHS+="${{ inputs.cache-target }}"
+          fi
+          echo "CACHE_PATHS=$CACHE_PATHS" >> $GITHUB_ENV
+
+      - name: Cache target folders
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.CACHE_PATHS }}
+          key: mvn-build-cache-${{ runner.os }}-${{ github.sha }}
+          restore-keys: |
+            mvn-build-cache-${{ runner.os }}-
+            mvn-build-cache-
 
       - uses: dbeaver/github-actions/install-maven@devel
       - uses: actions/setup-java@v4
@@ -60,8 +88,12 @@ jobs:
           distribution: "temurin"
           java-version: "21"
           cache: maven
-
-      - name: Build
-        run: mvn clean package -B -T 1C ${{ inputs.mvn-args }}
+      
+      - name: Clean
+        if: ${{ inputs.clean == true }}
+        run: mvn clean -B
         working-directory: ${{ inputs.project-directory || env.CHECKOUT_PATH || '.' }}
 
+      - name: Build
+        run: mvn package -B -T 1C ${{ inputs.mvn-args }}
+        working-directory: ${{ inputs.project-directory || env.CHECKOUT_PATH || '.' }}
