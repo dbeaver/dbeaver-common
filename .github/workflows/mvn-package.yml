@@ -52,9 +52,18 @@ jobs:
 
       - uses: actions/checkout@v4
         with:
+          fetch-depth: 0
           path: ${{ env.CHECKOUT_PATH || '.' }}
 
-      - uses: dbeaver/github-actions/clone-repositories@41dfb8cc6044623f9f29f3a58863aafd79d31f1f
+      - name: Install git-restore-mtime
+        shell: bash
+        run: |
+          sudo apt install git-restore-mtime
+          git restore-mtime
+        with:
+          working-directory: ${{ env.CHECKOUT_PATH || '.' }}
+
+      - uses: dbeaver/github-actions/clone-repositories@3f851489138fa707ccdc10dc864f1362c419f8d3
         id: clone-repositories
         if: ${{ inputs.project-deps != null }}
         with:
