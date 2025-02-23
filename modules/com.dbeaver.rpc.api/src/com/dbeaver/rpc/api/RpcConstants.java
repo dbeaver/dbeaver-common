@@ -16,7 +16,15 @@
  */
 package com.dbeaver.rpc.api;
 
+import org.jkiss.utils.StandardConstants;
+
+import java.text.SimpleDateFormat;
+
 public final class RpcConstants {
+    public static final SimpleDateFormat ISO_TIMESTAMP_FORMAT = new SimpleDateFormat(StandardConstants.ISO_TIMESTAMP_PATTERN);
+    public static final SimpleDateFormat ISO_TIME_FORMAT = new SimpleDateFormat(StandardConstants.ISO_TIME_PATTERN);
+    public static final SimpleDateFormat ISO_DATE_FORMAT = new SimpleDateFormat(StandardConstants.ISO_DATE_PATTERN);
+
     public static final String HANDSHAKE_ERROR_HEADER = "X-Handshake-Error";
 
     private RpcConstants() {
