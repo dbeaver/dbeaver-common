@@ -170,7 +170,7 @@ public class CommonUtils {
         return ret.toString();
     }
 
-    public static String toUnderScore(String str) {
+    public static String camelCasetoUnderScore(String str) {
         if (str == null || str.isEmpty()) {
             return str;
         }
