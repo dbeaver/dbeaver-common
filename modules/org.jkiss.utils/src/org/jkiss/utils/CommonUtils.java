@@ -170,7 +170,16 @@ public class CommonUtils {
         return ret.toString();
     }
 
-    public static String camelCasetoUnderScore(String str) {
+    /**
+     * Converts a camelCase string to an underscore-separated string.
+     * <p>
+     * For example, the string {@code "camelCaseString"} will be converted to {@code "camel_case_string"}.
+     * </p>
+     *
+     * @param str the camelCase string to convert; may be {@code null} or empty.
+     * @return the converted string in underscore-separated format, or the original string if it is {@code null} or empty.
+     */
+    public static String camelCaseToUnderScore(@Nullable String str) {
         if (str == null || str.isEmpty()) {
             return str;
         }
