@@ -33,7 +33,7 @@ import java.util.logging.Logger;
  * Builder for configuring and creating WebSocketClient instances.
  */
 public class WsClientBuilder {
-    private static final Logger logger = Logger.getLogger(WsClient.class.getName());
+    private static final Logger logger = Logger.getLogger(WsClientBuilder.class.getName());
 
     private String url;
     private Map<String, String> headers;
@@ -57,57 +57,68 @@ public class WsClientBuilder {
     /**
      * Builds and connects a WebSocketClient using the given configuration.
      *
-     * @return A connected WebSocketClient instance.
+     * @return A connected WsClient instance.
      * @throws DeploymentException if the WebSocket deployment fails.
      * @throws IOException         if a connection error occurs.
      */
     public WsClient connect() throws DeploymentException, IOException {
-        ClientEndpointConfig.Configurator configurator = new ClientEndpointConfig.Configurator() {
-            @Override
-            public void beforeRequest(Map<String, List<String>> headers) {
-                if (WsClientBuilder.this.headers != null) {
-                    WsClientBuilder.this.headers.forEach((key, value) -> headers.put(key, List.of(value)));
-                }
-            }
-
-            @Override
-            public void afterResponse(HandshakeResponse hr) {
-                List<String> error = hr.getHeaders().get("X-Handshake-Error");
-                if (error != null && !error.isEmpty()) {
-                    throw new RuntimeException("Handshake error: " + error.get(0));
-                }
-            }
-        };
-
-        ClientEndpointConfig config = ClientEndpointConfig
-            .Builder
-            .create()
-            .configurator(configurator)
-            .build();
-
-        Endpoint endpoint = new Endpoint() {
-            @Override
-            public void onOpen(Session session, EndpointConfig endpointConfig) {
-                session.setMaxIdleTimeout(timeout.toMillis());
-                session.setMaxTextMessageBufferSize(Integer.MAX_VALUE);
-            }
-
-            @Override
-            public void onError(Session session, Throwable thr) {
-                logger.log(Level.SEVERE, "WebSocket error", thr);
-            }
-
-            @Override
-            public void onClose(Session session, CloseReason closeReason) {
-                logger.log(Level.INFO, "WebSocket closed: " + closeReason);
-            }
-        };
-
+        ClientEndpointConfig config = createEndpointConfig();
+        Endpoint endpoint = new WsClientEndpoint(timeout);
         JakartaWebSocketClientContainer clientContainer = new JakartaWebSocketClientContainer((HttpClient) null);
         LifeCycle.start(clientContainer);
 
         Session session = clientContainer.connectToServer(endpoint, config, URI.create(url));
+        WsClient wsClient = new WsClient(session);
+        // Store client reference so that the endpoint can signal closure.
+        session.getUserProperties().put(WsClient.class.getName(), wsClient);
+        return wsClient;
+    }
 
-        return new WsClient(session);
+    private ClientEndpointConfig createEndpointConfig() {
+        ClientEndpointConfig.Configurator configurator = new ClientEndpointConfig.Configurator() {
+            @Override
+            public void beforeRequest(Map<String, List<String>> headersMap) {
+                if (headers != null) {
+                    headers.forEach((key, value) -> headersMap.put(key, List.of(value)));
+                }
+            }
+
+            @Override
+            public void afterResponse(HandshakeResponse response) {
+                List<String> handshakeErrors = response.getHeaders().get("X-Handshake-Error");
+                if (handshakeErrors != null && !handshakeErrors.isEmpty()) {
+                    throw new WsRuntimeException("Handshake error: " + handshakeErrors.get(0));
+                }
+            }
+        };
+        return ClientEndpointConfig.Builder.create().configurator(configurator).build();
+    }
+
+    private static class WsClientEndpoint extends Endpoint {
+        private final Duration timeout;
+
+        public WsClientEndpoint(Duration timeout) {
+            this.timeout = timeout;
+        }
+
+        @Override
+        public void onOpen(Session session, EndpointConfig config) {
+            session.setMaxIdleTimeout(timeout.toMillis());
+            session.setMaxTextMessageBufferSize(Integer.MAX_VALUE);
+        }
+
+        @Override
+        public void onError(Session session, Throwable thr) {
+            logger.log(Level.SEVERE, "WebSocket error", thr);
+        }
+
+        @Override
+        public void onClose(Session session, CloseReason closeReason) {
+            logger.log(Level.INFO, "WebSocket closed: " + closeReason);
+            WsClient wsClient = (WsClient) session.getUserProperties().get(WsClient.class.getName());
+            if (wsClient != null) {
+                wsClient.close();
+            }
+        }
     }
 }
