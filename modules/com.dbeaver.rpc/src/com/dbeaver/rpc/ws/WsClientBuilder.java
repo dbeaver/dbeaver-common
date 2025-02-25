@@ -87,7 +87,7 @@ public class WsClientBuilder {
             public void afterResponse(HandshakeResponse response) {
                 List<String> handshakeErrors = response.getHeaders().get("X-Handshake-Error");
                 if (handshakeErrors != null && !handshakeErrors.isEmpty()) {
-                    throw new RuntimeException("Handshake error: " + handshakeErrors.get(0));
+                    throw new WsRuntimeException("Handshake error: " + handshakeErrors.get(0));
                 }
             }
         };
