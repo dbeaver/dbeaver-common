@@ -416,8 +416,11 @@ public final class IOUtils {
 
     @Nullable
     public static String getFileExtension(Path file) {
-        String fileName = file.getFileName().toString();
-        return getFileExtension(fileName);
+        Path fileName = file.getFileName();
+        if (fileName == null) {
+            return null;
+        }
+        return getFileExtension(fileName.toString());
     }
 
     @Nullable
