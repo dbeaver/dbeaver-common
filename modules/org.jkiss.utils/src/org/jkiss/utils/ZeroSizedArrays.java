@@ -43,6 +43,11 @@ public final class ZeroSizedArrays {
      */
     public static final byte[] OF_BYTE = new byte[0];
 
+    /**
+     * A zero-sized array of primitive chars
+     */
+    public static final char[] OF_CHAR = new char[0];
+
     private ZeroSizedArrays() {
         // Utility class
     }
