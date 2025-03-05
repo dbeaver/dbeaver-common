@@ -1,6 +1,6 @@
 /*
  * DBeaver - Universal Database Manager
- * Copyright (C) 2010-2024 DBeaver Corp and others
+ * Copyright (C) 2010-2025 DBeaver Corp and others
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -269,7 +269,7 @@ public class ArrayUtils {
     }
 
     public static void main(String[] args) {
-        String[] arr = new String[0];
+        String[] arr = ZeroSizedArrays.OF_STRING;
 
         for (int i = 0; i < 100; i++) {
             arr = add(String.class, arr, String.valueOf(i));

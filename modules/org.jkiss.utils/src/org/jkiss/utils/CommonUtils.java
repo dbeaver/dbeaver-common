@@ -1,6 +1,6 @@
 /*
  * DBeaver - Universal Database Manager
- * Copyright (C) 2010-2024 DBeaver Corp and others
+ * Copyright (C) 2010-2025 DBeaver Corp and others
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -650,7 +650,7 @@ public class CommonUtils {
     @NotNull
     public static String[] split(@Nullable String str, String delimiter) {
         if (CommonUtils.isEmpty(str)) {
-            return new String[0];
+            return ZeroSizedArrays.OF_STRING;
         } else {
             return str.split(delimiter);
         }

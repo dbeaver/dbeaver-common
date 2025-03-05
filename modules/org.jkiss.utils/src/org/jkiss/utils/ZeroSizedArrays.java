@@ -26,11 +26,17 @@ public final class ZeroSizedArrays {
      * A zero-sized array of java.lang.Object
      */
     public final static Object[] OF_OBJECT = new Object[0];
+
     /**
      * A zero-sized array of java.lang.Class
      */
     @SuppressWarnings("rawtypes")
     public final static Class[] OF_CLASS = new Class[0];
+
+    /**
+     * A zero-sized array of java.lang.String
+     */
+    public static final String[] OF_STRING = new String[0];
 
     private ZeroSizedArrays() {
         // Utility class
