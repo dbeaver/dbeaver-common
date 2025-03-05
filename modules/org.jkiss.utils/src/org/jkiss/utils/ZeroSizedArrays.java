@@ -16,6 +16,8 @@
  */
 package org.jkiss.utils;
 
+import java.sql.DriverPropertyInfo;
+
 /**
  * A utils class with arrays with lengths of zero.
  * Since array lengths in Java are non-modifiable, it is almost always possible to share zero-length arrays,
@@ -57,6 +59,11 @@ public final class ZeroSizedArrays {
      * A zero-sized array of java.lang.Throwable
      */
     public static final Throwable[] OF_THROWABLE = new Throwable[0];
+
+    /**
+     * A zero-sized array of java.sql.DriverPropertyInfo
+     */
+    public static final DriverPropertyInfo[] OF_DRIVER_PROPERTY_INFO = new DriverPropertyInfo[0];
 
     private ZeroSizedArrays() {
         // Utility class
