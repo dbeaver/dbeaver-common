@@ -48,6 +48,11 @@ public final class ZeroSizedArrays {
      */
     public static final char[] OF_CHAR = new char[0];
 
+    /**
+     * A zero-sized array of primitive integers
+     */
+    public static final int[] OF_INT = new int[0];
+
     private ZeroSizedArrays() {
         // Utility class
     }
