@@ -38,6 +38,11 @@ public final class ZeroSizedArrays {
      */
     public static final String[] OF_STRING = new String[0];
 
+    /**
+     * A zero-sized array of primitive bytes
+     */
+    public static final byte[] OF_BYTE = new byte[0];
+
     private ZeroSizedArrays() {
         // Utility class
     }
