@@ -53,6 +53,11 @@ public final class ZeroSizedArrays {
      */
     public static final int[] OF_INT = new int[0];
 
+    /**
+     * A zero-sized array of java.lang.Throwable
+     */
+    public static final Throwable[] OF_THROWABLE = new Throwable[0];
+
     private ZeroSizedArrays() {
         // Utility class
     }
