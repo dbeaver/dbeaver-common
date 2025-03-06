@@ -31,7 +31,7 @@ concurrency:
 
 jobs:
   build-and-test:
-    name: Build
+    name: Build Java
     runs-on: ubuntu-latest
     timeout-minutes: ${{ inputs.timeout-minutes }}
     permissions:
@@ -61,7 +61,7 @@ jobs:
           java-version: "21"
           cache: maven
 
-      - name: Build
-        run: mvn clean package -B -T 1C ${{ inputs.mvn-args }}
+      - name: Compile
+        run: mvn clean compile -B -T1C ${{ inputs.mvn-args }}
         working-directory: ${{ inputs.project-directory || env.CHECKOUT_PATH || '.' }}
 
