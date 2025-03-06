@@ -65,6 +65,11 @@ public final class ZeroSizedArrays {
      */
     public static final DriverPropertyInfo[] OF_DRIVER_PROPERTY_INFO = new DriverPropertyInfo[0];
 
+    /**
+     * A zero-sized array of java.lang.Object[]
+     */
+    public static final Object[][] OF_OBJECT_ARRAYS = new Object[0][];
+
     private ZeroSizedArrays() {
         // Utility class
     }
