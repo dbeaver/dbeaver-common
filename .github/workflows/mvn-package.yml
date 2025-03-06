@@ -62,6 +62,6 @@ jobs:
           cache: maven
 
       - name: Compile
-        run: mvn clean compile -B -T1C ${{ inputs.mvn-args }}
+        run: mvn clean test -B -T1C ${{ inputs.mvn-args }}
         working-directory: ${{ inputs.project-directory || env.CHECKOUT_PATH || '.' }}
 
