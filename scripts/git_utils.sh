@@ -1,3 +1,5 @@
+#!/bin/bash
+
 repo_path() {
   local root_dir="$1"
   local repo="$2"
@@ -25,6 +27,12 @@ clone_dependencies() {
     ensure_repo_cloned "$root_dir" "$dep_repo"
   done < "$project_dependencies_file"
 }
+
+# Example of usage:
+# script_dir="$(realpath "$(dirname "$0")")"
+# repositories_root_dir="$(realpath "$script_dir/../..")" <======== ENTER CORRECT PATH HERE DEPENDING ON YOUR SCRIPT LOCATION
+# [ ! -d "$repositories_root_dir/dbeaver-common" ] && git clone --depth 1 https://github.com/dbeaver/dbeaver-common.git "$repositories_root_dir/dbeaver-common"
+# source "$repositories_root_dir/dbeaver-common/scripts/git_utils.sh
 
 prepare_repo_and_dependencies() {
   if [ $# -ne 2 ]; then
