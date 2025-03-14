@@ -21,7 +21,7 @@ clone_dependencies() {
   echo "cloning dependencies for $repo"
   project_dependencies_file=$(repo_path "$root_dir" "$repo")/project.deps
   echo "reading dependencies file $project_dependencies_file"
-  while IFS= read -r dep_repo; do
+  while IFS= read -r dep_repo || [[ -n "$dep_repo" ]]; do
     ensure_repo_cloned "$root_dir" "$dep_repo"
   done < "$project_dependencies_file"
 }
