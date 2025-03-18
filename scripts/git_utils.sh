@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env sh
 
 repo_path() {
   local root_dir="$1"
