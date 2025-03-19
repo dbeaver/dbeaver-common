@@ -14,10 +14,10 @@
  * is strictly forbidden unless prior written permission is obtained
  * from DBeaver Corp.
  */
-package com.dbeaver.rpc.ws;
+package com.dbeaver.ws.api;
 
-import com.dbeaver.rpc.api.RpcRequest;
-import com.dbeaver.rpc.api.RpcResponse;
+import org.jkiss.utils.rpc.RpcRequest;
+import org.jkiss.utils.rpc.RpcResponse;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 import jakarta.websocket.MessageHandler;
