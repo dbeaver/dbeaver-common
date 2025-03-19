@@ -2,15 +2,13 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: DBeaver RPC
 Bundle-Vendor: DBeaver Corp
-Bundle-SymbolicName: com.dbeaver.rpc
+Bundle-SymbolicName: com.dbeaver.ws.api
 Bundle-Version: 2.4.0.qualifier
 Bundle-Release-Date: 20240205
 Bundle-RequiredExecutionEnvironment: JavaSE-11
 Require-Bundle: org.jkiss.utils,
- com.dbeaver.rpc.api,
  org.jkiss.bundle.jakarta.jetty11.websocket,
  com.google.gson,
  slf4j.api
-Export-Package: com.dbeaver.rpc,
- com.dbeaver.rpc.ws
-Automatic-Module-Name: com.dbeaver.rpc
+Export-Package: com.dbeaver.ws.api
+Automatic-Module-Name: com.dbeaver.ws.api

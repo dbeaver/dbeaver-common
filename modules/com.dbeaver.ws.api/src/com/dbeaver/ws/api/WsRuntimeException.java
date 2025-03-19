@@ -14,24 +14,14 @@
  * is strictly forbidden unless prior written permission is obtained
  * from DBeaver Corp.
  */
-package com.dbeaver.rpc.api;
+package com.dbeaver.ws.api;
 
-import java.util.UUID;
-
-public class RpcRequest {
-    private final UUID messageId;
-    private final String payload;
-
-    public RpcRequest(UUID messageId, String payload) {
-        this.messageId = messageId;
-        this.payload = payload;
+public class WsRuntimeException extends RuntimeException {
+    public WsRuntimeException(String message) {
+        super(message);
     }
 
-    public UUID messageId() {
-        return messageId;
-    }
-
-    public String payload() {
-        return payload;
+    public WsRuntimeException(String message, Throwable cause) {
+        super(message, cause);
     }
 }

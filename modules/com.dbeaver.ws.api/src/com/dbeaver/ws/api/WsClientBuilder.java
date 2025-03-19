@@ -14,7 +14,7 @@
  * is strictly forbidden unless prior written permission is obtained
  * from DBeaver Corp.
  */
-package com.dbeaver.rpc.ws;
+package com.dbeaver.ws.api;
 
 import jakarta.websocket.*;
 import org.eclipse.jetty.client.HttpClient;
