@@ -29,14 +29,23 @@ public class RpcResponse {
         this.error = error;
     }
 
+    /**
+     * Returns the unique identifier of the message. This identifier is used to match responses to requests.
+     */
     public UUID messageId() {
         return messageId;
     }
 
+    /**
+     * Returns the result of the message.
+     */
     public String result() {
         return result;
     }
 
+    /**
+     * Returns the error message of the message.
+     */
     public String error() {
         return error;
     }

@@ -27,10 +27,16 @@ public class RpcRequest {
         this.payload = payload;
     }
 
+    /**
+     * Returns the unique identifier of the message. This identifier is used to match responses to requests.
+     */
     public UUID messageId() {
         return messageId;
     }
 
+    /**
+     * Returns the payload of the message.
+     */
     public String payload() {
         return payload;
     }
