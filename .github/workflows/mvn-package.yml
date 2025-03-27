@@ -64,4 +64,5 @@ jobs:
       - name: Compile
         run: mvn clean verify -B -T1C ${{ inputs.mvn-args }}
         working-directory: ${{ inputs.project-directory || env.CHECKOUT_PATH || '.' }}
-
+        env:
+          - MAVEN_OPTS: "-Xmx3000m"
