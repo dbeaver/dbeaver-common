@@ -34,7 +34,7 @@ public final class StringUtils {
      */
     @Nullable
     public static String quoteStringIfNotQuoted(@Nullable String value) {
-        if (value == null || value.isEmpty()) {
+        if (CommonUtils.isEmpty(value)) {
             return value;
         }
         boolean isQuoted = value.startsWith("'") && value.endsWith("'");
