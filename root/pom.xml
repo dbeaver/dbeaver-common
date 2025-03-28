@@ -17,6 +17,7 @@
     </organization>
 
     <properties>
+        <maven>3.9.9</maven>
         <dbeaver-version>25.0.2</dbeaver-version>
 
         <tycho-version>4.0.9</tycho-version>
