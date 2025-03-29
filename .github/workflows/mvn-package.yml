@@ -61,9 +61,6 @@ jobs:
           java-version: "21"
           cache: maven
 
-      - name: Show variables
-        run: export | grep -i maven
-
       - name: Compile
         run: mvn clean verify -B -T1C ${{ inputs.mvn-args }}
         working-directory: ${{ inputs.project-directory || env.CHECKOUT_PATH || '.' }}
