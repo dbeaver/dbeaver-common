@@ -272,6 +272,19 @@ public final class IOUtils {
         }
     }
 
+    public static int findFirstFreePort(int minPort, int maxPort) {
+        for (int port = minPort; port < maxPort; port++) {
+            try {
+                ServerSocket socket = new ServerSocket(port);
+                socket.close();
+                return port;
+            } catch (IOException ex) {
+                // try next port
+            }
+        }
+        return -1;
+    }
+
     public static String readToString(Reader is) throws IOException {
         StringBuilder result = new StringBuilder(4000);
         char[] buffer = new char[4000];
