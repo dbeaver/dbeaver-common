@@ -17,7 +17,7 @@
     </organization>
 
     <properties>
-        <dbeaver-version>25.0.2</dbeaver-version>
+        <dbeaver-version>25.0.3</dbeaver-version>
 
         <tycho-version>4.0.9</tycho-version>
         <eclipse-version>2024-12</eclipse-version>
