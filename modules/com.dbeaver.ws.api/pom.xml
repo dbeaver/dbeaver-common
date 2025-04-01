@@ -9,12 +9,31 @@
         <version>2.4.0-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
-    <artifactId>com.dbeaver.rpc.api</artifactId>
+    <artifactId>com.dbeaver.ws.api</artifactId>
     <packaging>eclipse-plugin</packaging>
 
-    <name>RPC API framework</name>
-    <description>RPC over HTTP.</description>
+    <name>WS API</name>
     <url>https://github.com/dbeaver/dbeaver-common</url>
+
+    <repositories>
+        <repository>
+            <id>local-contrib</id>
+            <url>${local-p2-repo.url}</url>
+            <layout>p2</layout>
+        </repository>
+    </repositories>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.google.code.gson</groupId>
+            <artifactId>gson</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.dbeaver.common</groupId>
+            <artifactId>org.jkiss.utils</artifactId>
+        </dependency>
+    </dependencies>
+
 
     <licenses>
         <license>
