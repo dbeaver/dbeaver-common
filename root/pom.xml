@@ -19,6 +19,7 @@
     <properties>
         <dbeaver-version>25.0.3</dbeaver-version>
 
+        <maven>3.9.9</maven>
         <tycho-version>4.0.9</tycho-version>
         <eclipse-version>2024-12</eclipse-version>
         <elk-version>0.9.1</elk-version>
