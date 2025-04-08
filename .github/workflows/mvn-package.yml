@@ -25,9 +25,6 @@ on:
       DEVOPS_ISSUE_RO_TOKEN: 
         required: false
 
-concurrency:
-  group: ${{ github.event_name == 'pull_request' && format('pr-{0}-mvn-package', github.event.pull_request.number) || 'mvn-package' }}
-  cancel-in-progress: true
 
 jobs:
   build-and-test:
