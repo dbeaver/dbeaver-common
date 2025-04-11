@@ -39,6 +39,12 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+/**
+ * Handles the OAuth 2.0 Authorization Code Flow including PKCE (Proof Key for Code Exchange).
+ * It generates a code verifier and challenge, launches a browser for user authentication,
+ * and exchanges the authorization code for an access token.
+ * This class supports customization of timeout and callback endpoint.
+ */
 public class OAuthHandler {
     protected static final Gson gson = new GsonBuilder()
         .setStrictness(Strictness.LENIENT)
@@ -61,6 +67,15 @@ public class OAuthHandler {
     @Nullable
     protected String codeChallenge;
 
+    /**
+     * Constructs an OAuthHandler with required parameters.
+     *
+     * @param clientId     the OAuth client ID
+     * @param secretId     the OAuth client secret (nullable for PKCE-only flows)
+     * @param authUrl      the authorization endpoint URL
+     * @param tokenURL     the token exchange endpoint URL
+     * @param callbackPort the port on which the temporary server will listen for the callback
+     */
     public OAuthHandler(
         @NotNull String clientId,
         @Nullable String secretId,
@@ -75,14 +90,30 @@ public class OAuthHandler {
         this.callbackPort = callbackPort;
     }
 
+    /**
+     * Sets the timeout (in seconds) to wait for the OAuth callback response.
+     *
+     * @param timeout in seconds
+     */
     public void setTimeout(int timeout) {
         this.timeout = timeout;
     }
 
+    /**
+     * Sets a custom callback endpoint path (e.g. "/callback").
+     *
+     * @param callbackEndpoint path part of the redirect URI
+     */
     public void setCallbackEndpoint(@NotNull String callbackEndpoint) {
         this.callbackEndpoint = callbackEndpoint;
     }
 
+    /**
+     * Executes the full OAuth authorization code flow and retrieves the access token.
+     *
+     * @return a map containing the token information (e.g. id_token)
+     * @throws IOException in case of HTTP failure, timeout, or invalid responses
+     */
     public Map<String, String> authorize() throws IOException {
         try (OAuthResponseHandler handler = new OAuthResponseHandler(callbackPort, callbackEndpoint)) {
             String verifier = generateCodeChallengeAndVerifier();
@@ -108,6 +139,13 @@ public class OAuthHandler {
         }
     }
 
+    /**
+     * Parses the token response and extracts relevant token values.
+     *
+     * @param response HTTP response from the token endpoint
+     * @return a map with extracted token(s)
+     * @throws IOException if the response does not contain expected data
+     */
     @NotNull
     protected Map<String, String> extractResponse(HttpResponse<String> response) throws IOException {
         JsonObject jsonObject = JsonParser.parseString(response.body()).getAsJsonObject();
@@ -121,11 +159,23 @@ public class OAuthHandler {
         }
     }
 
+    /**
+     * Starts the SSO process by launching the default browser to the authorization URL.
+     *
+     * @param handler OAuth response handler
+     * @throws IOException if the desktop browser cannot be launched
+     */
     private void startSSO(@NotNull OAuthResponseHandler handler) throws IOException {
         handler.initServer();
         createBrowser(buildAuthUrl());
     }
 
+    /**
+     * Launches the system default browser with the given authorization URL.
+     *
+     * @param url the URL to open
+     * @throws IOException if Desktop API is not supported
+     */
     protected void createBrowser(@NotNull String url) throws IOException {
         if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
             Desktop.getDesktop().browse(URI.create(url));
@@ -134,6 +184,12 @@ public class OAuthHandler {
         }
     }
 
+    /**
+     * Generates a code verifier and corresponding code challenge using SHA-256.
+     *
+     * @return the code verifier
+     * @throws IOException if SHA-256 algorithm is not available
+     */
     @NotNull
     private String generateCodeChallengeAndVerifier() throws IOException {
         String codeVerifier = generateVerifier();
@@ -147,6 +203,11 @@ public class OAuthHandler {
         return codeVerifier;
     }
 
+    /**
+     * Generates a random code verifier as a URL-safe Base64 string.
+     *
+     * @return a new code verifier
+     */
     @NotNull
     private static String generateVerifier() {
         SecureRandom secureRandom = new SecureRandom();
@@ -155,6 +216,13 @@ public class OAuthHandler {
         return Base64.getUrlEncoder().withoutPadding().encodeToString(secureValue);
     }
 
+    /**
+     * Builds the form parameters for the token request including verifier and redirect URI.
+     *
+     * @param code     the authorization code received from the server
+     * @param verifier the original code verifier used in PKCE
+     * @return URL-encoded form parameters for token request
+     */
     @NotNull
     private String createTokenRequestParameters(
         @NotNull String code,
@@ -175,6 +243,12 @@ public class OAuthHandler {
         return OAuthRequestURLBuilder.buildURLParameters(parameters);
     }
 
+    /**
+     * Builds the full authorization URL with parameters.
+     *
+     * @return the full URL to initiate OAuth authorization
+     * @throws IOException if URL cannot be constructed
+     */
     protected String buildAuthUrl() throws IOException {
         return new OAuthRequestURLBuilder(authUrl)
             .withClientId(clientId)

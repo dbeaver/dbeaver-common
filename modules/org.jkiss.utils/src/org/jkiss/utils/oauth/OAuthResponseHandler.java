@@ -30,6 +30,10 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+/**
+ * Handles the temporary HTTP server that listens for OAuth callback requests.
+ * Extracts the authorization code or error from the query string and returns it to the caller.
+ */
 public class OAuthResponseHandler implements Closeable {
 
     private static HttpServer httpServer;
@@ -41,6 +45,12 @@ public class OAuthResponseHandler implements Closeable {
     @NotNull
     private final String callbackEndpoint;
 
+    /**
+     * Creates a new instance of the response handler.
+     *
+     * @param port             the port to listen on
+     * @param callbackEndpoint the expected endpoint path (e.g. "/callback")
+     */
     public OAuthResponseHandler(int port, @NotNull String callbackEndpoint) {
         this.port = port;
         this.callbackEndpoint = callbackEndpoint;
@@ -123,6 +133,11 @@ public class OAuthResponseHandler implements Closeable {
         );
     }
 
+    /**
+     * Stops the HTTP server and releases resources.
+     *
+     * @throws IOException if the server fails to stop
+     */
     @Override
     public void close() throws IOException {
         if (httpServer != null) {
