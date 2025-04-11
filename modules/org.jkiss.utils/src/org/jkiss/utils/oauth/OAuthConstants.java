@@ -25,4 +25,7 @@ public class OAuthConstants {
 
     public static final String AUTH_PROP_CLIENT_ID = "client_id";
     public static final String AUTH_PROP_CLIENT_SECRET = "client_secret";
+    public static final String AUTH_PROP_TOKEN = "token";
+
+    public static final String RESULT_PROP_TOKEN_ID = "id_token";
 }

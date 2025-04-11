@@ -16,9 +16,7 @@
  */
 package org.jkiss.utils.oauth;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.Strictness;
+import com.google.gson.*;
 import org.jkiss.code.NotNull;
 import org.jkiss.code.Nullable;
 import org.jkiss.utils.CommonUtils;
@@ -50,19 +48,19 @@ public class OAuthHandler {
     public static final int TOKEN_VERIFIER_BYTE_LENGTH = 64;
 
     @NotNull
-    private final String clientId;
+    protected final String clientId;
     @Nullable
-    private final String secretId;
+    protected final String secretId;
     @NotNull
-    private final String authUrl;
+    protected final String authUrl;
     @NotNull
-    private final String tokenURL;
-    private final int callbackPort;
-    private int timeout = OAuthConstants.AUTH_DEFAULT_SSO_TIMEOUT;
+    protected final String tokenURL;
+    protected final int callbackPort;
+    protected int timeout = OAuthConstants.AUTH_DEFAULT_SSO_TIMEOUT;
     @NotNull
-    private String callbackEndpoint = OAuthConstants.DEFAULT_CALLBACK_ENDPOINT;
+    protected String callbackEndpoint = OAuthConstants.DEFAULT_CALLBACK_ENDPOINT;
     @Nullable
-    private String codeChallenge;
+    protected String codeChallenge;
 
     public OAuthHandler(
         @NotNull String clientId,
@@ -86,7 +84,7 @@ public class OAuthHandler {
         this.callbackEndpoint = callbackEndpoint;
     }
 
-    public String authorize() throws IOException {
+    public Map<String, String> authorize() throws IOException {
         try (OAuthResponseHandler handler = new OAuthResponseHandler(callbackPort, callbackEndpoint)) {
             String verifier = generateCodeChallengeAndVerifier();
             startSSO(handler);
@@ -114,10 +112,13 @@ public class OAuthHandler {
     }
 
     @NotNull
-    protected static String extractResponse(HttpResponse<String> response) throws IOException {
-        OAuthResponseDTO authResponseDTO = gson.fromJson(response.body(), OAuthResponseDTO.class);
-        if (authResponseDTO.id_token() != null) {
-            return authResponseDTO.id_token();
+    protected Map<String, String> extractResponse(HttpResponse<String> response) throws IOException {
+        JsonObject jsonObject = JsonParser.parseString(response.body()).getAsJsonObject();
+        String idToken = jsonObject.get(OAuthConstants.RESULT_PROP_TOKEN_ID).getAsString();
+        if (idToken != null) {
+            Map<String, String> result = new HashMap<>();
+            result.put(OAuthConstants.AUTH_PROP_TOKEN, idToken);
+            return result;
         } else {
             throw new IOException("Error extracting token");
         }
