@@ -38,7 +38,6 @@ import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import java.util.stream.Collectors;
 
 public class OAuthHandler {
     protected static final Gson gson = new GsonBuilder()
@@ -92,11 +91,9 @@ public class OAuthHandler {
 
             HttpRequest.Builder postBuilder = HttpRequest.newBuilder().uri(URI.create(tokenURL));
             postBuilder.header("Content-type", "application/x-www-form-urlencoded");
-            postBuilder.POST(HttpRequest.BodyPublishers.ofString(createTokenRequestParameters(
-                code,
-                verifier
-            )));
+            postBuilder.POST(HttpRequest.BodyPublishers.ofString(createTokenRequestParameters(code, verifier)));
             postBuilder.timeout(Duration.ofSeconds(timeout));
+
             HttpRequest postRequest = postBuilder.build();
             handler.addStabContext();
             HttpClient client = HttpClient.newBuilder().cookieHandler(new CookieManager())
@@ -175,7 +172,7 @@ public class OAuthHandler {
             "redirect_uri",
             String.format(OAuthConstants.AUTH_SSO_CALLBACK_TEMPLATE, callbackPort, callbackEndpoint)
         );
-        return parameters.entrySet().stream().map(e -> e.getKey() + "=" + e.getValue()).collect(Collectors.joining("&"));
+        return OAuthRequestURLBuilder.buildURLParameters(parameters);
     }
 
     protected String buildAuthUrl() throws IOException {

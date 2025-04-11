@@ -207,6 +207,10 @@ public class OAuthRequestURLBuilder {
             params.put("scope", "openid email profile");
         }
 
+        return baseURL + "?" + buildURLParameters(params);
+    }
+
+    public static String buildURLParameters(Map<String, String> params) {
         StringJoiner encodedParams = new StringJoiner("&");
         for (Map.Entry<String, String> entry : params.entrySet()) {
             encodedParams.add(
@@ -214,7 +218,6 @@ public class OAuthRequestURLBuilder {
                     URLEncoder.encode(entry.getValue(), StandardCharsets.UTF_8)
             );
         }
-
-        return baseURL + "?" + encodedParams;
+        return encodedParams.toString();
     }
 }
