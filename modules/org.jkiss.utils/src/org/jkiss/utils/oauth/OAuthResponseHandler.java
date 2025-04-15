@@ -143,5 +143,6 @@ public class OAuthResponseHandler implements Closeable {
         if (httpServer != null) {
             httpServer.stop(0);
         }
+        executor.shutdown();
     }
 }
