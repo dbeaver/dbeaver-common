@@ -20,6 +20,7 @@ import jakarta.websocket.*;
 import org.eclipse.jetty.client.HttpClient;
 import org.eclipse.jetty.util.component.LifeCycle;
 import org.eclipse.jetty.websocket.jakarta.client.internal.JakartaWebSocketClientContainer;
+import org.jkiss.utils.WSClientUtils;
 
 import java.io.IOException;
 import java.net.URI;
@@ -85,7 +86,7 @@ public class WsClientBuilder {
 
             @Override
             public void afterResponse(HandshakeResponse response) {
-                List<String> handshakeErrors = response.getHeaders().get("X-Handshake-Error");
+                List<String> handshakeErrors = WSClientUtils.getHeaders(response.getHeaders(), "X-Handshake-Error");
                 if (handshakeErrors != null && !handshakeErrors.isEmpty()) {
                     throw new WsRuntimeException("Handshake error: " + handshakeErrors.get(0));
                 }
