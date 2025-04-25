@@ -35,6 +35,7 @@ import java.util.logging.Logger;
  */
 public class WsClientBuilder {
     private static final Logger logger = Logger.getLogger(WsClientBuilder.class.getName());
+    private static final Duration CONNECTION_TIMEOUT = Duration.ofSeconds(30);
 
     private String url;
     private Map<String, String> headers;
@@ -65,7 +66,9 @@ public class WsClientBuilder {
     public WsClient connect() throws DeploymentException, IOException {
         ClientEndpointConfig config = createEndpointConfig();
         Endpoint endpoint = new WsClientEndpoint(timeout);
-        JakartaWebSocketClientContainer clientContainer = new JakartaWebSocketClientContainer((HttpClient) null);
+        HttpClient httpClient = new HttpClient();
+        httpClient.setConnectTimeout(CONNECTION_TIMEOUT.toMillis());
+        JakartaWebSocketClientContainer clientContainer = new JakartaWebSocketClientContainer(httpClient);
         LifeCycle.start(clientContainer);
 
         Session session = clientContainer.connectToServer(endpoint, config, URI.create(url));
