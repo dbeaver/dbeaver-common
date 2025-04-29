@@ -6,6 +6,7 @@ Bundle-SymbolicName: com.dbeaver.jdbc.api
 Bundle-Version: 2.4.0.qualifier
 Bundle-Release-Date: 20240205
 Bundle-RequiredExecutionEnvironment: JavaSE-11
+Bundle-ActivationPolicy: lazy
 Require-Bundle: org.jkiss.utils
 Export-Package: com.dbeaver.jdbc.model
 Automatic-Module-Name: com.dbeaver.jdbc.api

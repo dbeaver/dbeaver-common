@@ -6,6 +6,7 @@ Bundle-SymbolicName: com.dbeaver.ws.api
 Bundle-Version: 2.4.0.qualifier
 Bundle-Release-Date: 20240205
 Bundle-RequiredExecutionEnvironment: JavaSE-11
+Bundle-ActivationPolicy: lazy
 Require-Bundle: org.jkiss.utils,
  org.jkiss.bundle.jakarta.jetty11.websocket,
  com.google.gson,

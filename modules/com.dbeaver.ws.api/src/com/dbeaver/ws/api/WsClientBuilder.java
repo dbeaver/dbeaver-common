@@ -20,6 +20,7 @@ import jakarta.websocket.*;
 import org.eclipse.jetty.client.HttpClient;
 import org.eclipse.jetty.util.component.LifeCycle;
 import org.eclipse.jetty.websocket.jakarta.client.internal.JakartaWebSocketClientContainer;
+import org.jkiss.utils.WSClientUtils;
 
 import java.io.IOException;
 import java.net.URI;
@@ -34,6 +35,7 @@ import java.util.logging.Logger;
  */
 public class WsClientBuilder {
     private static final Logger logger = Logger.getLogger(WsClientBuilder.class.getName());
+    private static final Duration CONNECTION_TIMEOUT = Duration.ofSeconds(30);
 
     private String url;
     private Map<String, String> headers;
@@ -64,7 +66,9 @@ public class WsClientBuilder {
     public WsClient connect() throws DeploymentException, IOException {
         ClientEndpointConfig config = createEndpointConfig();
         Endpoint endpoint = new WsClientEndpoint(timeout);
-        JakartaWebSocketClientContainer clientContainer = new JakartaWebSocketClientContainer((HttpClient) null);
+        HttpClient httpClient = new HttpClient();
+        httpClient.setConnectTimeout(CONNECTION_TIMEOUT.toMillis());
+        JakartaWebSocketClientContainer clientContainer = new JakartaWebSocketClientContainer(httpClient);
         LifeCycle.start(clientContainer);
 
         Session session = clientContainer.connectToServer(endpoint, config, URI.create(url));
@@ -85,7 +89,7 @@ public class WsClientBuilder {
 
             @Override
             public void afterResponse(HandshakeResponse response) {
-                List<String> handshakeErrors = response.getHeaders().get("X-Handshake-Error");
+                List<String> handshakeErrors = WSClientUtils.getHeaders(response.getHeaders(), "X-Handshake-Error");
                 if (handshakeErrors != null && !handshakeErrors.isEmpty()) {
                     throw new WsRuntimeException("Handshake error: " + handshakeErrors.get(0));
                 }
