@@ -131,7 +131,7 @@ public class RestServer<T> {
 
         @Override
         public void handle(HttpExchange exchange) throws IOException {
-            try (exchange) {
+            try {
                 Response<?> response;
                 try {
                     response = executeRequest(exchange);
@@ -174,6 +174,8 @@ public class RestServer<T> {
             } catch (Throwable e) {
                 log.log(Level.SEVERE, "Internal IO error", e);
                 throw e;
+            } finally {
+                exchange.close();
             }
         }
 
