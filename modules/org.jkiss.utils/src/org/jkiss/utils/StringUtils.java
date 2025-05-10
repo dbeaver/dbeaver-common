@@ -73,7 +73,7 @@ public final class StringUtils {
     }
 
     public static String truncateToSpace(String str, int wrapLength) {
-        int spaceToWrapAt = str.lastIndexOf(' ', wrapLength);
+        int spaceToWrapAt = str.indexOf(' ', wrapLength);
         if (spaceToWrapAt < 0) {
             return str;
         }
