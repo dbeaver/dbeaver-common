@@ -72,6 +72,15 @@ public final class StringUtils {
         return resultBuilder.toString();
     }
 
+    public static String truncateToSpace(String str, int wrapLength) {
+        int spaceToWrapAt = str.lastIndexOf(' ', wrapLength);
+        if (spaceToWrapAt < 0) {
+            return str;
+        }
+
+        return str.substring(0, spaceToWrapAt) + "...";
+    }
+
     @NotNull
     public static String truncateText(@NotNull String str, int maxLength) {
         if (str.length() > maxLength) {
