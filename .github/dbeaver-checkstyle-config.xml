@@ -331,11 +331,13 @@
       <property name="allowedAnnotations" value="Override, Test, BeforeClass, Before, AfterClass, After, Property"/>
       <property name="tokens" value="METHOD_DEF, ANNOTATION_FIELD_DEF"/>
     </module>
+<!--
     <module name="MissingJavadocMethod">
       <property name="allowedAnnotations" value="Override, Test, BeforeClass, Before, AfterClass, After, Property"/>
       <property name="tokens" value="METHOD_DEF, ANNOTATION_FIELD_DEF"/>
       <property name="allowMissingPropertyJavadoc" value="true"/>
     </module>
+-->
     <module name="MissingJavadocType">
       <property name="scope" value="protected"/>
       <property name="tokens" value="INTERFACE_DEF, ANNOTATION_DEF"/>
