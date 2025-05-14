@@ -68,9 +68,11 @@ public class WsClientBuilder {
         ClientEndpointConfig config = createEndpointConfig();
         Endpoint endpoint = new WsClientEndpoint(timeout);
         HttpClient httpClient = new HttpClient();
-        WSClientUtils.ProxyInfo proxyInfo = WSClientUtils.findProxyInfo();
-        if (useHttpProxy && proxyInfo.exists()) {
-            httpClient.getProxyConfiguration().addProxy(new HttpProxy(proxyInfo.getHost(), proxyInfo.getPort()));
+        if (useHttpProxy) {
+            WSClientUtils.ProxyInfo proxyInfo = WSClientUtils.findProxyInfo();
+            if (proxyInfo.exists()) {
+                httpClient.getProxyConfiguration().addProxy(new HttpProxy(proxyInfo.getHost(), proxyInfo.getPort()));
+            }
         }
         httpClient.setConnectTimeout(CONNECTION_TIMEOUT.toMillis());
         JakartaWebSocketClientContainer clientContainer = new JakartaWebSocketClientContainer(httpClient);
