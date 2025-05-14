@@ -18,6 +18,7 @@ package com.dbeaver.ws.api;
 
 import jakarta.websocket.*;
 import org.eclipse.jetty.client.HttpClient;
+import org.eclipse.jetty.client.HttpProxy;
 import org.eclipse.jetty.util.component.LifeCycle;
 import org.eclipse.jetty.websocket.jakarta.client.internal.JakartaWebSocketClientContainer;
 import org.jkiss.utils.WSClientUtils;
@@ -67,6 +68,10 @@ public class WsClientBuilder {
         ClientEndpointConfig config = createEndpointConfig();
         Endpoint endpoint = new WsClientEndpoint(timeout);
         HttpClient httpClient = new HttpClient();
+        WSClientUtils.ProxyInfo proxyInfo = WSClientUtils.findProxyInfo();
+        if (proxyInfo.exists()) {
+            httpClient.getProxyConfiguration().addProxy(new HttpProxy(proxyInfo.getHost(), proxyInfo.getPort()));
+        }
         httpClient.setConnectTimeout(CONNECTION_TIMEOUT.toMillis());
         JakartaWebSocketClientContainer clientContainer = new JakartaWebSocketClientContainer(httpClient);
         LifeCycle.start(clientContainer);

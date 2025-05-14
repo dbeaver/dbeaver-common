@@ -23,6 +23,10 @@ import java.util.List;
 import java.util.Map;
 
 public class WSClientUtils {
+    private static final String HTTP_PROXY_HOST = "http.proxyHost";
+    private static final String HTTP_PROXY_PORT = "http.proxyPort";
+    private static final String HTTPS_PROXY_HOST = "https.proxyHost";
+    private static final String HTTPS_PROXY_PORT = "https.proxyPort";
     @Nullable
     public static List<String> getHeaders(@Nullable Map<String, List<String>> allHeaders, @NotNull String headerName) {
         if (allHeaders == null) {
@@ -33,5 +37,43 @@ public class WSClientUtils {
             headerValues = allHeaders.get(headerName.toLowerCase());
         }
         return headerValues;
+    }
+
+    @NotNull
+    public static ProxyInfo findProxyInfo() {
+        String host = System.getProperty(HTTP_PROXY_HOST);
+        if (CommonUtils.isEmpty(host)) {
+            host = System.getProperty(HTTPS_PROXY_HOST);
+        }
+        int port = CommonUtils.toInt(System.getProperty(HTTP_PROXY_PORT), -1);
+        if (port < 0) {
+            port = CommonUtils.toInt(System.getProperty(HTTPS_PROXY_PORT), -1);
+        }
+
+        return new ProxyInfo(host, port);
+    }
+
+    public static class ProxyInfo {
+        @Nullable
+        private final String host;
+        private final int port;
+
+        public ProxyInfo(@Nullable String host, int port) {
+            this.host = host;
+            this.port = port;
+        }
+
+        @Nullable
+        public String getHost() {
+            return host;
+        }
+
+        public int getPort() {
+            return port;
+        }
+
+        public boolean exists() {
+            return CommonUtils.isNotEmpty(host) && port >= 0;
+        }
     }
 }
