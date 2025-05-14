@@ -64,12 +64,12 @@ public class WsClientBuilder {
      * @throws DeploymentException if the WebSocket deployment fails.
      * @throws IOException         if a connection error occurs.
      */
-    public WsClient connect() throws DeploymentException, IOException {
+    public WsClient connect(boolean useHttpProxy) throws DeploymentException, IOException {
         ClientEndpointConfig config = createEndpointConfig();
         Endpoint endpoint = new WsClientEndpoint(timeout);
         HttpClient httpClient = new HttpClient();
         WSClientUtils.ProxyInfo proxyInfo = WSClientUtils.findProxyInfo();
-        if (proxyInfo.exists()) {
+        if (useHttpProxy && proxyInfo.exists()) {
             httpClient.getProxyConfiguration().addProxy(new HttpProxy(proxyInfo.getHost(), proxyInfo.getPort()));
         }
         httpClient.setConnectTimeout(CONNECTION_TIMEOUT.toMillis());
