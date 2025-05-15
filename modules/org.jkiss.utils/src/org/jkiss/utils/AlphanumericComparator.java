@@ -58,7 +58,7 @@ public class AlphanumericComparator implements Comparator<CharSequence> {
             resetBufferWindow(b2);
         }
 
-        return Integer.compare(o1.length(), o2.length());
+        return Integer.compare(b1.remaining(), b2.remaining());
     }
 
     private static int compare(@NotNull CharBuffer b1, @NotNull CharBuffer b2) {
