@@ -66,7 +66,7 @@ public class AlphanumericComparator implements Comparator<CharSequence> {
                 }
 
                 if (num1 != num2) {
-                    return num1 - num2;
+                    return num2 - num1;
                 }
             } else {
                 if (ch1 != ch2) {
