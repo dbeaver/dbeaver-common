@@ -18,11 +18,12 @@ package org.jkiss.utils;
 
 import org.jkiss.code.NotNull;
 
+import java.nio.CharBuffer;
 import java.util.Comparator;
 
 /**
  * A comparator for comparing two strings lexicographically, treating them as sequences of alphanumeric characters.
- *
+ * <p>
  * This comparator compares strings based on their alphanumeric content. It considers
  * the characters in the strings as a sequence of alphanumeric characters (letters and digits)
  * and compares them lexicographically. The comparison is case-insensitive.
@@ -41,43 +42,70 @@ public class AlphanumericComparator implements Comparator<CharSequence> {
 
     @Override
     public int compare(CharSequence o1, CharSequence o2) {
-        final int len1 = o1.length();
-        final int len2 = o2.length();
+        CharBuffer b1 = CharBuffer.wrap(o1);
+        CharBuffer b2 = CharBuffer.wrap(o2);
 
-        int i = 0;
-        int j = 0;
+        while (b1.hasRemaining() && b2.hasRemaining()) {
+            move(b1);
+            move(b2);
 
-        while (i < len1 && j < len2) {
-            final char ch1 = Character.toUpperCase(o1.charAt(i));
-            final char ch2 = Character.toUpperCase(o2.charAt(j));
+            int result = compare(b1, b2);
+            if (result != 0) {
+                return result;
+            }
 
-            if (Character.isDigit(ch1) && Character.isDigit(ch2)) {
-                int num1 = 0;
-                int num2 = 0;
+            advance(b1);
+            advance(b2);
+        }
 
-                while (i < len1 && Character.isDigit(o1.charAt(i))) {
-                    num1 = num1 * 10 + Character.digit(o1.charAt(i), 10);
-                    i += 1;
+        return Integer.compare(o1.length(), o2.length());
+    }
+
+    private int compare(@NotNull CharBuffer b1, @NotNull CharBuffer b2) {
+        if (isDigit(b1, b1.position()) && isDigit(b2, b2.position())) {
+            int diff = Integer.compare(b1.length(), b2.length());
+            if (diff != 0) {
+                return diff;
+            }
+            for (int i = 0; i < b1.remaining() && i < b2.remaining(); i++) {
+                int result = Character.compare(b1.charAt(i), b2.charAt(i));
+                if (result != 0) {
+                    return result;
                 }
+            }
+            return 0;
+        } else {
+            return b1.compareTo(b2);
+        }
+    }
 
-                while (j < len2 && Character.isDigit(o2.charAt(j))) {
-                    num2 = num2 * 10 + Character.digit(o2.charAt(j), 10);
-                    j += 1;
-                }
+    private static void advance(@NotNull CharBuffer buffer) {
+        buffer.position(buffer.limit());
+        buffer.limit(buffer.capacity());
+    }
 
-                if (num1 != num2) {
-                    return num2 - num1;
-                }
-            } else {
-                if (ch1 != ch2) {
-                    return ch1 - ch2;
-                }
+    private void move(@NotNull CharBuffer buffer) {
+        var start = buffer.position();
+        var end = buffer.position();
+        var digit = isDigit(buffer, start);
 
-                i += 1;
-                j += 1;
+        while (end < buffer.limit() && digit == isDigit(buffer, end)) {
+            end += 1;
+
+            if (digit && start + 1 < buffer.limit() && isZero(buffer, start) && isDigit(buffer, end)) {
+                start += 1;
             }
         }
 
-        return len1 - len2;
+        buffer.position(start).limit(end);
+    }
+
+    private static boolean isDigit(@NotNull CharBuffer buffer, int position) {
+        char ch = buffer.get(position);
+        return ch >= '0' && ch <= '9';
+    }
+
+    private static boolean isZero(@NotNull CharBuffer buffer, int position) {
+        return buffer.get(position) == '0';
     }
 }
