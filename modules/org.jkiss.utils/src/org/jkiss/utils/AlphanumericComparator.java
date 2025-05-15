@@ -46,22 +46,22 @@ public class AlphanumericComparator implements Comparator<CharSequence> {
         CharBuffer b2 = CharBuffer.wrap(o2);
 
         while (b1.hasRemaining() && b2.hasRemaining()) {
-            move(b1);
-            move(b2);
+            adjustBufferWindow(b1);
+            adjustBufferWindow(b2);
 
             int result = compare(b1, b2);
             if (result != 0) {
                 return result;
             }
 
-            advance(b1);
-            advance(b2);
+            resetBufferWindow(b1);
+            resetBufferWindow(b2);
         }
 
         return Integer.compare(o1.length(), o2.length());
     }
 
-    private int compare(@NotNull CharBuffer b1, @NotNull CharBuffer b2) {
+    private static int compare(@NotNull CharBuffer b1, @NotNull CharBuffer b2) {
         if (isDigit(b1, b1.position()) && isDigit(b2, b2.position())) {
             int diff = Integer.compare(b1.length(), b2.length());
             if (diff != 0) {
@@ -79,12 +79,12 @@ public class AlphanumericComparator implements Comparator<CharSequence> {
         }
     }
 
-    private static void advance(@NotNull CharBuffer buffer) {
+    private static void resetBufferWindow(@NotNull CharBuffer buffer) {
         buffer.position(buffer.limit());
         buffer.limit(buffer.capacity());
     }
 
-    private void move(@NotNull CharBuffer buffer) {
+    private static void adjustBufferWindow(@NotNull CharBuffer buffer) {
         var start = buffer.position();
         var end = buffer.position();
         var digit = isDigit(buffer, start);
