@@ -22,7 +22,7 @@ import java.util.Comparator;
 
 /**
  * A comparator for comparing two strings lexicographically, treating them as sequences of alphanumeric characters.
- * <p>
+ *
  * This comparator compares strings based on their alphanumeric content. It considers
  * the characters in the strings as a sequence of alphanumeric characters (letters and digits)
  * and compares them lexicographically. The comparison is case-insensitive.
