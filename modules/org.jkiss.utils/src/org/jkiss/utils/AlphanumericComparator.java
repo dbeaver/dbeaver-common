@@ -63,21 +63,12 @@ public class AlphanumericComparator implements Comparator<CharSequence> {
 
     private static int compare(@NotNull CharBuffer b1, @NotNull CharBuffer b2) {
         if (isDigit(b1, b1.position()) && isDigit(b2, b2.position())) {
-            int length = Integer.compare(b1.length(), b2.length());
-            if (length != 0) {
-                return length;
+            int result = Integer.compare(b1.remaining(), b2.remaining());
+            if (result != 0) {
+                return result;
             }
-            int remaining = Math.min(b1.remaining(), b2.remaining());
-            for (int i = 0; i < remaining; i++) {
-                int result = Character.compare(b1.charAt(i), b2.charAt(i));
-                if (result != 0) {
-                    return result;
-                }
-            }
-            return 0;
-        } else {
-            return b1.compareTo(b2);
         }
+        return b1.compareTo(b2);
     }
 
     private static void resetBufferWindow(@NotNull CharBuffer buffer) {
