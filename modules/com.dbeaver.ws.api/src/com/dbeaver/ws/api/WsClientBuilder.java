@@ -42,6 +42,13 @@ public class WsClientBuilder {
     private Map<String, String> headers;
     private Duration timeout;
 
+    static {
+        Logger wsLogger = Logger.getLogger("org.eclipse.jetty.websocket.core.internal");
+        wsLogger.setLevel(Level.INFO);
+        Logger wsConn = Logger.getLogger("org.eclipse.jetty.websocket.core.internal.WebSocketConnection");
+        wsLogger.setLevel(Level.INFO);
+    }
+
     public WsClientBuilder url(String url) {
         this.url = url;
         return this;
@@ -71,7 +78,8 @@ public class WsClientBuilder {
         if (useHttpProxy) {
             WSClientUtils.ProxyInfo proxyInfo = WSClientUtils.findProxyInfo();
             if (proxyInfo.exists()) {
-                httpClient.getProxyConfiguration().addProxy(new HttpProxy(proxyInfo.getHost(), proxyInfo.getPort()));
+                HttpProxy httpProxy  = new HttpProxy(proxyInfo.getHost(), proxyInfo.getPort());
+                httpClient.getProxyConfiguration().addProxy(httpProxy);
             }
         }
         httpClient.setConnectTimeout(CONNECTION_TIMEOUT.toMillis());
@@ -79,7 +87,7 @@ public class WsClientBuilder {
         LifeCycle.start(clientContainer);
 
         Session session = clientContainer.connectToServer(endpoint, config, URI.create(url));
-        WsClient wsClient = new WsClient(session);
+        WsClient wsClient = new WsClient(session, clientContainer);
         // Store client reference so that the endpoint can signal closure.
         session.getUserProperties().put(WsClient.class.getName(), wsClient);
         return wsClient;

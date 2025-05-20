@@ -16,14 +16,16 @@
  */
 package com.dbeaver.ws.api;
 
-import org.jkiss.utils.rpc.RpcRequest;
-import org.jkiss.utils.rpc.RpcResponse;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
+import jakarta.websocket.CloseReason;
 import jakarta.websocket.MessageHandler;
 import jakarta.websocket.Session;
+import org.eclipse.jetty.websocket.jakarta.client.internal.JakartaWebSocketClientContainer;
 import org.jkiss.utils.rest.RpcConstants;
 import org.jkiss.utils.rest.RpcException;
+import org.jkiss.utils.rpc.RpcRequest;
+import org.jkiss.utils.rpc.RpcResponse;
 
 import java.io.IOException;
 import java.util.Map;
@@ -43,12 +45,14 @@ public final class WsClient implements MessageHandler.Whole<String> {
     private static final Gson GSON = RpcConstants.COMPACT_GSON;
 
     private final Session session;
+    private final JakartaWebSocketClientContainer webSocketContainer;
     private final Map<UUID, CompletableFuture<String>> pendingMessages = new ConcurrentHashMap<>();
     private final ReadWriteLock lock = new ReentrantReadWriteLock();
     private volatile boolean closed = false;
 
-    public WsClient(Session session) {
+    public WsClient(Session session, JakartaWebSocketClientContainer webSocketContainer) {
         this.session = session;
+        this.webSocketContainer = webSocketContainer;
         session.addMessageHandler(this);
     }
 
@@ -107,6 +111,7 @@ public final class WsClient implements MessageHandler.Whole<String> {
         if (closed) {
             return;
         }
+        logger.info("Closing WS client");
 
         lock.writeLock().lock();
         try {
@@ -114,8 +119,11 @@ public final class WsClient implements MessageHandler.Whole<String> {
                 return;
             }
             closed = true;
-            session.close();
-        } catch (IOException e) {
+            if (session.isOpen()) {
+                session.close(new CloseReason(CloseReason.CloseCodes.NORMAL_CLOSURE, "Disconnected"));
+                webSocketContainer.stop();
+            }
+        } catch (Exception e) {
             logger.warning("Error closing session: " + e.getMessage());
         } finally {
             lock.writeLock().unlock();
