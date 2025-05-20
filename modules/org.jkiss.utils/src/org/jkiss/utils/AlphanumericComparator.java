@@ -18,6 +18,7 @@ package org.jkiss.utils;
 
 import org.jkiss.code.NotNull;
 
+import java.nio.CharBuffer;
 import java.util.Comparator;
 
 /**
@@ -41,43 +42,63 @@ public class AlphanumericComparator implements Comparator<CharSequence> {
 
     @Override
     public int compare(CharSequence o1, CharSequence o2) {
-        final int len1 = o1.length();
-        final int len2 = o2.length();
+        CharBuffer b1 = CharBuffer.wrap(o1);
+        CharBuffer b2 = CharBuffer.wrap(o2);
 
-        int i = 0;
-        int j = 0;
+        while (b1.hasRemaining() && b2.hasRemaining()) {
+            adjustBufferWindow(b1);
+            adjustBufferWindow(b2);
 
-        while (i < len1 && j < len2) {
-            final char ch1 = Character.toUpperCase(o1.charAt(i));
-            final char ch2 = Character.toUpperCase(o2.charAt(j));
+            int result = compare(b1, b2);
+            if (result != 0) {
+                return result;
+            }
 
-            if (Character.isDigit(ch1) && Character.isDigit(ch2)) {
-                int num1 = 0;
-                int num2 = 0;
+            resetBufferWindow(b1);
+            resetBufferWindow(b2);
+        }
 
-                while (i < len1 && Character.isDigit(o1.charAt(i))) {
-                    num1 = num1 * 10 + Character.digit(o1.charAt(i), 10);
-                    i += 1;
-                }
+        return Integer.compare(b1.remaining(), b2.remaining());
+    }
 
-                while (j < len2 && Character.isDigit(o2.charAt(j))) {
-                    num2 = num2 * 10 + Character.digit(o2.charAt(j), 10);
-                    j += 1;
-                }
+    private static int compare(@NotNull CharBuffer b1, @NotNull CharBuffer b2) {
+        if (isDigit(b1, b1.position()) && isDigit(b2, b2.position())) {
+            int result = Integer.compare(b1.remaining(), b2.remaining());
+            if (result != 0) {
+                return result;
+            }
+        }
+        return b1.compareTo(b2);
+    }
 
-                if (num1 != num2) {
-                    return num1 - num2;
-                }
-            } else {
-                if (ch1 != ch2) {
-                    return ch1 - ch2;
-                }
+    private static void resetBufferWindow(@NotNull CharBuffer buffer) {
+        buffer.position(buffer.limit());
+        buffer.limit(buffer.capacity());
+    }
 
-                i += 1;
-                j += 1;
+    private static void adjustBufferWindow(@NotNull CharBuffer buffer) {
+        var start = buffer.position();
+        var end = buffer.position();
+        var digit = isDigit(buffer, start);
+
+        while (end < buffer.limit() && digit == isDigit(buffer, end)) {
+            end += 1;
+
+            if (digit && start + 1 < buffer.limit() && isZero(buffer, start) && isDigit(buffer, end)) {
+                // Skip leading zeroes
+                start += 1;
             }
         }
 
-        return len1 - len2;
+        buffer.position(start).limit(end);
+    }
+
+    private static boolean isDigit(@NotNull CharBuffer buffer, int position) {
+        char ch = buffer.get(position);
+        return ch >= '0' && ch <= '9';
+    }
+
+    private static boolean isZero(@NotNull CharBuffer buffer, int position) {
+        return buffer.get(position) == '0';
     }
 }
