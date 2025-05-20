@@ -18,6 +18,7 @@ package com.dbeaver.ws.api;
 
 import jakarta.websocket.*;
 import org.eclipse.jetty.client.HttpClient;
+import org.eclipse.jetty.client.HttpProxy;
 import org.eclipse.jetty.util.component.LifeCycle;
 import org.eclipse.jetty.websocket.jakarta.client.internal.JakartaWebSocketClientContainer;
 import org.jkiss.utils.WSClientUtils;
@@ -41,6 +42,13 @@ public class WsClientBuilder {
     private Map<String, String> headers;
     private Duration timeout;
 
+    static {
+        Logger wsLogger = Logger.getLogger("org.eclipse.jetty.websocket.core.internal");
+        wsLogger.setLevel(Level.INFO);
+        Logger wsConn = Logger.getLogger("org.eclipse.jetty.websocket.core.internal.WebSocketConnection");
+        wsLogger.setLevel(Level.INFO);
+    }
+
     public WsClientBuilder url(String url) {
         this.url = url;
         return this;
@@ -63,16 +71,23 @@ public class WsClientBuilder {
      * @throws DeploymentException if the WebSocket deployment fails.
      * @throws IOException         if a connection error occurs.
      */
-    public WsClient connect() throws DeploymentException, IOException {
+    public WsClient connect(boolean useHttpProxy) throws DeploymentException, IOException {
         ClientEndpointConfig config = createEndpointConfig();
         Endpoint endpoint = new WsClientEndpoint(timeout);
         HttpClient httpClient = new HttpClient();
+        if (useHttpProxy) {
+            WSClientUtils.ProxyInfo proxyInfo = WSClientUtils.findProxyInfo();
+            if (proxyInfo.exists()) {
+                HttpProxy httpProxy  = new HttpProxy(proxyInfo.getHost(), proxyInfo.getPort());
+                httpClient.getProxyConfiguration().addProxy(httpProxy);
+            }
+        }
         httpClient.setConnectTimeout(CONNECTION_TIMEOUT.toMillis());
         JakartaWebSocketClientContainer clientContainer = new JakartaWebSocketClientContainer(httpClient);
         LifeCycle.start(clientContainer);
 
         Session session = clientContainer.connectToServer(endpoint, config, URI.create(url));
-        WsClient wsClient = new WsClient(session);
+        WsClient wsClient = new WsClient(session, clientContainer);
         // Store client reference so that the endpoint can signal closure.
         session.getUserProperties().put(WsClient.class.getName(), wsClient);
         return wsClient;
