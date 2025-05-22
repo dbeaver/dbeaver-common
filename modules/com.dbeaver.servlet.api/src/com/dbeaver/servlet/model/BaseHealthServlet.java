@@ -16,23 +16,30 @@
  */
 package com.dbeaver.servlet.model;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.jkiss.code.NotNull;
+import org.jkiss.utils.rest.RpcConstants;
 
 import java.io.IOException;
 import java.io.Writer;
 import java.time.LocalDateTime;
-import java.util.LinkedHashMap;
-import java.util.Map;
 
 public class BaseHealthServlet extends HttpServlet {
     private static final LocalDateTime startTime = LocalDateTime.now();
+    private static final Gson gson = new GsonBuilder()
+        .setPrettyPrinting()
+        .registerTypeAdapter(LocalDateTime.class, new RpcConstants.LocalDateTimeAdapter())
+        .create();
     private static final String PARAM_EXTENDED_STATUS = "extendedStatus";
-    protected static final String DB_CONNECTION_STATUS = "database-connection";
+
     protected static final String OK_STATUS = "ok";
     protected static final String NO_CONNECTION_STATUS = "no connection";
+    protected static final String DB_SERVICE = "database";
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse response) throws ServletException, IOException {
@@ -40,22 +47,10 @@ public class BaseHealthServlet extends HttpServlet {
         response.setHeader("Access-Control-Allow-Origin", "*");
         boolean extendedStatus = Boolean.parseBoolean(req.getParameter(PARAM_EXTENDED_STATUS));
         if (extendedStatus) {
-            Map<String, String> status = new LinkedHashMap<>();
-            fillExtendedData(status);
+            ServerStatus serverStatus = new ServerStatus(OK_STATUS, startTime);
+            fillExtendedData(serverStatus);
             try (Writer writer = response.getWriter()) {
-                writer.write("{\n");
-                int i = 0;
-                for (Map.Entry<String, String> stringStringEntry : status.entrySet()) {
-                    i++;
-                    String key = stringStringEntry.getKey();
-                    String value = stringStringEntry.getValue();
-                    writer.write("    " + key + ": " + value);
-                    if (i < status.size()) {
-                        writer.write(",");
-                    }
-                    writer.write("\n");
-                }
-                writer.write("}");
+                writer.write(gson.toJson(serverStatus));
             }
         } else {
             try (Writer writer = response.getWriter()) {
@@ -64,8 +59,6 @@ public class BaseHealthServlet extends HttpServlet {
         }
     }
 
-    protected void fillExtendedData(Map<String, String> extendedStatus) {
-        extendedStatus.put("status", OK_STATUS);
-        extendedStatus.put("start-time", startTime.toString());
+    protected void fillExtendedData(@NotNull ServerStatus serverStatus) {
     }
 }
