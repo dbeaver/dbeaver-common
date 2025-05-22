@@ -27,9 +27,12 @@ import java.time.LocalDateTime;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-public class BaseHealthEndpoint extends HttpServlet {
+public class BaseHealthServlet extends HttpServlet {
     private static final LocalDateTime startTime = LocalDateTime.now();
     private static final String PARAM_EXTENDED_STATUS = "extendedStatus";
+    protected static final String DB_CONNECTION_STATUS = "database-connection";
+    protected static final String OK_STATUS = "ok";
+    protected static final String NO_CONNECTION_STATUS = "no connection";
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse response) throws ServletException, IOException {
@@ -56,13 +59,13 @@ public class BaseHealthEndpoint extends HttpServlet {
             }
         } else {
             try (Writer writer = response.getWriter()) {
-                writer.write("ok");
+                writer.write(OK_STATUS);
             }
         }
     }
 
     protected void fillExtendedData(Map<String, String> extendedStatus) {
-        extendedStatus.put("status", "ok");
+        extendedStatus.put("status", OK_STATUS);
         extendedStatus.put("start-time", startTime.toString());
     }
 }
