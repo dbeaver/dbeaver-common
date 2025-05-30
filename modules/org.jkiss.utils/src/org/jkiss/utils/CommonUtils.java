@@ -1,6 +1,6 @@
 /*
  * DBeaver - Universal Database Manager
- * Copyright (C) 2010-2024 DBeaver Corp and others
+ * Copyright (C) 2010-2025 DBeaver Corp and others
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,8 @@ import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 import java.util.function.Function;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -31,6 +33,8 @@ import java.util.regex.Pattern;
  * Common utils
  */
 public class CommonUtils {
+    private static final Logger log = Logger.getLogger(CommonUtils.class.getName());
+
     /**
      * A pattern that matches one or more whitespace characters.
      */
@@ -440,7 +444,12 @@ public class CommonUtils {
                 try {
                     return (int)Double.parseDouble(strValue);
                 } catch (NumberFormatException e1) {
-                    e1.printStackTrace();
+                    log.log(
+                        Level.WARNING,
+                        "Could not convert object to int: " + object + " (" + object.getClass().getName() + ")",
+                        e1
+                    );
+
                     return def;
                 }
             }
@@ -734,7 +743,7 @@ public class CommonUtils {
         try {
             return Enum.valueOf(type, name);
         } catch (Exception e) {
-            e.printStackTrace();
+            log.warning("Could not find enum constant " + type + " with name " + name);
             return defValue;
         }
     }
@@ -746,7 +755,7 @@ public class CommonUtils {
         try {
             return Enum.valueOf(enumType, str);
         } catch (Exception e) {
-            e.printStackTrace();
+            log.warning("Could not find enum constant " + enumType + " with name " + str);
             return defValue;
         }
     }
@@ -776,7 +785,11 @@ public class CommonUtils {
         if (enumConstants.length == 0) {
             throw error;
         } else {
-            error.printStackTrace(System.err);
+            log.warning(
+                "Invalid ordinal " + ordinal + " for type " + enumClass.getName()
+                    + ". Returning first enum constant: " + enumConstants[0]
+            );
+
             return enumConstants[0];
         }
     }

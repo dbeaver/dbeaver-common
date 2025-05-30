@@ -1,12 +1,12 @@
 /*
- * Licensed to the Apache Software Foundation (ASF) under one or more
- * contributor license agreements.  See the NOTICE file distributed with
- * this work for additional information regarding copyright ownership.
- * The ASF licenses this file to You under the Apache License, Version 2.0
- * (the "License"); you may not use this file except in compliance with
- * the License.  You may obtain a copy of the License at
+ * DBeaver - Universal Database Manager
+ * Copyright (C) 2010-2025 DBeaver Corp and others
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -204,26 +204,4 @@ public class ExtendedDateFormat extends SimpleDateFormat {
         }
         return pattern;
     }
-
-    public static void main(String[] args)
-    {
-        test("'TIMESTAMP '''yyyy-MM-dd HH:mm:ss.ffffff''");
-        test("yyyy-MM-dd Z hh:mm:ss[.fffffffff]");
-        test("yyyy-MM-dd Z hh:mm:ss.fffffffff");
-        test("yyyy-MM-dd Z hh:mm:ss");
-        test("yyyy-MM-dd Z hh:mm:ss[.fffffffff nanos]");
-        test("yyyy-MM-dd Z hh:mm:ss[.ffffff micros]");
-        test("yyyy-MM-dd Z hh:mm:ss.ffffff");
-        test("yyyy-MM-dd Z hh:mm:ss.f"); // 1/10 secs = 'S'
-    }
-
-    private static void test(String pattern)
-    {
-        ExtendedDateFormat edf = new ExtendedDateFormat(pattern);
-        Timestamp date = new Timestamp(System.currentTimeMillis());
-        System.out.println(edf.format(date));
-        date.setNanos(0);
-        System.out.println(edf.format(date));
-    }
-
 }
