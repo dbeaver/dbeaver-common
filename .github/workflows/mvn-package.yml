@@ -25,6 +25,8 @@ on:
       DEVOPS_ISSUE_RO_TOKEN: 
         required: false
 
+env:
+  MAVEN_OPTS: -Xmx2048m
 
 jobs:
   build-and-test:
