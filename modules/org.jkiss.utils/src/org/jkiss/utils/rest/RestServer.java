@@ -36,7 +36,9 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.*;
 import java.util.function.Predicate;
 import java.util.logging.Level;
@@ -129,7 +131,6 @@ public class RestServer<T> {
 
         @Override
         public void handle(HttpExchange exchange) throws IOException {
-
             try {
                 Response<?> response;
                 try {
@@ -190,7 +191,7 @@ public class RestServer<T> {
         }
 
         @NotNull
-        protected Response<?> executeRequest(@NotNull HttpExchange exchange) throws IOException {
+        private Response<?> executeRequest(@NotNull HttpExchange exchange) throws IOException {
             if (!filter.test(exchange.getRemoteAddress())) {
                 return new Response<>("Access is forbidden", String.class, RpcConstants.SC_FORBIDDEN);
             }
@@ -241,34 +242,29 @@ public class RestServer<T> {
         protected Map<String, Method> createMappings(@NotNull Class<T> cls) {
             final Map<String, Method> mappings = new HashMap<>();
 
-            List<Class<?>> allClasses = new ArrayList<>();
-            allClasses.add(cls);
-            allClasses.addAll(Arrays.asList(cls.getInterfaces()));
-            for (Class<?> clazz : allClasses) {
-                for (Method method : clazz.getDeclaredMethods()) {
-                    if (method.getDeclaringClass() == Object.class) {
-                        continue;
-                    }
-
-                    final RequestMapping mapping = method.getDeclaredAnnotation(RequestMapping.class);
-
-                    if (mapping == null) {
-                        continue;
-                    }
-
-                    String methodEndpoint = mapping.value();
-                    if (CommonUtils.isEmptyTrimmed(mapping.value())) {
-                        methodEndpoint = method.getName();
-                    }
-
-                    if (mappings.containsKey(methodEndpoint)) {
-                        log.warning("Method " + method + " has duplicate mapping, skipping");
-                        continue;
-                    }
-
-                    method.setAccessible(true);
-                    mappings.put(methodEndpoint, method);
+            for (Method method : cls.getMethods()) {
+                if (method.getDeclaringClass() == Object.class) {
+                    continue;
                 }
+
+                final RequestMapping mapping = method.getDeclaredAnnotation(RequestMapping.class);
+
+                if (mapping == null) {
+                    continue;
+                }
+
+                String methodEndpoint = mapping.value();
+                if (CommonUtils.isEmptyTrimmed(mapping.value())) {
+                    methodEndpoint = method.getName();
+                }
+
+                if (mappings.containsKey(methodEndpoint)) {
+                    log.warning("Method " + method + " has duplicate mapping, skipping");
+                    continue;
+                }
+
+                method.setAccessible(true);
+                mappings.put(methodEndpoint, method);
             }
 
             return Collections.unmodifiableMap(mappings);
