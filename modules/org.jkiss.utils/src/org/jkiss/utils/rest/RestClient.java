@@ -1,6 +1,6 @@
 /*
  * DBeaver - Universal Database Manager
- * Copyright (C) 2010-2024 DBeaver Corp and others
+ * Copyright (C) 2010-2025 DBeaver Corp and others
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ import org.jkiss.utils.CommonUtils;
 import java.lang.reflect.Method;
 import java.net.URI;
 import java.util.Map;
+import javax.net.ssl.SSLContext;
 
 public class RestClient extends RpcClient {
 
@@ -41,6 +42,7 @@ public class RestClient extends RpcClient {
         private Gson gson;
         private RestEndpointResolver resolver;
         private String userAgent;
+        private SSLContext sslContext;
 
         private Builder(@NotNull URI uri, @NotNull Class<T> cls) {
             this.uri = uri;
@@ -66,11 +68,16 @@ public class RestClient extends RpcClient {
             return this;
         }
 
+        public Builder<T> setSslContext(@Nullable SSLContext sslContext) {
+            this.sslContext = sslContext;
+            return this;
+        }
+
         @NotNull
         public T create() {
             return createProxy(
                 cls,
-                new RestInvocationHandler(cls, uri, gson, resolver, userAgent));
+                new RestInvocationHandler(cls, uri, gson, resolver, userAgent, sslContext));
         }
     }
 
@@ -83,9 +90,10 @@ public class RestClient extends RpcClient {
             @NotNull URI uri,
             @NotNull Gson gson,
             @NotNull RestEndpointResolver resolver,
-            @NotNull String userAgent
+            @NotNull String userAgent,
+            @Nullable SSLContext sslContext
         ) {
-            super(clientClass, uri, gson, userAgent);
+            super(clientClass, uri, gson, userAgent, sslContext);
             this.resolver = resolver;
         }
 

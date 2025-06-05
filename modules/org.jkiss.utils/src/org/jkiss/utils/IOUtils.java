@@ -30,6 +30,7 @@ import java.nio.channels.ReadableByteChannel;
 import java.nio.channels.WritableByteChannel;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.util.logging.Logger;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
@@ -38,6 +39,7 @@ import java.util.zip.ZipOutputStream;
  * Some IO helper functions
  */
 public final class IOUtils {
+    private static final Logger log = Logger.getLogger(IOUtils.class.getName());
 
     public static final int DEFAULT_BUFFER_SIZE = 16384;
 
@@ -47,7 +49,11 @@ public final class IOUtils {
         try {
             closeable.close();
         } catch (IOException e) {
-            e.printStackTrace();
+            log.log(
+                java.util.logging.Level.WARNING,
+                "Failed to close closeable: " + closeable.getClass().getName(),
+                e
+            );
         }
     }
 
@@ -55,7 +61,11 @@ public final class IOUtils {
         try {
             closeable.close();
         } catch (Exception e) {
-            e.printStackTrace();
+            log.log(
+                java.util.logging.Level.WARNING,
+                "Failed to close closeable: " + closeable.getClass().getName(),
+                e
+            );
         }
     }
 

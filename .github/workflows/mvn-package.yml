@@ -25,7 +25,6 @@ on:
       DEVOPS_ISSUE_RO_TOKEN: 
         required: false
 
-
 jobs:
   build-and-test:
     name: Build Java
@@ -36,6 +35,9 @@ jobs:
 
     outputs:
       run-id: ${{ github.run_id }}
+
+    env:
+      MAVEN_OPTS: -Xmx2048m
 
     steps:
       - name: Set repository path variable
