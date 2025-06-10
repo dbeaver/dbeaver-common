@@ -8,7 +8,7 @@ Bundle-Release-Date: 20240205
 Bundle-RequiredExecutionEnvironment: JavaSE-11
 Bundle-ActivationPolicy: lazy
 Require-Bundle: org.jkiss.utils,
- org.jkiss.bundle.jakarta.jetty11.websocket,
+ org.jkiss.bundle.jetty11.websocket,
  com.google.gson,
  slf4j.api
 Export-Package: com.dbeaver.ws.api
