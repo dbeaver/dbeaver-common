@@ -180,6 +180,11 @@
             <url>${eclipse-p2-repo.url}</url>
             <layout>p2</layout>
         </repository>
+        <repository>
+            <id>local-contrib</id>
+            <url>${local-p2-repo.url}</url>
+            <layout>p2</layout>
+        </repository>
     </repositories>
 
     <build>
