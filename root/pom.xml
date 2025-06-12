@@ -31,8 +31,6 @@
         <local-p2-repo.version>${dbeaver-version}</local-p2-repo.version>
 
         <local-p2-repo.url>https://repo.dbeaver.net/p2/ce/${local-p2-repo.version}</local-p2-repo.url>
-
-        <legacy-ee-p2-repo.url>https://p2.dev.dbeaver.com/eclipse-repo-ee/${local-p2-repo.version}</legacy-ee-p2-repo.url>
         <ee-p2-repo.url>https://repo.dbeaver.net/p2/pro/${local-p2-repo.version}</ee-p2-repo.url>
 
         <elk-p2-repo.url>https://download.eclipse.org/elk/updates/releases/${elk-version}/</elk-p2-repo.url>
