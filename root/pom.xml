@@ -27,13 +27,19 @@
 
         <!-- P2 repos -->
         <eclipse-repo-url>https://download.eclipse.org/releases</eclipse-repo-url>
-        <eclipse-p2-repo.url>${eclipse-repo-url}/${eclipse-version}/</eclipse-p2-repo.url>
-        <local-p2-repo.version>${dbeaver-version}</local-p2-repo.version>
-        <local-p2-repo.url>https://repo.dbeaver.net/p2/ce/${local-p2-repo.version}</local-p2-repo.url>
-        <local-ee-p2-repo.url>https://p2.dev.dbeaver.com/eclipse-repo-ee/${local-p2-repo.version}</local-ee-p2-repo.url>
-<!--        <local-ee-p2-repo.url>https://repo.dbeaver.net/p2/pro/${local-p2-repo.version}</local-ee-p2-repo.url>-->
-        <elk-p2-repo.url>https://download.eclipse.org/elk/updates/releases/${elk-version}/</elk-p2-repo.url>
+        <repo.p2.eclipse.url>${eclipse-repo-url}/${eclipse-version}/</repo.p2.eclipse.url>
 
+        <repo.p2.dbeaver.version>${dbeaver-version}</repo.p2.dbeaver.version>
+        <repo.p2.dbeaver-ce.url>https://repo.dbeaver.net/p2/ce/${repo.p2.dbeaver.version}</repo.p2.dbeaver-ce.url>
+        <repo.p2.dbeaver-pro.url>https://repo.dbeaver.net/p2/pro/${repo.p2.dbeaver.version}</repo.p2.dbeaver-pro.url>
+
+        <repo.p2.elk.url>https://download.eclipse.org/elk/updates/releases/${elk-version}/</repo.p2.elk.url>
+
+        <!-- Maven repos -->
+        <repo.maven.central.url>https://repo.maven.apache.org/maven2</repo.maven.central.url>
+        <repo.maven.dbeaver-custom.url>https://nexus.dbeaver.net/repository/maven-custom/</repo.maven.dbeaver-custom.url>
+
+        <!-- Component versions -->
         <java.version>21</java.version> <!-- Default Java version -->
         <java.version.drivers>17</java.version.drivers> <!-- Java version for JDBC drivers and other public artifacts -->
         <java.version.min>11</java.version.min> <!-- Java version artifacts which must be deployed in legacy environment -->
@@ -182,7 +188,12 @@
     <repositories>
         <repository>
             <id>eclipse-p2-repo</id>
-            <url>${eclipse-p2-repo.url}</url>
+            <url>${repo.p2.eclipse.url}</url>
+            <layout>p2</layout>
+        </repository>
+        <repository>
+            <id>local-contrib</id>
+            <url>${repo.p2.dbeaver-ce.url}</url>
             <layout>p2</layout>
         </repository>
     </repositories>
