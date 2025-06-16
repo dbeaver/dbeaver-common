@@ -2,10 +2,20 @@ $ErrorActionPreference = "Stop"
 
 $scriptDir = (Resolve-Path (Split-Path -Parent $MyInvocation.MyCommand.Definition)).Path
 
-$groovyVersion = "4.0.27"
-$groovyDir = Join-Path $scriptDir "groovy-$groovyVersion"
-$groovyDownloadUrl = "https://groovy.jfrog.io/artifactory/dist-release-local/groovy-zips/apache-groovy-binary-$groovyVersion.zip"
-$zipFile = Join-Path $scriptDir "groovy.zip"
+function Get-Property {
+    param (
+        [Parameter(Mandatory)]
+        [string]$PropertyName
+    )
+
+    $propertiesFile = Join-Path $scriptDir "properties.toml"
+    $propertyLine = Get-Content $propertiesFile | Where-Object { $_ -match "^$PropertyName" }
+    if ($propertyLine) {
+        $propertyValue = $propertyLine -replace '.*= "(.*)".*', '$1'
+        return $propertyValue
+    }
+    return $null
+}
 
 # https://github.com/PowerShell/PowerShell/issues/13414
 function Invoke-FastFileDownload {
@@ -28,8 +38,14 @@ function Invoke-FastFileDownload {
     }
 }
 
+$groovyVersion = Get-Property "groovy.version"
+$groovyDir = Join-Path $scriptDir "groovy-$groovyVersion"
+
 if (-Not (Test-Path $groovyDir)) {
     Write-Host "Downloading Groovy $groovyVersion..."
+    $urlPrefix = Get-Property "groovy.downloadUrlPrefix"
+    $groovyDownloadUrl = "$urlPrefix-$groovyVersion.zip"
+    $zipFile = Join-Path $scriptDir "groovy.zip"
     Invoke-FastFileDownload -Uri $groovyDownloadUrl -OutFile $zipFile
     Write-Host "Unpacking Groovy $groovyVersion..."
     Expand-Archive -Path $zipFile -DestinationPath $scriptDir -Force
