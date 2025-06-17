@@ -81,7 +81,7 @@
 
 
         <dbeaver.common.version>2.4.0-SNAPSHOT</dbeaver.common.version>
-        <lm.version>3.0.9-SNAPSHOT</lm.version>
+        <lm.version>3.0.10-SNAPSHOT</lm.version>
         <dm.version>0.0.3-SNAPSHOT</dm.version>
     </properties>
 
