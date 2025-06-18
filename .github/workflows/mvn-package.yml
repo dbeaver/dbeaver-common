@@ -1,4 +1,4 @@
-name: MVN Package
+name: Maven Verify
 
 on:
   workflow_call:
@@ -22,7 +22,7 @@ on:
         value: ${{ jobs.build-and-test.outputs.run-id }}
 
     secrets:
-      DEVOPS_ISSUE_RO_TOKEN: 
+      DEVOPS_ISSUE_RO_TOKEN:
         required: false
 
 jobs:
@@ -40,27 +40,11 @@ jobs:
       MAVEN_OPTS: -Xmx2048m
 
     steps:
-      - name: Set repository path variable
-        run: echo "CHECKOUT_PATH=${GITHUB_REPOSITORY##*/}" >> $GITHUB_ENV
-
-      - uses: actions/checkout@v4
+      - uses: dbeaver/github-actions/prepare-for-a-maven-lifecycle@devel
         with:
-          path: ${{ env.CHECKOUT_PATH || '.' }}
-
-      - uses: dbeaver/github-actions/clone-repositories@devel
-        if: ${{ inputs.project-deps != null }}
-        with:
-          project_deps_path: ${{ inputs.project-deps }}
+          project-deps: ${{ inputs.project-deps }}
           token: ${{ secrets.DEVOPS_ISSUE_RO_TOKEN }}
-
-      - uses: dbeaver/github-actions/install-maven@devel
-      - uses: actions/setup-java@v4
-        with:
-          distribution: "temurin"
-          java-version: "21"
-          cache: maven
 
       - name: Compile
         run: mvn clean verify -B -T1C ${{ inputs.mvn-args }}
         working-directory: ${{ inputs.project-directory || env.CHECKOUT_PATH || '.' }}
-
