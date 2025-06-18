@@ -1,0 +1,4 @@
+groovy.version = "4.0.27"
+# The actual download URL looks like this:
+# https://groovy.jfrog.io/artifactory/dist-release-local/groovy-zips/apache-groovy-binary-4.0.27.zip
+groovy.downloadUrlPrefix = "https://groovy.jfrog.io/artifactory/dist-release-local/groovy-zips/apache-groovy-binary"
