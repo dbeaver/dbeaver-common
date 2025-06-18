@@ -1,6 +1,6 @@
 /*
  * DBeaver - Universal Database Manager
- * Copyright (C) 2010-2024 DBeaver Corp and others
+ * Copyright (C) 2010-2025 DBeaver Corp and others
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,27 +24,28 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.xml.sax.InputSource;
 
-import javax.xml.XMLConstants;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import javax.xml.XMLConstants;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
 
 /**
  * Common XML utils
  */
 public class XMLUtils {
 
-    public static Document parseDocument(String fileName)
-        throws XMLException {
-        return parseDocument(new java.io.File(fileName));
+    @NotNull
+    public static Document parseDocument(@NotNull String fileName) throws XMLException {
+        return parseDocument(new File(fileName));
     }
 
-    public static Document parseDocument(java.io.File file) throws XMLException {
+    @NotNull
+    public static Document parseDocument(@NotNull File file) throws XMLException {
         try (InputStream is = new FileInputStream(file)) {
             return parseDocument(new InputSource(is));
         } catch (IOException e) {
@@ -52,15 +53,27 @@ public class XMLUtils {
         }
     }
 
-    public static Document parseDocument(java.io.InputStream is) throws XMLException {
+    @NotNull
+    public static Document parseDocument(@NotNull Path file) throws XMLException {
+        try (InputStream is = Files.newInputStream(file)) {
+            return parseDocument(new InputSource(is));
+        } catch (IOException e) {
+            throw new XMLException("Error opening file '" + file + "'", e);
+        }
+    }
+
+    @NotNull
+    public static Document parseDocument(@NotNull InputStream is) throws XMLException {
         return parseDocument(new InputSource(is));
     }
 
-    public static Document parseDocument(java.io.Reader is) throws XMLException {
+    @NotNull
+    public static Document parseDocument(@NotNull Reader is) throws XMLException {
         return parseDocument(new InputSource(is));
     }
 
-    public static Document parseDocument(InputSource source) throws XMLException {
+    @NotNull
+    public static Document parseDocument(@NotNull InputSource source) throws XMLException {
         try {
             DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
             dbf.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
@@ -72,6 +85,7 @@ public class XMLUtils {
         }
     }
 
+    @NotNull
     public static Document createDocument()
         throws XMLException {
         try {
@@ -83,7 +97,8 @@ public class XMLUtils {
         }
     }
 
-    public static Element getChildElement(Element element, @NotNull String childName) {
+    @Nullable
+    public static Element getChildElement(@Nullable Element element, @NotNull String childName) {
         if (element == null) {
             return null;
         }
@@ -97,7 +112,7 @@ public class XMLUtils {
     }
 
     @Nullable
-    public static String getChildElementBody(Element element, @NotNull String childName) {
+    public static String getChildElementBody(@Nullable Element element, @NotNull String childName) {
         if (element == null) {
             return null;
         }
@@ -150,10 +165,8 @@ public class XMLUtils {
     }
 
     // Get list of all child elements of specified node
-    public static Collection<Element> getChildElementListNS(
-        Element parent,
-        String nodeName,
-        String nsURI) {
+    @NotNull
+    public static Collection<Element> getChildElementListNS(Element parent, String nodeName, String nsURI) {
         List<Element> list = new ArrayList<>();
         for (Node node = parent.getFirstChild(); node != null; node = node.getNextSibling()) {
             if (node.getNodeType() == Node.ELEMENT_NODE &&
@@ -167,9 +180,7 @@ public class XMLUtils {
 
     // Get list of all child elements of specified node
     @NotNull
-    public static Collection<Element> getChildElementList(
-        Element parent,
-        String[] nodeNameList) {
+    public static Collection<Element> getChildElementList(@NotNull Element parent, @NotNull String[] nodeNameList) {
         List<Element> list = new ArrayList<>();
         for (Node node = parent.getFirstChild(); node != null; node = node.getNextSibling()) {
             if (node.getNodeType() == Node.ELEMENT_NODE) {
@@ -185,8 +196,7 @@ public class XMLUtils {
 
     // Find one child element with specified name
     @Nullable
-    public static Element findChildElement(
-        Element parent) {
+    public static Element findChildElement(@NotNull Element parent) {
         for (Node node = parent.getFirstChild(); node != null; node = node.getNextSibling()) {
             if (node.getNodeType() == Node.ELEMENT_NODE) {
                 return (Element) node;
@@ -195,7 +205,8 @@ public class XMLUtils {
         return null;
     }
 
-    public static Object escapeXml(Object obj) {
+    @Nullable
+    public static Object escapeXml(@Nullable Object obj) {
         if (obj == null) {
             return null;
         } else if (obj instanceof CharSequence) {
@@ -205,7 +216,8 @@ public class XMLUtils {
         }
     }
 
-    public static String escapeXml(CharSequence str) {
+    @Nullable
+    public static String escapeXml(@Nullable CharSequence str) {
         if (str == null) {
             return null;
         }
@@ -241,6 +253,7 @@ public class XMLUtils {
      * @param ch char to convert
      * @return XML-encoded text
      */
+    @Nullable
     public static String encodeXMLChar(char ch) {
         switch (ch) {
             case '&':
@@ -258,7 +271,8 @@ public class XMLUtils {
         }
     }
 
-    public static XMLException adaptSAXException(Exception toCatch) {
+    @NotNull
+    public static XMLException adaptSAXException(@NotNull Exception toCatch) {
         if (toCatch instanceof XMLException) {
             return (XMLException) toCatch;
         } else if (toCatch instanceof org.xml.sax.SAXException) {
@@ -277,7 +291,8 @@ public class XMLUtils {
         }
     }
 
-    public static Collection<Element> getChildElementList(Element element) {
+    @NotNull
+    public static Collection<Element> getChildElementList(@Nullable Element element) {
         List<Element> children = new ArrayList<>();
         if (element != null) {
             for (Node node = element.getFirstChild(); node != null; node = node.getNextSibling()) {
