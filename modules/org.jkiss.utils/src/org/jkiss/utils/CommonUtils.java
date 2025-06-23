@@ -179,6 +179,11 @@ public class CommonUtils {
         return value != null ? value : defaultValue;
     }
 
+    @NotNull
+    public static String notEmptyOrDefault(@Nullable String value, @NotNull String defaultValue) {
+        return isNotEmpty(value) ? value : defaultValue;
+    }
+
     public static boolean isEmpty(@Nullable CharSequence value) {
         return value == null || value.length() == 0;
     }
