@@ -40,7 +40,7 @@ jobs:
       MAVEN_OPTS: -Xmx2048m
 
     steps:
-      - uses: dbeaver/github-actions/prepare-for-a-maven-lifecycle@devel
+      - uses: dbeaver/github-actions/prepare-for-a-maven-lifecycle@dbeaver/dbeaver-devops#1978-cache
         with:
           project-deps: ${{ inputs.project-deps }}
           token: ${{ secrets.DEVOPS_ISSUE_RO_TOKEN }}
