@@ -29,7 +29,6 @@ Various utilities (similar to Apache Commons and Google Guava).
 ```
 
 ### [com.dbeaver.jdbc.api](modules%2Fcom.dbeaver.jdbc.api)
-
 Base module for custom JDBC drivers development.  
 Contains utility classes and classes implementing JDBC interfaces for 
 driver, connection, statements, result sets and metadata read. 
