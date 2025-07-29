@@ -428,6 +428,16 @@ public class CommonUtils {
     }
 
     public static int toInt(@Nullable Object object, int def) {
+        Integer value = toInteger(object, def);
+        if (value == null) {
+            return def;
+        }
+
+        return value;
+    }
+
+    @Nullable
+    public static Integer toInteger(@Nullable Object object, @Nullable Integer def) {
         if (object == null) {
             return def;
         } else if (object instanceof Number) {
@@ -442,7 +452,7 @@ public class CommonUtils {
                 return Integer.parseInt(strValue);
             } catch (NumberFormatException e) {
                 try {
-                    return (int)Double.parseDouble(strValue);
+                    return (int) Double.parseDouble(strValue);
                 } catch (NumberFormatException e1) {
                     log.log(
                         Level.WARNING,
