@@ -1212,4 +1212,7 @@ public class CommonUtils {
         return String.join(":\n", result);
     }
 
+    public static String addTextIndent(@NotNull String text, @NotNull String indent) {
+        return text.replace("\n", "\n" + indent);
+    }
 }
