@@ -63,7 +63,7 @@
         <junit-platform-version>1.11.0</junit-platform-version>
 
         <dbeaver.common.version>2.4.0-SNAPSHOT</dbeaver.common.version>
-        <lm.version>3.0.15-SNAPSHOT</lm.version>
+        <lm.version>3.0.16-SNAPSHOT</lm.version>
         <dm.version>0.0.4-SNAPSHOT</dm.version>
     </properties>
 
