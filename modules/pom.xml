@@ -20,7 +20,6 @@
         <module>org.jkiss.utils</module>
         <module>com.dbeaver.jdbc.api</module>
         <module>com.dbeaver.servlet.api</module>
-        <module>com.dbeaver.ws.api</module>
     </modules>
 
     <build>
