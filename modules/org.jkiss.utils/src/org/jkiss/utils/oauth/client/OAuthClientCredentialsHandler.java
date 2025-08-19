@@ -70,20 +70,22 @@ public class OAuthClientCredentialsHandler implements IOAuthHandler {
 
     @Override
     public Map<String, String> authorize() throws IOException {
-        try (HttpClient client = HttpClient.newBuilder()
+        HttpClient client = HttpClient.newBuilder()
             .version(HttpClient.Version.HTTP_2)
             .connectTimeout(Duration.ofSeconds(OAuthConstants.AUTH_DEFAULT_SSO_TIMEOUT))
-            .build()) {
-            OAuthRequestPostBuilder requestBuilder = new OAuthRequestPostBuilder(authUrl)
-                .withClientId(clientId)
-                .withClientSecret(secretId)
-                .withGrantType(OAuthConstants.GRANT_TYPE_CLIENT_CREDENTIALS);
-            // Send POST
-            HttpResponse<String> response = client.send(requestBuilder.build(), HttpResponse.BodyHandlers.ofString());
-            return extractResponse(response);
+            .build();
+        OAuthRequestPostBuilder requestBuilder = new OAuthRequestPostBuilder(authUrl)
+            .withClientId(clientId)
+            .withClientSecret(secretId)
+            .withGrantType(OAuthConstants.GRANT_TYPE_CLIENT_CREDENTIALS);
+        // Send POST
+        HttpResponse<String> response = null;
+        try {
+            response = client.send(requestBuilder.build(), HttpResponse.BodyHandlers.ofString());
         } catch (InterruptedException e) {
-            throw new RuntimeException(e);
+            throw new IOException("Authorization request interrupted", e);
         }
+        return extractResponse(response);
 
     }
 
