@@ -14,12 +14,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jkiss.utils.oauth;
+package org.jkiss.utils.oauth.code;
 
 import com.google.gson.*;
 import org.jkiss.code.NotNull;
 import org.jkiss.code.Nullable;
 import org.jkiss.utils.CommonUtils;
+import org.jkiss.utils.oauth.IOAuthHandler;
+import org.jkiss.utils.oauth.OAuthConstants;
 
 import java.awt.*;
 import java.io.IOException;
@@ -45,12 +47,13 @@ import java.util.concurrent.TimeoutException;
  * and exchanges the authorization code for an access token.
  * This class supports customization of timeout and callback endpoint.
  */
-public class OAuthHandler {
+public class OAuthCodeHandler implements IOAuthHandler {
     protected static final Gson gson = new GsonBuilder()
         .setStrictness(Strictness.LENIENT)
         .setPrettyPrinting()
         .create();
     public static final int TOKEN_VERIFIER_BYTE_LENGTH = 64;
+    private static final String GRANT_TYPE = "grant_type";
 
     @NotNull
     protected final String clientId;
@@ -76,7 +79,7 @@ public class OAuthHandler {
      * @param tokenURL     the token exchange endpoint URL
      * @param callbackPort the port on which the temporary server will listen for the callback
      */
-    public OAuthHandler(
+    public OAuthCodeHandler(
         @NotNull String clientId,
         @Nullable String secretId,
         @NotNull String authUrl,
@@ -114,8 +117,9 @@ public class OAuthHandler {
      * @return a map containing the token information (e.g. id_token)
      * @throws IOException in case of HTTP failure, timeout, or invalid responses
      */
+    @Override
     public Map<String, String> authorize() throws IOException {
-        try (OAuthResponseHandler handler = new OAuthResponseHandler(callbackPort, callbackEndpoint)) {
+        try (OAuthCodeResponseHandler handler = new OAuthCodeResponseHandler(callbackPort, callbackEndpoint)) {
             String verifier = generateCodeChallengeAndVerifier();
             startSSO(handler);
             String code = handler.requestCode().get(timeout, TimeUnit.SECONDS);
@@ -165,7 +169,7 @@ public class OAuthHandler {
      * @param handler OAuth response handler
      * @throws IOException if the desktop browser cannot be launched
      */
-    private void startSSO(@NotNull OAuthResponseHandler handler) throws IOException {
+    private void startSSO(@NotNull OAuthCodeResponseHandler handler) throws IOException {
         handler.initServer();
         createBrowser(buildAuthUrl());
     }
@@ -229,7 +233,7 @@ public class OAuthHandler {
         @NotNull String verifier
     ) {
         Map<String, String> parameters = new HashMap<>();
-        parameters.put("grant_type", "authorization_code");
+        parameters.put(GRANT_TYPE, OAuthConstants.GRANT_TYPE_AUTH_CODE);
         parameters.put("code", code);
         parameters.put(OAuthConstants.AUTH_PROP_CLIENT_ID, clientId);
         if (CommonUtils.isNotEmpty(secretId)) {
