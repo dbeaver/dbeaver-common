@@ -1,6 +1,6 @@
 /*
  * DBeaver - Universal Database Manager
- * Copyright (C) 2010-2024 DBeaver Corp and others
+ * Copyright (C) 2010-2025 DBeaver Corp and others
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package org.jkiss.utils;
 
 import com.google.gson.*;
+import org.jkiss.code.NotNull;
 
 import java.lang.reflect.Type;
 import java.time.*;
@@ -49,6 +50,31 @@ public class GsonUtils {
 
         public JsonElement serialize(byte[] src, Type typeOfSrc, JsonSerializationContext context) {
             return new JsonPrimitive(Base64.encode(src));
+        }
+    }
+
+    public static class ZonedDateTimeAdapter implements JsonSerializer<ZonedDateTime>, JsonDeserializer<ZonedDateTime> {
+        private final DateTimeFormatter formatter;
+        private final ZoneId zoneId;
+
+        public ZonedDateTimeAdapter(@NotNull DateTimeFormatter formatter, @NotNull ZoneId zoneId) {
+            this.formatter = formatter;
+            this.zoneId = zoneId;
+        }
+
+        @Override
+        public ZonedDateTime deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
+            var accessor = formatter.parseBest(json.getAsString(), ZonedDateTime::from, LocalDateTime::from);
+            if (accessor instanceof LocalDateTime) {
+                return ((LocalDateTime) accessor).atZone(zoneId);
+            } else {
+                return (ZonedDateTime) accessor;
+            }
+        }
+
+        @Override
+        public JsonElement serialize(ZonedDateTime src, Type typeOfSrc, JsonSerializationContext context) {
+            return new JsonPrimitive(formatter.format(src));
         }
     }
 
