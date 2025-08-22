@@ -53,6 +53,11 @@ public class GsonUtils {
         }
     }
 
+    /**
+     * An adapter that can convert a string in a given format to an instance of {@link ZonedDateTime}.
+     * The format string can optionally contain a zone id part that will be used if the input contains it.
+     * Otherwise, the supplied {@code zoneId} will be used as the default zone.
+     */
     public static class ZonedDateTimeAdapter implements JsonSerializer<ZonedDateTime>, JsonDeserializer<ZonedDateTime> {
         private final DateTimeFormatter formatter;
         private final ZoneId zoneId;
