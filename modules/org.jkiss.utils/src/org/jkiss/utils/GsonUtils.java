@@ -17,7 +17,6 @@
 package org.jkiss.utils;
 
 import com.google.gson.*;
-import org.jkiss.code.NotNull;
 
 import java.lang.reflect.Type;
 import java.time.*;
@@ -50,36 +49,6 @@ public class GsonUtils {
 
         public JsonElement serialize(byte[] src, Type typeOfSrc, JsonSerializationContext context) {
             return new JsonPrimitive(Base64.encode(src));
-        }
-    }
-
-    /**
-     * An adapter that can convert a string in a given format to an instance of {@link ZonedDateTime}.
-     * The format string can optionally contain a zone id part that will be used if the input contains it.
-     * Otherwise, the supplied {@code zoneId} will be used as the default zone.
-     */
-    public static class ZonedDateTimeAdapter implements JsonSerializer<ZonedDateTime>, JsonDeserializer<ZonedDateTime> {
-        private final DateTimeFormatter formatter;
-        private final ZoneId zoneId;
-
-        public ZonedDateTimeAdapter(@NotNull DateTimeFormatter formatter, @NotNull ZoneId zoneId) {
-            this.formatter = formatter;
-            this.zoneId = zoneId;
-        }
-
-        @Override
-        public ZonedDateTime deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
-            var accessor = formatter.parseBest(json.getAsString(), ZonedDateTime::from, LocalDateTime::from);
-            if (accessor instanceof LocalDateTime) {
-                return ((LocalDateTime) accessor).atZone(zoneId);
-            } else {
-                return (ZonedDateTime) accessor;
-            }
-        }
-
-        @Override
-        public JsonElement serialize(ZonedDateTime src, Type typeOfSrc, JsonSerializationContext context) {
-            return new JsonPrimitive(formatter.format(src));
         }
     }
 
