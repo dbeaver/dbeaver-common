@@ -73,6 +73,10 @@ jobs:
               fi
               git clone --depth 1 -b "$GITHUB_HEAD_REF" "https://$GH_TOKEN@github.com/$GITHUB_REPOSITORY_OWNER/$repo.git"
               while IFS= read -r dep_repo; do
+                  if [ -d "$dep_repo" ]; then
+                      echo "Not cloning $dep_repo since a folder with such a name already exists. Most likely, another step already cloned this repo."
+                      continue
+                  fi
                   default_branch=$(git ls-remote --symref "https://$GH_TOKEN@github.com/dbeaver/$dep_repo.git" HEAD | grep '^ref:' | awk '{print $2}' | sed 's|refs/heads/||')
                   git clone --depth 1 -b "$GITHUB_HEAD_REF" "https://$GH_TOKEN@github.com/$GITHUB_REPOSITORY_OWNER/$dep_repo.git" || \
                   git clone --depth 1 -b "$default_branch" "https://$GH_TOKEN@github.com/dbeaver/$dep_repo.git"
