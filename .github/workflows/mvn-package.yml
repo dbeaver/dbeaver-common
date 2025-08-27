@@ -57,7 +57,7 @@ jobs:
         run: |
           uri_encoded_branch_name=$(perl -MURI::Escape -e 'print uri_escape($ARGV[0]);' "$GITHUB_HEAD_REF")
           declare -rA p2_map=(${{ inputs.p2-repos-to-mvn-flags-map }})
-          if [ -n "$GH_TOKEN"]; then
+          if [ -n "$GH_TOKEN" ]; then
               gh_auth_header="-H \"Authorization: token $GH_TOKEN\""
           fi
           output=''
