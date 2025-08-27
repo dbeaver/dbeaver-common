@@ -63,6 +63,8 @@ jobs:
           output=''
           for repo in ${!p2_map[@]}
           do
+              flag="${p2_map[${repo}]}"
+              echo "repo: $repo, flag: $flag"
               # Check if exists a branch with the same name in $repo
               http_status=$(curl -s -o /dev/null -w "%{http_code}" "$gh_auth_header" \
                   -H "Accept: application/vnd.github.v3+json" \
@@ -86,9 +88,8 @@ jobs:
               if [ -n "$output" ]; then
                   output+=" "
               fi
-              flag="${p2_map[${repo}]}"
               p2_uri="file://$(realpath ./$repo/p2/repository/target/repository)"
-              output+="-D$flag=$p2_uri"
+              output+="-D$flag='$p2_uri'"
           done
           if [ -n "$output" ]; then
             echo "p2-mvn-flags=$output" >> "$GITHUB_OUTPUT"
