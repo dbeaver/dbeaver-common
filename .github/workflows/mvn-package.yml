@@ -16,6 +16,9 @@ on:
       mvn-args:
         required: false
         type: string
+      p2-repos-to-mvn-flags-map:
+        type: string
+        required: false
 
     outputs:
       run-id:
@@ -45,6 +48,48 @@ jobs:
           project-deps: ${{ inputs.project-deps }}
           token: ${{ secrets.DEVOPS_ISSUE_RO_TOKEN }}
 
+      - name: Prepare custom p2
+        id: prepare-custom-p2
+        shell: bash
+        if: ${{ github.event_name == 'pull_request' && inputs.p2-repos-to-mvn-flags-map != '' }}
+        env:
+          GH_TOKEN: ${{ secrets.DEVOPS_ISSUE_RO_TOKEN }}
+        run: |
+          uri_encoded_branch_name=$(perl -MURI::Escape -e 'print uri_escape($ARGV[0]);' "$GITHUB_HEAD_REF")
+          declare -rA p2_map=(${{ inputs.p2-repos-to-mvn-flags-map }})
+          if [ -n "$GH_TOKEN"]; then
+              gh_auth_header="-H \"Authorization: token $GH_TOKEN\""
+          fi
+          output=''
+          for repo in ${!p2_map[@]}
+          do
+              # Check if exists a branch with the same name in $repo
+              http_status=$(curl -s -o /dev/null -w "%{http_code}" "$gh_auth_header" \
+                  -H "Accept: application/vnd.github.v3+json" \
+                  "https://api.github.com/repos/$GITHUB_REPOSITORY_OWNER/$repo/branches/$uri_encoded_branch_name")
+              if [ "$http_status" != '200' ]; then
+                  echo "Status $http_status: Branch $GITHUB_HEAD_REF does not exist in $GITHUB_REPOSITORY_OWNER/$repo."
+                  continue
+              fi
+              git clone --depth 1 -b "$GITHUB_HEAD_REF" "https://$GH_TOKEN@github.com/$GITHUB_REPOSITORY_OWNER/$repo.git"
+              while IFS= read -r dep_repo; do
+                  default_branch=$(git ls-remote --symref "https://$GH_TOKEN@github.com/dbeaver/$dep_repo.git" HEAD | grep '^ref:' | awk '{print $2}' | sed 's|refs/heads/||')
+                  git clone --depth 1 -b "$GITHUB_HEAD_REF" "https://$GH_TOKEN@github.com/$GITHUB_REPOSITORY_OWNER/$dep_repo.git" || \
+                  git clone --depth 1 -b "$default_branch" "https://$GH_TOKEN@github.com/dbeaver/$dep_repo.git"
+              done < "$repo/project.deps"
+              mvn clean verify -B -T1C -f "$repo"
+              mvn clean verify -B -T1C -f "$repo/p2"
+              if [ -n "$output" ]; then
+                  output+=" "
+              fi
+              flag="${p2_map[${repo}]}"
+              p2_uri="file://$(realpath ./$repo/p2/repository/target/repository)"
+              output+="-D$flag=$p2_uri"
+          done
+          if [ -n "$output" ]; then
+            echo "p2-mvn-flags=$output" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Compile
-        run: mvn clean verify -B -T1C ${{ inputs.mvn-args }}
+        run: mvn clean verify -B -T1C ${{ inputs.mvn-args }} ${{ steps.prepare-custom-p2.outputs.p2-mvn-flags }}
         working-directory: ${{ inputs.project-directory || env.CHECKOUT_PATH || '.' }}
