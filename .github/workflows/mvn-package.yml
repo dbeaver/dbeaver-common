@@ -54,7 +54,7 @@ jobs:
       - name: Prepare custom p2
         id: prepare-custom-p2
         shell: bash
-        if: ${{ github.event_name == 'pull_request' && inputs.p2-repos-to-mvn-flags-map != '' }}
+        if: ${{ inputs.use-public-p2 == 'true' || inputs.use-private-p2 == 'true' }}
         env:
           GH_TOKEN: ${{ secrets.DEVOPS_ISSUE_RO_TOKEN }}
         run: |
