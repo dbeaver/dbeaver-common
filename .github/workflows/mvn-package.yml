@@ -1,5 +1,7 @@
 name: Maven Verify
 
+permissions: {}
+
 on:
   workflow_call:
     inputs:
