@@ -54,8 +54,6 @@ jobs:
       - name: Prepare custom p2
         id: prepare-custom-p2
         shell: bash
-        env:
-          GH_TOKEN: ${{ secrets.DEVOPS_ISSUE_RO_TOKEN }}
         run: |
           declare -A p2_map
           if [ ${{ inputs.use-public-p2 }} = 'true' ]; then
@@ -64,9 +62,6 @@ jobs:
           if [ ${{ inputs.use-private-p2 }} = 'true' ]; then
             p2_map['dbeaver-deps-pro']='repo.p2.dbeaver-pro.url'
           fi
-          if [ -n "$GH_TOKEN" ]; then
-              gh_auth_header="-H \"Authorization: token $GH_TOKEN\""
-          fi
           uri_encoded_branch_name=$(perl -MURI::Escape -e 'print uri_escape($ARGV[0]);' "$GITHUB_HEAD_REF")
           output=''
           for repo in ${!p2_map[@]}
@@ -74,8 +69,9 @@ jobs:
               flag="${p2_map[${repo}]}"
               echo "repo: $repo, flag: $flag"
               # Check if exists a branch with the same name in $repo
-              http_status=$(curl -s -o /dev/null -w "%{http_code}" "$gh_auth_header" \
+              http_status=$(curl -s -o /dev/null -w "%{http_code}" \
                   -H "Accept: application/vnd.github.v3+json" \
+                  -H "Authorization: token ${{ secrets.DEVOPS_ISSUE_RO_TOKEN }}" \
                   "https://api.github.com/repos/$GITHUB_REPOSITORY_OWNER/$repo/branches/$uri_encoded_branch_name")
               if [ "$http_status" != '200' ]; then
                   echo "Status $http_status: Branch $GITHUB_HEAD_REF does not exist in $GITHUB_REPOSITORY_OWNER/$repo."
