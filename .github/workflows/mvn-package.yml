@@ -68,16 +68,10 @@ jobs:
           do
               flag="${p2_map[${repo}]}"
               echo "repo: $repo, flag: $flag"
-              # Check if exists a branch with the same name in $repo
-              http_status=$(curl -s -o /dev/null -w "%{http_code}" \
-                  -H "Accept: application/vnd.github.v3+json" \
-                  -H "Authorization: token ${{ secrets.DEVOPS_ISSUE_RO_TOKEN }}" \
-                  "https://api.github.com/repos/$GITHUB_REPOSITORY_OWNER/$repo/branches/$uri_encoded_branch_name")
-              if [ "$http_status" != '200' ]; then
-                  echo "Status $http_status: Branch $GITHUB_HEAD_REF does not exist in $GITHUB_REPOSITORY_OWNER/$repo."
-                  continue
+              git clone --depth 1 -b "$GITHUB_HEAD_REF" "https://${{ secrets.DEVOPS_ISSUE_RO_TOKEN }}@github.com/$GITHUB_REPOSITORY_OWNER/$repo.git"
+              if [[ $? -ne 0 ]]; then
+                continue
               fi
-              git clone --depth 1 -b "$GITHUB_HEAD_REF" "https://$GH_TOKEN@github.com/$GITHUB_REPOSITORY_OWNER/$repo.git"
               while IFS= read -r dep_repo; do
                   if [ -d "$dep_repo" ]; then
                       echo "Not cloning $dep_repo since a folder with such a name already exists. Most likely, another step already cloned this repo."
