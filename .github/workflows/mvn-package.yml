@@ -16,9 +16,12 @@ on:
       mvn-args:
         required: false
         type: string
-      p2-repos-to-mvn-flags-map:
-        type: string
-        required: false
+      use-public-p2:
+        type: boolean
+        default: true
+      use-private-p2:
+        type: boolean
+        default: false
 
     outputs:
       run-id:
@@ -55,11 +58,17 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.DEVOPS_ISSUE_RO_TOKEN }}
         run: |
-          uri_encoded_branch_name=$(perl -MURI::Escape -e 'print uri_escape($ARGV[0]);' "$GITHUB_HEAD_REF")
-          declare -rA p2_map=(${{ inputs.p2-repos-to-mvn-flags-map }})
+          declare -A p2_map
+          if [ ${{ inputs.use-public-p2 }} = 'true' ]; then
+            p2_map['dbeaver-deps-ce']='repo.p2.dbeaver-ce.url'
+          fi
+          if [ ${{ inputs.use-private-p2 }} = 'true' ]; then
+            p2_map['dbeaver-deps-pro']='repo.p2.dbeaver-pro.url'
+          fi
           if [ -n "$GH_TOKEN" ]; then
               gh_auth_header="-H \"Authorization: token $GH_TOKEN\""
           fi
+          uri_encoded_branch_name=$(perl -MURI::Escape -e 'print uri_escape($ARGV[0]);' "$GITHUB_HEAD_REF")
           output=''
           for repo in ${!p2_map[@]}
           do
