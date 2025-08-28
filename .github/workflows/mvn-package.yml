@@ -55,6 +55,7 @@ jobs:
 
       - name: Prepare custom p2
         id: prepare-custom-p2
+        if: ${{ github.event_name == 'pull_request' }}
         shell: bash
         run: |
           declare -A p2_map
