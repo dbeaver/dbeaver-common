@@ -20,6 +20,7 @@ import com.google.gson.Gson;
 import org.jkiss.code.NotNull;
 import org.jkiss.code.Nullable;
 import org.jkiss.utils.CommonUtils;
+import org.jkiss.utils.HttpConstants;
 
 import java.io.IOException;
 import java.net.CookieManager;
@@ -73,8 +74,8 @@ public abstract class HttpTransportInvocationHandler extends RpcInvocationHandle
 
         final HttpRequest.Builder builder = HttpRequest.newBuilder()
             .uri(methodURI)
-            .header("Content-Type", "application/json")
-            .header("User-Agent", userAgent)
+            .header(HttpConstants.HEADER_CONTENT_TYPE, HttpConstants.CONTENT_TYPE_JSON)
+            .header(HttpConstants.HEADER_USER_AGENT, userAgent)
             .POST(HttpRequest.BodyPublishers.ofString(requestString));
 
         if (methodMapping != null && methodMapping.timeout() > 0) {
