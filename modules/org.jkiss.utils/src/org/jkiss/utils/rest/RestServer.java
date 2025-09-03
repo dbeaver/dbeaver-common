@@ -47,6 +47,7 @@ import java.util.logging.Logger;
 public class RestServer<T> {
     private static final Logger log = Logger.getLogger(RestServer.class.getName());
     private HttpServer server;
+    private String landingPage;
 
     public RestServer(
         @NotNull Class<T> cls,
@@ -94,23 +95,28 @@ public class RestServer<T> {
         return server.getAddress();
     }
 
+    void setLandingPage(@Nullable String landingPage) {
+        this.landingPage = landingPage;
+    }
+
     @NotNull
     protected Executor createExecutor() {
         return new ThreadPoolExecutor(1, 10, 60, TimeUnit.SECONDS, new LinkedBlockingQueue<>());
     }
 
     @NotNull
-    protected RequestHandler<T> createHandler(
+    protected RequestHandler createHandler(
         @NotNull Class<T> cls,
         @NotNull T object,
         @NotNull Gson gson,
         @NotNull Predicate<InetSocketAddress> filter
     ) {
-        return new RequestHandler<>(cls, object, gson, filter);
+        return new RequestHandler(cls, object, gson, filter);
     }
 
-    protected static class RequestHandler<T> implements HttpHandler {
-        private static final Type REQUEST_TYPE = new TypeToken<Map<String, JsonElement>>() {}.getType();
+    private static final Type REQUEST_TYPE = new TypeToken<Map<String, JsonElement>>() {}.getType();
+
+    protected class RequestHandler implements HttpHandler {
 
         private final T object;
         private final Gson gson;
@@ -131,7 +137,7 @@ public class RestServer<T> {
 
         @Override
         public void handle(HttpExchange exchange) throws IOException {
-            try {
+            try (exchange) {
                 Response<?> response;
                 try {
                     response = executeRequest(exchange);
@@ -174,8 +180,6 @@ public class RestServer<T> {
             } catch (Throwable e) {
                 log.log(Level.SEVERE, "Internal IO error", e);
                 throw e;
-            } finally {
-                exchange.close();
             }
         }
 
@@ -197,6 +201,9 @@ public class RestServer<T> {
             }
 
             if (!exchange.getRequestMethod().equalsIgnoreCase("POST")) {
+                if (landingPage != null && exchange.getRequestURI().getPath().equals("/")) {
+                    return new Response<>(landingPage, void.class, RpcConstants.SC_OK);
+                }
                 return new Response<>("Unsupported method", String.class, RpcConstants.SC_UNSUPPORTED);
             }
 
@@ -292,6 +299,7 @@ public class RestServer<T> {
         private int port;
         private int backlog;
         private Predicate<InetSocketAddress> filter = DEFAULT_PREDICATE;
+        private String landingPage;
 
         private Builder(@NotNull T object, @NotNull Class<T> cls) {
             this.object = object;
@@ -320,6 +328,12 @@ public class RestServer<T> {
         }
 
         @NotNull
+        public Builder<T> setLandingPage(String landingPage) {
+            this.landingPage = landingPage;
+            return this;
+        }
+
+        @NotNull
         public Builder<T> setFilter(@NotNull Predicate<InetSocketAddress> filter) {
             this.filter = filter;
             return this;
@@ -328,7 +342,11 @@ public class RestServer<T> {
         @NotNull
         public RestServer<T> create() {
             try {
-                return new RestServer<>(cls, object, gson, filter, port, backlog);
+                RestServer<T> restServer = new RestServer<>(cls, object, gson, filter, port, backlog);
+                if (landingPage != null) {
+                    restServer.setLandingPage(landingPage);
+                }
+                return restServer;
             } catch (IOException e) {
                 throw new UncheckedIOException(e);
             }
