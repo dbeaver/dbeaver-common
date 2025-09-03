@@ -1,5 +1,7 @@
 name: Maven Verify
 
+permissions: {}
+
 on:
   workflow_call:
     inputs:
@@ -16,6 +18,12 @@ on:
       mvn-args:
         required: false
         type: string
+      use-public-p2:
+        type: boolean
+        default: true
+      use-private-p2:
+        type: boolean
+        default: false
 
     outputs:
       run-id:
@@ -45,6 +53,49 @@ jobs:
           project-deps: ${{ inputs.project-deps }}
           token: ${{ secrets.DEVOPS_ISSUE_RO_TOKEN }}
 
+      - name: Prepare custom p2
+        id: prepare-custom-p2
+        if: ${{ github.event_name == 'pull_request' }}
+        shell: bash
+        run: |
+          declare -A p2_map
+          if [ ${{ inputs.use-public-p2 }} = 'true' ]; then
+            p2_map['dbeaver-deps-ce']='repo.p2.dbeaver-ce.url'
+          fi
+          if [ ${{ inputs.use-private-p2 }} = 'true' ]; then
+            p2_map['dbeaver-deps-pro']='repo.p2.dbeaver-pro.url'
+          fi
+          uri_encoded_branch_name=$(perl -MURI::Escape -e 'print uri_escape($ARGV[0]);' "$GITHUB_HEAD_REF")
+          output=''
+          for repo in ${!p2_map[@]}
+          do
+              flag="${p2_map[${repo}]}"
+              echo "repo: $repo, flag: $flag"
+              git clone --depth 1 -b "$GITHUB_HEAD_REF" "https://${{ secrets.DEVOPS_ISSUE_RO_TOKEN }}@github.com/$GITHUB_REPOSITORY_OWNER/$repo.git"
+              if [[ $? -ne 0 ]]; then
+                continue
+              fi
+              while IFS= read -r dep_repo; do
+                  if [ -d "$dep_repo" ]; then
+                      echo "Not cloning $dep_repo since a folder with such a name already exists. Most likely, another step already cloned this repo."
+                      continue
+                  fi
+                  default_branch=$(git ls-remote --symref "https://$GH_TOKEN@github.com/dbeaver/$dep_repo.git" HEAD | grep '^ref:' | awk '{print $2}' | sed 's|refs/heads/||')
+                  git clone --depth 1 -b "$GITHUB_HEAD_REF" "https://$GH_TOKEN@github.com/$GITHUB_REPOSITORY_OWNER/$dep_repo.git" || \
+                  git clone --depth 1 -b "$default_branch" "https://$GH_TOKEN@github.com/dbeaver/$dep_repo.git"
+              done < "$repo/project.deps"
+              mvn clean verify -B -T1C -f "$repo"
+              mvn clean verify -B -T1C -f "$repo/p2"
+              if [ -n "$output" ]; then
+                  output+=" "
+              fi
+              p2_uri="file://$(realpath ./$repo/p2/repository/target/repository)"
+              output+="-D$flag='$p2_uri'"
+          done
+          if [ -n "$output" ]; then
+            echo "p2-mvn-flags=$output" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Compile
-        run: mvn clean verify -B -T1C ${{ inputs.mvn-args }}
+        run: mvn clean verify -B -T1C ${{ inputs.mvn-args }} ${{ steps.prepare-custom-p2.outputs.p2-mvn-flags }}
         working-directory: ${{ inputs.project-directory || env.CHECKOUT_PATH || '.' }}
