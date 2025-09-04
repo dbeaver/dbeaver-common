@@ -60,19 +60,18 @@ jobs:
         run: |
           declare -A p2_map
           if [ ${{ inputs.use-public-p2 }} = 'true' ]; then
-            p2_map['dbeaver-deps-ce']='repo.p2.dbeaver-ce.url'
+              p2_map['dbeaver-deps-ce']='repo.p2.dbeaver-ce.url'
           fi
           if [ ${{ inputs.use-private-p2 }} = 'true' ]; then
-            p2_map['dbeaver-deps-pro']='repo.p2.dbeaver-pro.url'
+              p2_map['dbeaver-deps-pro']='repo.p2.dbeaver-pro.url'
           fi
-          uri_encoded_branch_name=$(perl -MURI::Escape -e 'print uri_escape($ARGV[0]);' "$GITHUB_HEAD_REF")
           output=''
-          for repo in ${!p2_map[@]}
+          for repo in "${!p2_map[@]}"
           do
               flag="${p2_map[${repo}]}"
               echo "repo: $repo, flag: $flag"
-              git clone --depth 1 -b "$GITHUB_HEAD_REF" "https://${{ secrets.DEVOPS_ISSUE_RO_TOKEN }}@github.com/$GITHUB_REPOSITORY_OWNER/$repo.git"
-              if [[ $? -ne 0 ]]; then
+              if ! git clone --depth 1 -b "$GITHUB_HEAD_REF" "https://github.com/$GITHUB_REPOSITORY_OWNER/$repo.git"
+              then
                 continue
               fi
               while IFS= read -r dep_repo; do
@@ -93,7 +92,7 @@ jobs:
               output+="-D$flag='$p2_uri'"
           done
           if [ -n "$output" ]; then
-            echo "p2-mvn-flags=$output" >> "$GITHUB_OUTPUT"
+              echo "p2-mvn-flags=$output" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Compile
