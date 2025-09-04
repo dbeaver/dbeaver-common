@@ -71,9 +71,9 @@ jobs:
           do
               flag="${p2_map[${repo}]}"
               echo "repo: $repo, flag: $flag"
-              git clone --depth 1 -b "$GITHUB_HEAD_REF" "https://${{ secrets.DEVOPS_ISSUE_RO_TOKEN }}@github.com/$GITHUB_REPOSITORY_OWNER/$repo.git"
-              if [[ $? -ne 0 ]]; then
-                continue
+              if ! git clone --depth 1 -b "$GITHUB_HEAD_REF" "https://${{ secrets.DEVOPS_ISSUE_RO_TOKEN }}@github.com/$GITHUB_REPOSITORY_OWNER/$repo.git"
+              then
+                  continue
               fi
               while IFS= read -r dep_repo; do
                   if [ -d "$dep_repo" ]; then
