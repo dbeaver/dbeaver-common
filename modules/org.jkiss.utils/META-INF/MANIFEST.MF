@@ -3,9 +3,10 @@ Bundle-ManifestVersion: 2
 Bundle-Name: DBeaver Utils
 Bundle-Vendor: DBeaver Corp
 Bundle-SymbolicName: org.jkiss.utils
-Bundle-Version: 2.3.1.qualifier
+Bundle-Version: 2.5.0.qualifier
 Bundle-Release-Date: 20240205
-Bundle-RequiredExecutionEnvironment: JavaSE-17
+Bundle-RequiredExecutionEnvironment: JavaSE-11
+Bundle-ActivationPolicy: lazy
 Require-Bundle: com.google.gson
 Export-Package: org.jkiss.api,
  org.jkiss.api.verification,
@@ -14,7 +15,9 @@ Export-Package: org.jkiss.api,
  org.jkiss.utils.csv,
  org.jkiss.utils.io,
  org.jkiss.utils.rest,
+ org.jkiss.utils.oauth,
  org.jkiss.utils.time,
  org.jkiss.utils.xml,
- org.jkiss.utils.function
+ org.jkiss.utils.function,
+ org.jkiss.utils.rpc
 Automatic-Module-Name: org.jkiss.utils

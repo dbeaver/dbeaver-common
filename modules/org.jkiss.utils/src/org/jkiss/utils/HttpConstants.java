@@ -1,6 +1,6 @@
 /*
  * DBeaver - Universal Database Manager
- * Copyright (C) 2010-2024 DBeaver Corp and others
+ * Copyright (C) 2010-2025 DBeaver Corp and others
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,19 +14,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jkiss.api;
+package org.jkiss.utils;
 
-import org.jkiss.code.NotNull;
+public class HttpConstants {
+    public static final String HEADER_USER_AGENT = "User-Agent";
 
-import java.io.IOException;
-import java.nio.file.Path;
+    public static final String HEADER_X_REFERRER = "X-Referrer";
+    public static final String HEADER_CONTENT_TYPE = "Content-Type";
+    public static final String HEADER_AUTHORIZATION = "Authorization";
 
-/**
- * Provides implementation of file system Path by URI
- */
-public interface NioPathProvider {
-
-    @NotNull
-    Path getPathByStringOrUri(@NotNull ObjectWithContextParameters context, @NotNull String pathOrUri) throws IOException;
-
+    public static final String CONTENT_TYPE_JSON = "application/json";
 }

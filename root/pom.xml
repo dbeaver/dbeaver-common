@@ -7,7 +7,7 @@
     <groupId>com.dbeaver.common</groupId>
     <artifactId>root</artifactId>
     <packaging>pom</packaging>
-    <version>2.3.1-SNAPSHOT</version>
+    <version>2.5.0-SNAPSHOT</version>
     <name>DBeaver build root</name>
     <description>DBeaver build root module</description>
 
@@ -17,56 +17,74 @@
     </organization>
 
     <properties>
-        <tycho-version>4.0.9</tycho-version>
-        <eclipse-version>2024-09</eclipse-version>
-        <elk-version>0.9.1</elk-version>
-        <eclipse-repo-url>https://download.eclipse.org/releases</eclipse-repo-url>
-        <eclipse-p2-repo.url>${eclipse-repo-url}/${eclipse-version}/</eclipse-p2-repo.url>
+        <dbeaver-version>25.2.1</dbeaver-version>
+
+        <tycho-version>4.0.12</tycho-version>
+        <eclipse-version>2025-06</eclipse-version>
+        <maven>3.9.9</maven>
+        <maven-version>${maven}</maven-version>
+
         <build-timestamp>${maven.build.timestamp}</build-timestamp>
 
-        <local-p2-repo.url>https://p2.dev.dbeaver.com/eclipse-repo/</local-p2-repo.url>
+        <!-- P2 repos -->
+        <eclipse-repo-url>https://download.eclipse.org/releases</eclipse-repo-url>
+        <repo.p2.eclipse.url>${eclipse-repo-url}/${eclipse-version}/</repo.p2.eclipse.url>
 
-        <java.version>17</java.version>
+        <repo.p2.dbeaver.version>${dbeaver-version}</repo.p2.dbeaver.version>
+        <repo.p2.dbeaver-ce.url>https://repo.dbeaver.net/p2/ce/${repo.p2.dbeaver.version}</repo.p2.dbeaver-ce.url>
+        <repo.p2.dbeaver-pro.url>https://repo.dbeaver.net/p2/pro/${repo.p2.dbeaver.version}</repo.p2.dbeaver-pro.url>
+
+        <!-- Maven repos -->
+        <repo.maven.central.url>https://repo.maven.apache.org/maven2</repo.maven.central.url>
+        <repo.maven.dbeaver-custom.url>https://nexus.dbeaver.net/repository/maven-custom/</repo.maven.dbeaver-custom.url>
+
+        <!-- Component versions -->
+        <java.version>21</java.version> <!-- Default Java version -->
+        <java.version.drivers>17</java.version.drivers> <!-- Java version for JDBC drivers and other public artifacts -->
+        <java.version.min>11</java.version.min> <!-- Java version artifacts which must be deployed in legacy environment -->
+
         <maven.compiler.source>${java.version}</maven.compiler.source>
         <maven.compiler.target>${java.version}</maven.compiler.target>
 
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.build.timestamp.format>yyyyMMddHHmm</maven.build.timestamp.format>
 
-        <spring.boot.plugin.version>3.1.2</spring.boot.plugin.version>
-        <spring.boot.version>3.2.2</spring.boot.version>
-        <jetty.version>12.0.5</jetty.version>
-        <clickhouse.jdbc.version>0.6.0-patch2</clickhouse.jdbc.version>
-        <google.gson.version>2.11.0</google.gson.version>
-        <google.guava.version>33.3.0-jre</google.guava.version>
+        <spring.boot.version>3.4.8</spring.boot.version>
+        <jetty.version>12.0.15</jetty.version>
+        <clickhouse.jdbc.version>0.8.5</clickhouse.jdbc.version>
+        <google.gson.version>2.12.1</google.gson.version>
+        <google.guava.version>33.4.0-jre</google.guava.version>
         <google.protobuf.version>3.25.5</google.protobuf.version>
-        <org.codehouse.mojo.version>1.7</org.codehouse.mojo.version>
-        <maven-shade-plugin.version>2.0</maven-shade-plugin.version>
         <commons.cli.version>1.3.1</commons.cli.version>
         <commons-dbcp2.version>2.7.0</commons-dbcp2.version>
+        <httpclient.version>4.5.14</httpclient.version>
 
-        <maven.compiler.plugin.version>3.11.0</maven.compiler.plugin.version>
-        <maven-surefire-plugin.version>3.5.0</maven-surefire-plugin.version>
-        <maven-deploy-plugin.version>3.1.3</maven-deploy-plugin.version>
-        <maven-clean-plugin.version>3.2.0</maven-clean-plugin.version>
-        <maven-resource-plugin.version>3.3.1</maven-resource-plugin.version>
-        <maven-dependency-plugin.version>3.8.0</maven-dependency-plugin.version>
-        <maven-install-plugin.version>2.5.1</maven-install-plugin.version>
-        <maven-site-plugin.version>3.3</maven-site-plugin.version>
-        <maven-failsafe-plugin.version>3.0.0-M5</maven-failsafe-plugin.version>
-        <maven-source-plugin.version>3.3.0</maven-source-plugin.version>
-        <maven-javadoc-plugin.version>3.6.3</maven-javadoc-plugin.version>
-        <maven-gpg-plugin.version>3.1.0</maven-gpg-plugin.version>
         <junit-jupiter-version>5.11.0</junit-jupiter-version>
         <junit-platform-version>1.11.0</junit-platform-version>
 
-        <dbeaver.common.version>2.3.1-SNAPSHOT</dbeaver.common.version>
-        <lm.version>3.0.4-SNAPSHOT</lm.version>
-        <dm.version>0.0.3-SNAPSHOT</dm.version>
+        <dbeaver.common.version>2.5.0-SNAPSHOT</dbeaver.common.version>
+        <lm.version>3.0.18-SNAPSHOT</lm.version>
+        <dm.version>0.0.4-SNAPSHOT</dm.version>
     </properties>
 
     <dependencyManagement>
         <dependencies>
+            <dependency>
+                <groupId>org.apache.maven</groupId>
+                <artifactId>maven-core</artifactId>
+                <version>${maven-version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.maven</groupId>
+                <artifactId>maven-plugin-api</artifactId>
+                <version>${maven-version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.maven.plugin-tools</groupId>
+                <artifactId>maven-plugin-annotations</artifactId>
+                <version>3.15.1</version>
+            </dependency>
+
             <dependency>
                 <groupId>com.dbeaver.common</groupId>
                 <artifactId>org.jkiss.utils</artifactId>
@@ -74,8 +92,29 @@
             </dependency>
             <dependency>
                 <groupId>com.dbeaver.common</groupId>
+                <artifactId>com.dbeaver.servlet.api</artifactId>
+                <version>${dbeaver.common.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.dbeaver.common</groupId>
                 <artifactId>com.dbeaver.jdbc.api</artifactId>
                 <version>${dbeaver.common.version}</version>
+            </dependency>
+            <!-- Jetty Server -->
+            <!-- It must be before spring-boot-dependencies due to priority -->
+            <dependency>
+                <groupId>org.eclipse.jetty</groupId>
+                <artifactId>jetty-bom</artifactId>
+                <version>${jetty.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.eclipse.jetty.ee10</groupId>
+                <artifactId>jetty-ee10-bom</artifactId>
+                <version>${jetty.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
             </dependency>
             <dependency>
                 <groupId>org.springframework.boot</groupId>
@@ -106,41 +145,6 @@
                 <classifier>all</classifier>
             </dependency>
             <dependency>
-                <groupId>org.eclipse.jetty</groupId>
-                <artifactId>jetty-server</artifactId>
-                <version>${jetty.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.eclipse.jetty</groupId>
-                <artifactId>jetty-servlet</artifactId>
-                <version>${jetty.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.eclipse.jetty</groupId>
-                <artifactId>jetty-http</artifactId>
-                <version>${jetty.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.eclipse.jetty</groupId>
-                <artifactId>jetty-io</artifactId>
-                <version>${jetty.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.eclipse.jetty</groupId>
-                <artifactId>jetty-security</artifactId>
-                <version>${jetty.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.eclipse.jetty</groupId>
-                <artifactId>jetty-util</artifactId>
-                <version>${jetty.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.eclipse.jetty.ee10</groupId>
-                <artifactId>jetty-ee10-servlet</artifactId>
-                <version>${jetty.version}</version>
-            </dependency>
-            <dependency>
                 <groupId>org.apache.commons</groupId>
                 <artifactId>commons-dbcp2</artifactId>
                 <version>${commons-dbcp2.version}</version>
@@ -150,99 +154,106 @@
                 <artifactId>commons-cli</artifactId>
                 <version>${commons.cli.version}</version>
             </dependency>
+            <dependency>
+                <groupId>org.apache.httpcomponents</groupId>
+                <artifactId>httpclient</artifactId>
+                <version>${httpclient.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>info.picocli</groupId>
+                <artifactId>picocli</artifactId>
+                <version>4.7.3</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
-
-    <repositories>
-        <repository>
-            <id>eclipse-p2-repo</id>
-            <url>${eclipse-p2-repo.url}</url>
-            <layout>p2</layout>
-        </repository>
-    </repositories>
 
     <build>
         <pluginManagement>
             <plugins>
                 <plugin>
-                    <groupId>org.springframework.boot</groupId>
-                    <artifactId>spring-boot-maven-plugin</artifactId>
-                    <version>${spring.boot.plugin.version}</version>
-                </plugin>
-                <plugin>
-                    <groupId>org.codehaus.mojo</groupId>
-                    <artifactId>appassembler-maven-plugin</artifactId>
-                    <version>${org.codehouse.mojo.version}</version>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-plugin-plugin</artifactId>
+                    <version>3.15.1</version>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-shade-plugin</artifactId>
-                    <version>${maven-shade-plugin.version}</version>
+                    <version>2.0</version>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-compiler-plugin</artifactId>
-                    <version>${maven.compiler.plugin.version}</version>
+                    <version>3.11.0</version>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-clean-plugin</artifactId>
-                    <version>${maven-clean-plugin.version}</version>
+                    <version>3.2.0</version>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-install-plugin</artifactId>
-                    <version>${maven-install-plugin.version}</version>
+                    <version>2.5.1</version>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-site-plugin</artifactId>
-                    <version>${maven-site-plugin.version}</version>
+                    <version>3.3</version>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-resources-plugin</artifactId>
-                    <version>${maven-resource-plugin.version}</version>
+                    <version>3.3.1</version>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-deploy-plugin</artifactId>
-                    <version>${maven-deploy-plugin.version}</version>
+                    <version>3.1.3</version>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-dependency-plugin</artifactId>
-                    <version>${maven-dependency-plugin.version}</version>
+                    <version>3.8.0</version>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-surefire-plugin</artifactId>
-                    <version>${maven-surefire-plugin.version}</version>
+                    <version>3.5.0</version>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-failsafe-plugin</artifactId>
-                    <version>${maven-failsafe-plugin.version}</version>
+                    <version>3.0.0-M5</version>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-source-plugin</artifactId>
-                    <version>${maven-source-plugin.version}</version>
+                    <version>3.3.0</version>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-javadoc-plugin</artifactId>
-                    <version>${maven-javadoc-plugin.version}</version>
+                    <version>3.6.3</version>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-gpg-plugin</artifactId>
-                    <version>${maven-gpg-plugin.version}</version>
+                    <version>3.1.0</version>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-release-plugin</artifactId>
                     <version>3.1.1</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-maven-plugin</artifactId>
+                    <version>3.1.2</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>appassembler-maven-plugin</artifactId>
+                    <version>1.7</version>
                 </plugin>
                 <plugin>
                     <groupId>org.sonatype.central</groupId>
@@ -291,6 +302,11 @@
                     <groupId>org.eclipse.tycho</groupId>
                     <artifactId>tycho-p2-repository-plugin</artifactId>
                     <version>${tycho-version}</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.antlr</groupId>
+                    <artifactId>antlr4-maven-plugin</artifactId>
+                    <version>4.13.0</version>
                 </plugin>
             </plugins>
         </pluginManagement>

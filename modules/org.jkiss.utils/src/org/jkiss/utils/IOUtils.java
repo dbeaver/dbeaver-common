@@ -1,6 +1,6 @@
 /*
  * DBeaver - Universal Database Manager
- * Copyright (C) 2010-2024 DBeaver Corp and others
+ * Copyright (C) 2010-2025 DBeaver Corp and others
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,6 +30,7 @@ import java.nio.channels.ReadableByteChannel;
 import java.nio.channels.WritableByteChannel;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.util.logging.Logger;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
@@ -38,6 +39,7 @@ import java.util.zip.ZipOutputStream;
  * Some IO helper functions
  */
 public final class IOUtils {
+    private static final Logger log = Logger.getLogger(IOUtils.class.getName());
 
     public static final int DEFAULT_BUFFER_SIZE = 16384;
 
@@ -47,7 +49,11 @@ public final class IOUtils {
         try {
             closeable.close();
         } catch (IOException e) {
-            e.printStackTrace();
+            log.log(
+                java.util.logging.Level.WARNING,
+                "Failed to close closeable: " + closeable.getClass().getName(),
+                e
+            );
         }
     }
 
@@ -55,7 +61,11 @@ public final class IOUtils {
         try {
             closeable.close();
         } catch (Exception e) {
-            e.printStackTrace();
+            log.log(
+                java.util.logging.Level.WARNING,
+                "Failed to close closeable: " + closeable.getClass().getName(),
+                e
+            );
         }
     }
 
@@ -416,8 +426,11 @@ public final class IOUtils {
 
     @Nullable
     public static String getFileExtension(Path file) {
-        String fileName = file.getFileName().toString();
-        return getFileExtension(fileName);
+        Path fileName = file.getFileName();
+        if (fileName == null) {
+            return null;
+        }
+        return getFileExtension(fileName.toString());
     }
 
     @Nullable
@@ -440,7 +453,14 @@ public final class IOUtils {
 
 
     public static boolean isLocalFile(String filePath) {
-        return !filePath.contains("://") || filePath.startsWith("file:");
+        // Local paths:
+        // rel-path
+        // /abs/path
+        // \abs\path
+        // c:/abs/path
+        // c:\abs\path
+        int divPos = filePath.indexOf(":/");
+        return divPos < 0 || divPos == 1 || filePath.startsWith("file:");
     }
 
     public static boolean isLocalURI(URI uri) {
@@ -453,5 +473,11 @@ public final class IOUtils {
 
     public static boolean isFileFromDefaultFS(@NotNull Path path) {
         return path.getFileSystem().equals(FileSystems.getDefault());
+    }
+
+    public static boolean isFolderEmpty(@NotNull Path directory) throws IOException {
+        try (DirectoryStream<Path> dirStream = Files.newDirectoryStream(directory)) {
+            return !dirStream.iterator().hasNext();
+        }
     }
 }

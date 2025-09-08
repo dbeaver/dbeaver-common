@@ -1,24 +1,26 @@
 /*
  * DBeaver - Universal Database Manager
- * Copyright (C) 2010-2024 DBeaver Corp
+ * Copyright (C) 2010-2025 DBeaver Corp and others
  *
- * All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * NOTICE:  All information contained herein is, and remains
- * the property of DBeaver Corp and its suppliers, if any.
- * The intellectual and technical concepts contained
- * herein are proprietary to DBeaver Corp and its suppliers
- * and may be covered by U.S. and Foreign Patents,
- * patents in process, and are protected by trade secret or copyright law.
- * Dissemination of this information or reproduction of this material
- * is strictly forbidden unless prior written permission is obtained
- * from DBeaver Corp.
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package org.jkiss.utils.rest;
 
 import com.google.gson.Gson;
 import org.jkiss.code.NotNull;
+import org.jkiss.code.Nullable;
 import org.jkiss.utils.CommonUtils;
+import org.jkiss.utils.HttpConstants;
 
 import java.io.IOException;
 import java.net.CookieManager;
@@ -35,6 +37,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import javax.net.ssl.SSLContext;
 
 public abstract class HttpTransportInvocationHandler extends RpcInvocationHandler {
 
@@ -47,14 +50,18 @@ public abstract class HttpTransportInvocationHandler extends RpcInvocationHandle
         @NotNull Class<?> clientClass,
         @NotNull URI uri,
         @NotNull Gson gson,
-        @NotNull String userAgent
+        @NotNull String userAgent,
+        @Nullable SSLContext sslContext
     ) {
         super(clientClass, uri, gson, userAgent);
         this.httpExecutor = Executors.newSingleThreadExecutor();
-        this.client = HttpClient.newBuilder()
+        var clientBuilder = HttpClient.newBuilder()
             .executor(httpExecutor)
-            .cookieHandler(new CookieManager())
-            .build();
+            .cookieHandler(new CookieManager());
+        if (sslContext != null) {
+            clientBuilder.sslContext(sslContext);
+        }
+        this.client = clientBuilder.build();
     }
 
     protected String invokeRemoteMethodOverHttp(
@@ -67,8 +74,8 @@ public abstract class HttpTransportInvocationHandler extends RpcInvocationHandle
 
         final HttpRequest.Builder builder = HttpRequest.newBuilder()
             .uri(methodURI)
-            .header("Content-Type", "application/json")
-            .header("User-Agent", userAgent)
+            .header(HttpConstants.HEADER_CONTENT_TYPE, HttpConstants.CONTENT_TYPE_JSON)
+            .header(HttpConstants.HEADER_USER_AGENT, userAgent)
             .POST(HttpRequest.BodyPublishers.ofString(requestString));
 
         if (methodMapping != null && methodMapping.timeout() > 0) {

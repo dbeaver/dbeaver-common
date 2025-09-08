@@ -1,6 +1,6 @@
 /*
  * DBeaver - Universal Database Manager
- * Copyright (C) 2010-2024 DBeaver Corp and others
+ * Copyright (C) 2010-2025 DBeaver Corp and others
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,64 +17,55 @@
 
 package org.jkiss.utils.xml;
 
+import org.jkiss.code.NotNull;
+import org.jkiss.code.Nullable;
 import org.jkiss.utils.Base64;
 
-import java.io.IOException;
+import java.io.*;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 /**
- * Stream oriented XML document builder.
+ Stream oriented XML document builder.
  */
-public class XMLBuilder
-{
+public class XMLBuilder {
 
-    public final class Element implements AutoCloseable
-    {
+    public final class Element implements AutoCloseable {
 
         private Element parent;
         private String name;
         private Map<String, String> nsStack = null;
         private int level;
 
-        Element(
-            Element parent,
-            String name)
-        {
+        Element(Element parent, String name) {
             this.init(parent, name);
         }
 
-        void init(
-            Element parent,
-            String name)
-        {
+        void init(Element parent, String name) {
             this.parent = parent;
             this.name = name;
             this.nsStack = null;
             this.level = parent == null ? 0 : parent.level + 1;
         }
 
-        public String getName()
-        {
+        public String getName() {
             return name;
         }
 
-        public int getLevel()
-        {
+        public int getLevel() {
             return level;
         }
 
-        public void addNamespace(String nsURI, String nsPrefix)
-        {
+        public void addNamespace(String nsURI, String nsPrefix) {
             if (nsStack == null) {
                 nsStack = new HashMap<>();
             }
             nsStack.put(nsURI, nsPrefix);
         }
 
-        public String getNamespacePrefix(String nsURI)
-        {
+        public String getNamespacePrefix(String nsURI) {
             if (nsURI.equals(XMLConstants.NS_XML)) {
                 return XMLConstants.PREFIX_XML;
             }
@@ -99,29 +90,27 @@ public class XMLBuilder
 
     private static final int IO_BUFFER_SIZE = 8192;
 
-    private java.io.Writer writer;
+    private Writer writer;
 
     private int state = STATE_NOTHING;
 
     private Element element = null;
-    private boolean butify = false;
+    private boolean beautify = false;
 
-    private List<Element> trashElements = new java.util.ArrayList<>();
+    private final List<Element> trashElements = new ArrayList<>();
 
     public XMLBuilder(
-        java.io.OutputStream stream,
-        String documentEncoding)
-        throws java.io.IOException
-    {
+        @NotNull OutputStream stream,
+        @Nullable String documentEncoding
+    ) throws IOException {
         this(stream, documentEncoding, true);
     }
 
     public XMLBuilder(
-        java.io.OutputStream stream,
-        String documentEncoding,
-        boolean printHeader)
-        throws java.io.IOException
-    {
+        @NotNull OutputStream stream,
+        @Nullable String documentEncoding,
+        boolean printHeader
+    ) throws IOException {
         if (documentEncoding == null) {
             this.init(new java.io.OutputStreamWriter(stream), null, printHeader);
         } else {
@@ -133,26 +122,25 @@ public class XMLBuilder
     }
 
     public XMLBuilder(
-        java.io.Writer writer,
-        String documentEncoding)
-        throws java.io.IOException
-    {
+        @NotNull Writer writer,
+        @Nullable String documentEncoding
+    ) throws IOException {
         this(writer, documentEncoding, true);
     }
 
     public XMLBuilder(
-        java.io.Writer writer,
-        String documentEncoding,
-        boolean printHeader)
-        throws java.io.IOException
-    {
+        @NotNull Writer writer,
+        @Nullable String documentEncoding,
+        boolean printHeader
+    ) throws IOException {
         this.init(writer, documentEncoding, printHeader);
     }
 
+    @NotNull
     private Element createElement(
-        Element parent,
-        String name)
-    {
+        @NotNull Element parent,
+        @NotNull String name
+    ) {
         if (trashElements.isEmpty()) {
             return new Element(parent, name);
         } else {
@@ -162,18 +150,15 @@ public class XMLBuilder
         }
     }
 
-    private void deleteElement(
-        Element element)
-    {
+    private void deleteElement(@NotNull Element element) {
         trashElements.add(element);
     }
 
     private void init(
-        java.io.Writer writer,
-        String documentEncoding,
-        boolean printHeader)
-        throws java.io.IOException
-    {
+        @NotNull Writer writer,
+        @Nullable String documentEncoding,
+        boolean printHeader
+    ) throws IOException {
         this.writer = new java.io.BufferedWriter(writer, IO_BUFFER_SIZE);
 
         if (printHeader) {
@@ -185,28 +170,24 @@ public class XMLBuilder
         }
     }
 
-    public boolean isButify()
-    {
-        return butify;
+    public boolean isBeautify() {
+        return beautify;
     }
 
-    public void setButify(boolean butify)
-    {
-        this.butify = butify;
+    public void setBeautify(boolean beautify) {
+        this.beautify = beautify;
     }
 
-    public Element startElement(
-        String elementName)
-        throws java.io.IOException
-    {
+    @NotNull
+    public Element startElement(@NotNull String elementName) throws IOException {
         return this.startElement(null, null, elementName);
     }
 
+    @NotNull
     public Element startElement(
-        String nsURI,
-        String elementName)
-        throws java.io.IOException
-    {
+        @Nullable String nsURI,
+        @NotNull String elementName
+    ) throws IOException {
         return this.startElement(nsURI, null, elementName);
     }
 
@@ -214,24 +195,24 @@ public class XMLBuilder
          NS prefix will be used in element name if its directly specified
          as nsPrefix parameter or if nsURI has been declared above
      */
+    @NotNull
     public Element startElement(
-        String nsURI,
-        String nsPrefix,
-        String elementName)
-        throws java.io.IOException
-    {
+        @Nullable String nsURI,
+        @Nullable String nsPrefix,
+        @NotNull String elementName
+    ) throws IOException {
         switch (state) {
             case STATE_ELEM_OPENED:
                 writer.write('>');
             case STATE_NOTHING:
-                if (butify) {
+                if (beautify) {
                     writer.write('\n');
                 }
                 break;
             default:
                 break;
         }
-        if (butify) {
+        if (beautify) {
             if (element != null) {
                 for (int i = 0; i <= element.getLevel(); i++) {
                     writer.write('\t');
@@ -271,9 +252,8 @@ public class XMLBuilder
         return element;
     }
 
-    public XMLBuilder endElement()
-        throws java.io.IOException, IllegalStateException
-    {
+    @NotNull
+    public XMLBuilder endElement() throws IOException, IllegalStateException {
         if (element == null) {
             throw new IllegalStateException("Close tag without open");
         }
@@ -283,7 +263,7 @@ public class XMLBuilder
                 writer.write("/>");
                 break;
             case STATE_NOTHING:
-                if (butify) {
+                if (beautify) {
                     writer.write('\n');
                     for (int i = 0; i < element.getLevel(); i++) {
                         writer.write('\t');
@@ -304,17 +284,16 @@ public class XMLBuilder
         return this;
     }
 
-    public XMLBuilder addNamespace(String nsURI)
-        throws java.io.IOException
-    {
+    @NotNull
+    public XMLBuilder addNamespace(@NotNull String nsURI) throws IOException {
         return this.addNamespace(nsURI, null);
     }
 
+    @NotNull
     public XMLBuilder addNamespace(
-        String nsURI,
-        String nsPrefix)
-        throws java.io.IOException, IllegalStateException
-    {
+        @NotNull String nsURI,
+        @Nullable String nsPrefix
+    ) throws IOException, IllegalStateException {
         if (element == null) {
             throw new IllegalStateException("Namespace outside of element");
         }
@@ -328,70 +307,69 @@ public class XMLBuilder
         return this;
     }
 
+    @NotNull
     public XMLBuilder addAttribute(
-        String attributeName,
-        String attributeValue)
-        throws java.io.IOException
-    {
+        @NotNull String attributeName,
+        @Nullable String attributeValue
+    ) throws IOException {
         return this.addAttribute(null, attributeName, attributeValue, true);
     }
 
+    @NotNull
+    public XMLBuilder addAttribute(
+        @NotNull String attributeName,
+        int attributeValue
+    ) throws IOException {
+        return this.addAttribute(null, attributeName, String.valueOf(attributeValue), false);
+    }
+
+    @NotNull
     public XMLBuilder addAttribute(
         String attributeName,
-        int attributeValue)
-        throws java.io.IOException
-    {
+        long attributeValue
+    ) throws IOException {
         return this.addAttribute(null, attributeName, String.valueOf(attributeValue), false);
     }
 
     public XMLBuilder addAttribute(
         String attributeName,
-        long attributeValue)
-        throws java.io.IOException
-    {
+        boolean attributeValue
+    ) throws IOException {
         return this.addAttribute(null, attributeName, String.valueOf(attributeValue), false);
     }
 
+    @NotNull
     public XMLBuilder addAttribute(
-        String attributeName,
-        boolean attributeValue)
-        throws java.io.IOException
-    {
+        @NotNull String attributeName,
+        float attributeValue
+    ) throws IOException {
         return this.addAttribute(null, attributeName, String.valueOf(attributeValue), false);
     }
 
+    @NotNull
     public XMLBuilder addAttribute(
-        String attributeName,
-        float attributeValue)
-        throws java.io.IOException
-    {
+        @NotNull String attributeName,
+        double attributeValue
+    ) throws IOException {
         return this.addAttribute(null, attributeName, String.valueOf(attributeValue), false);
     }
 
+    @NotNull
     public XMLBuilder addAttribute(
-        String attributeName,
-        double attributeValue)
-        throws java.io.IOException
-    {
-        return this.addAttribute(null, attributeName, String.valueOf(attributeValue), false);
-    }
-
-    public XMLBuilder addAttribute(
-        String nsURI,
-        String attributeName,
-        String attributeValue)
-        throws java.io.IOException
-    {
+        @Nullable String nsURI,
+        @NotNull String attributeName,
+        @Nullable String attributeValue
+    ) throws IOException {
         return this.addAttribute(nsURI, attributeName, attributeValue, true);
     }
 
+    @NotNull
     private XMLBuilder addAttribute(
-        String nsURI,
-        String attributeName,
-        String attributeValue,
-        boolean escape)
-        throws java.io.IOException, IllegalStateException
-    {
+        @Nullable String nsURI,
+        @NotNull String attributeName,
+        @Nullable String attributeValue,
+        boolean escape
+    ) throws IOException, IllegalStateException {
         switch (state) {
             case STATE_ELEM_OPENED: {
                 if (nsURI != null) {
@@ -405,14 +383,15 @@ public class XMLBuilder
                 writer.write(' ');
                 writer.write(attributeName);
                 writer.write("=\"");
-                writer.write(escape ? XMLUtils.escapeXml(attributeValue) : attributeValue);
+                if (attributeValue != null) {
+                    writer.write(escape ? XMLUtils.escapeXml(attributeValue) : attributeValue);
+                }
                 writer.write('"');
                 break;
             }
             case STATE_TEXT_ADDED:
             case STATE_NOTHING:
-                throw new IllegalStateException(
-                    "Attribute ouside of element");
+                throw new IllegalStateException("Attribute outside of element");
             default:
                 break;
         }
@@ -420,18 +399,13 @@ public class XMLBuilder
         return this;
     }
 
-    public XMLBuilder addText(
-        CharSequence textValue)
-        throws java.io.IOException
-    {
+    @NotNull
+    public XMLBuilder addText(@NotNull CharSequence textValue) throws IOException {
         return addText(textValue, true);
     }
 
-    public XMLBuilder addText(
-        CharSequence textValue,
-        boolean escape)
-        throws java.io.IOException
-    {
+    @NotNull
+    public XMLBuilder addText(@NotNull CharSequence textValue, boolean escape) throws IOException {
         switch (state) {
             case STATE_ELEM_OPENED:
                 writer.write('>');
@@ -449,16 +423,14 @@ public class XMLBuilder
     }
 
     /**
-     * Adds entire content of specified reader as text
-     *
-     * @param reader text reader
-     * @return self reference
-     * @throws java.io.IOException on IO error
+     Adds entire content of specified reader as text
+
+     @param reader text reader
+     @return self reference
+     @throws IOException on IO error
      */
-    public XMLBuilder addText(
-        java.io.Reader reader)
-        throws java.io.IOException
-    {
+    @NotNull
+    public XMLBuilder addText(@NotNull Reader reader) throws IOException {
         switch (state) {
             case STATE_ELEM_OPENED:
                 writer.write('>');
@@ -481,10 +453,8 @@ public class XMLBuilder
         return this;
     }
 
-    public XMLBuilder addTextData(
-        String text)
-        throws java.io.IOException
-    {
+    @NotNull
+    public XMLBuilder addTextData(@NotNull String text) throws IOException {
         switch (state) {
             case STATE_ELEM_OPENED:
                 writer.write('>');
@@ -505,18 +475,15 @@ public class XMLBuilder
     }
 
     /**
-     * Adds content of specified stream as Base64 encoded text
-     *
-     * @param stream Input content stream
-     * @param length Content length (this parameter must be correctly specified)
-     * @return self reference
-     * @throws java.io.IOException on IO error
+     Adds content of specified stream as Base64 encoded text
+
+     @param stream Input content stream
+     @param length Content length (this parameter must be correctly specified)
+     @return self reference
+     @throws IOException on IO error
      */
-    public XMLBuilder addBinary(
-        java.io.InputStream stream,
-        int length)
-        throws java.io.IOException
-    {
+    @NotNull
+    public XMLBuilder addBinary(@NotNull InputStream stream, int length) throws IOException {
         switch (state) {
             case STATE_ELEM_OPENED:
                 writer.write('>');
@@ -533,10 +500,8 @@ public class XMLBuilder
         return this;
     }
 
-    public XMLBuilder addBinary(
-        byte[] buffer)
-        throws java.io.IOException
-    {
+    @NotNull
+    public XMLBuilder addBinary(@NotNull byte[] buffer) throws IOException {
         switch (state) {
             case STATE_ELEM_OPENED:
                 writer.write('>');
@@ -554,28 +519,24 @@ public class XMLBuilder
     }
 
     /**
-     * Adds character content as is without any escaping or validation
-     * @param textValue content
-     * @return self reference
-     * @throws java.io.IOException
+     Adds character content as is without any escaping or validation
+
+     @param textValue content
+     @return self reference
      */
-    public XMLBuilder addContent(
-        CharSequence textValue)
-        throws java.io.IOException
-    {
+    @NotNull
+    public XMLBuilder addContent(@NotNull CharSequence textValue) throws IOException {
         writer.write(textValue.toString());
         return this;
     }
 
-    public XMLBuilder addComment(
-        String commentValue)
-        throws java.io.IOException
-    {
+    @NotNull
+    public XMLBuilder addComment(@NotNull String commentValue) throws IOException {
         switch (state) {
             case STATE_ELEM_OPENED:
                 writer.write('>');
             case STATE_NOTHING:
-                if (butify) {
+                if (beautify) {
                     writer.write('\n');
                 }
                 break;
@@ -585,7 +546,7 @@ public class XMLBuilder
         writer.write("<!--");
         writer.write(commentValue);
         writer.write("-->");
-        if (butify) {
+        if (beautify) {
             writer.write('\n');
         }
         state = STATE_TEXT_ADDED;
@@ -593,38 +554,30 @@ public class XMLBuilder
         return this;
     }
 
-    public XMLBuilder addElement(
-        String elementName,
-        String elementValue)
-        throws java.io.IOException
-    {
-        this.startElement(elementName);
-        this.addText(elementValue);
-        this.endElement();
+    @NotNull
+    public XMLBuilder addElement(@NotNull String elementName, @NotNull String elementValue) throws IOException {
+        try (var ignored = this.startElement(elementName)) {
+            this.addText(elementValue);
+        }
         return this;
     }
 
-    public XMLBuilder addElementText(
-        String elementName,
-        String elementValue)
-        throws java.io.IOException
-    {
-        this.startElement(elementName);
-        this.addTextData(elementValue);
-        this.endElement();
+    @NotNull
+    public XMLBuilder addElementText(String elementName, String elementValue) throws IOException {
+        try (var ignored = this.startElement(elementName)) {
+            this.addTextData(elementValue);
+        }
         return this;
     }
 
-    public XMLBuilder flush()
-        throws java.io.IOException
-    {
+    @NotNull
+    public XMLBuilder flush() throws IOException {
         writer.flush();
         return this;
     }
 
-    private XMLBuilder writeText(CharSequence textValue, boolean escape)
-        throws java.io.IOException
-    {
+    @NotNull
+    private XMLBuilder writeText(@Nullable CharSequence textValue, boolean escape) throws IOException {
         if (textValue != null) {
             writer.write(escape ? XMLUtils.escapeXml(textValue) : textValue.toString());
         }

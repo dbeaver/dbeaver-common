@@ -6,7 +6,7 @@
     <parent>
         <groupId>com.dbeaver.common</groupId>
         <artifactId>root</artifactId>
-        <version>2.3.1-SNAPSHOT</version>
+        <version>2.5.0-SNAPSHOT</version>
         <relativePath>root/pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
@@ -29,6 +29,18 @@
         <url>https://github.com/dbeaver/dbeaver/issues</url>
     </issueManagement>
 
+    <repositories>
+        <repository>
+            <id>eclipse-p2-repo</id>
+            <url>${repo.p2.eclipse.url}</url>
+            <layout>p2</layout>
+        </repository>
+        <repository>
+            <id>local-contrib</id>
+            <url>${repo.p2.dbeaver-ce.url}</url>
+            <layout>p2</layout>
+        </repository>
+    </repositories>
 
     <modules>
         <module>modules</module>
@@ -113,6 +125,49 @@
                 <gpg.keyname>${SONATYPE_GPG_KEY_ID}</gpg.keyname>
                 <gpg.passphrase>${SONATYPE_GPG_SECRET}</gpg.passphrase>
             </properties>
+        </profile>
+
+        <!-- Profile for jars sign -->
+        <profile>
+            <id>sign-jars</id>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <!--
+                            Jar sign can be slow, especially if you need to sign hundreds of them.
+                            Performance hints:
+                                - Force SHA512withRSA algorithm (https://stackoverflow.com/questions/44003975/ev-code-signing-extremely-slow)
+                                - Install fast secure random generator (https://stackoverflow.com/questions/137212/how-to-deal-with-a-slow-securerandom-generator)
+                         -->
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-jarsigner-plugin</artifactId>
+                        <version>3.1.0</version>
+                        <configuration>
+                            <keystore>${key.storage.path}/jar-sign.keystore</keystore>
+                            <tsa>${tsa}</tsa>
+                            <tsacert>dbeaver</tsacert>
+                            <storepass>dbeaver</storepass>
+                            <alias>dbeaver</alias>
+                            <keypass>dbeaver</keypass>
+                            <arguments>
+                                <argument>-sigalg</argument>
+                                <argument>SHA512withRSA</argument>
+                            </arguments>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <id>sign</id>
+                                <goals>
+                                    <goal>sign</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
         </profile>
 
     </profiles>

@@ -1,6 +1,6 @@
 /*
  * DBeaver - Universal Database Manager
- * Copyright (C) 2010-2024 DBeaver Corp and others
+ * Copyright (C) 2010-2025 DBeaver Corp and others
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.dbeaver.rpc;
+package org.jkiss.utils.function;
 
-public class RpcException {
+/**
+ * A functional interface that represents a supplier of results that can throw an exception.
+ *
+ * @param <T> the type of results supplied by this supplier
+ * @param <E> the type of exception that can be thrown by this supplier
+ */
+public interface ThrowableSupplier<T, E extends Exception> {
+
+    /**
+     * Gets a result.
+     *
+     * @return a result
+     * @throws E if an exception occurs
+     */
+    T get() throws E;
 }

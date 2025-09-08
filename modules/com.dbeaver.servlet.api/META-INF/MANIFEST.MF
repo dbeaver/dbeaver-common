@@ -1,0 +1,14 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: DBeaver Servlet API Extensions
+Bundle-Vendor: DBeaver Corp
+Bundle-SymbolicName: com.dbeaver.servlet.api
+Bundle-Version: 2.5.0.qualifier
+Bundle-Release-Date: 20250521
+Bundle-RequiredExecutionEnvironment: JavaSE-17
+Bundle-ActivationPolicy: lazy
+Require-Bundle: org.jkiss.utils,
+ jakarta.servlet-api;bundle-version="6.0.0",
+ com.google.gson
+Export-Package: com.dbeaver.servlet.model
+Automatic-Module-Name: com.dbeaver.servlet.api

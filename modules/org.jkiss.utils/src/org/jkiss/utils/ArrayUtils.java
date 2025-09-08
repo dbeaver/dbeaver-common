@@ -1,6 +1,6 @@
 /*
  * DBeaver - Universal Database Manager
- * Copyright (C) 2010-2024 DBeaver Corp and others
+ * Copyright (C) 2010-2025 DBeaver Corp and others
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -266,19 +266,6 @@ public class ArrayUtils {
         System.arraycopy(elements, 0, newArray, 0, elements.length);
         newArray[elements.length] = add;
         return newArray;
-    }
-
-    public static void main(String[] args) {
-        String[] arr = new String[0];
-
-        for (int i = 0; i < 100; i++) {
-            arr = add(String.class, arr, String.valueOf(i));
-        }
-        System.out.println(Arrays.toString(arr));
-        for (int i = 0; i < 100; i++) {
-            arr = remove(String.class, arr, 0);
-        }
-        System.out.println(Arrays.toString(arr));
     }
 
     @SuppressWarnings("unchecked")

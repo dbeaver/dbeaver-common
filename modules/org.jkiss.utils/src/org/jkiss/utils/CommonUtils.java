@@ -1,6 +1,6 @@
 /*
  * DBeaver - Universal Database Manager
- * Copyright (C) 2010-2024 DBeaver Corp and others
+ * Copyright (C) 2010-2025 DBeaver Corp and others
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,8 @@ import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 import java.util.function.Function;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -31,6 +33,12 @@ import java.util.regex.Pattern;
  * Common utils
  */
 public class CommonUtils {
+    private static final Logger log = Logger.getLogger(CommonUtils.class.getName());
+
+    /**
+     * A pattern that matches one or more whitespace characters.
+     */
+    public static final Pattern WHITESPACE_PATTERN = Pattern.compile("\\s+");
 
     public static final char PARAGRAPH_CHAR = (char) 182;
 
@@ -52,11 +60,21 @@ public class CommonUtils {
         for (int i = 0; i < str.length(); i++) {
             char c = str.charAt(i);
             switch (c) {
-                case '"' -> res.append("\\\"");
-                case '\n' -> res.append("\\n");
-                case '\r' -> res.append("\\r");
-                case '\t' -> res.append("\\t");
-                default -> res.append(c);
+                case '"':
+                    res.append("\\\"");
+                    break;
+                case '\n':
+                    res.append("\\n");
+                    break;
+                case '\r':
+                    res.append("\\r");
+                    break;
+                case '\t':
+                    res.append("\\t");
+                    break;
+                default:
+                    res.append(c);
+                    break;
             }
         }
         return res.toString();
@@ -280,7 +298,8 @@ public class CommonUtils {
     public static boolean getBoolean(@Nullable Object value, boolean defaultValue) {
         if (value == null) {
             return defaultValue;
-        } else if (value instanceof Boolean b) {
+        } else if (value instanceof Boolean) {
+            Boolean b = (Boolean) value;
             return b;
         } else {
             return getBoolean(value.toString(), defaultValue);
@@ -299,7 +318,8 @@ public class CommonUtils {
         for (; ; ) {
             if (rootCause.getCause() != null) {
                 rootCause = rootCause.getCause();
-            } else if (rootCause instanceof InvocationTargetException ite && ite.getTargetException() != null) {
+            } else if (rootCause instanceof InvocationTargetException && ((InvocationTargetException) rootCause).getTargetException() != null) {
+                InvocationTargetException ite = (InvocationTargetException) rootCause;
                 rootCause = ite.getTargetException();
             } else {
                 break;
@@ -317,7 +337,8 @@ public class CommonUtils {
             }
             if (rootCause.getCause() != null) {
                 rootCause = rootCause.getCause();
-            } else if (rootCause instanceof InvocationTargetException ite && ite.getTargetException() != null) {
+            } else if (rootCause instanceof InvocationTargetException && ((InvocationTargetException) rootCause).getTargetException() != null) {
+                InvocationTargetException ite = (InvocationTargetException) rootCause;
                 rootCause = ite.getTargetException();
             } else {
                 break;
@@ -371,7 +392,8 @@ public class CommonUtils {
     public static String toString(@Nullable Object object) {
         if (object == null) {
             return "";
-        } else if (object instanceof String s) {
+        } else if (object instanceof String) {
+            String s = (String) object;
             return s;
         } else {
             String strValue = object.toString();
@@ -382,7 +404,8 @@ public class CommonUtils {
     public static String toString(@Nullable Object object, String def) {
         if (object == null) {
             return def;
-        } else if (object instanceof String s) {
+        } else if (object instanceof String) {
+            String s = (String) object;
             return s;
         } else {
             return object.toString();
@@ -392,7 +415,8 @@ public class CommonUtils {
     public static boolean toBoolean(@Nullable Object object, boolean def) {
         if (object == null) {
             return def;
-        } else if (object instanceof Boolean b) {
+        } else if (object instanceof Boolean) {
+            Boolean b = (Boolean) object;
             return b;
         } else {
             return getBoolean(object.toString(), def);
@@ -404,9 +428,20 @@ public class CommonUtils {
     }
 
     public static int toInt(@Nullable Object object, int def) {
+        Integer value = toInteger(object, def);
+        if (value == null) {
+            return def;
+        }
+
+        return value;
+    }
+
+    @Nullable
+    public static Integer toInteger(@Nullable Object object, @Nullable Integer def) {
         if (object == null) {
             return def;
-        } else if (object instanceof Number n) {
+        } else if (object instanceof Number) {
+            Number n = (Number) object;
             return n.intValue();
         } else {
             String strValue = toString(object);
@@ -417,9 +452,14 @@ public class CommonUtils {
                 return Integer.parseInt(strValue);
             } catch (NumberFormatException e) {
                 try {
-                    return (int)Double.parseDouble(strValue);
+                    return (int) Double.parseDouble(strValue);
                 } catch (NumberFormatException e1) {
-                    e1.printStackTrace();
+                    log.log(
+                        Level.WARNING,
+                        "Could not convert object to int: " + object + " (" + object.getClass().getName() + ")",
+                        e1
+                    );
+
                     return def;
                 }
             }
@@ -451,7 +491,8 @@ public class CommonUtils {
     public static long toLong(@Nullable Object object, long defValue) {
         if (object == null) {
             return defValue;
-        } else if (object instanceof Number n) {
+        } else if (object instanceof Number) {
+            Number n = (Number) object;
             return n.longValue();
         } else {
             try {
@@ -712,7 +753,7 @@ public class CommonUtils {
         try {
             return Enum.valueOf(type, name);
         } catch (Exception e) {
-            e.printStackTrace();
+            log.warning("Could not find enum constant " + type + " with name " + name);
             return defValue;
         }
     }
@@ -724,7 +765,7 @@ public class CommonUtils {
         try {
             return Enum.valueOf(enumType, str);
         } catch (Exception e) {
-            e.printStackTrace();
+            log.warning("Could not find enum constant " + enumType + " with name " + str);
             return defValue;
         }
     }
@@ -754,7 +795,11 @@ public class CommonUtils {
         if (enumConstants.length == 0) {
             throw error;
         } else {
-            error.printStackTrace(System.err);
+            log.warning(
+                "Invalid ordinal " + ordinal + " for type " + enumClass.getName()
+                    + ". Returning first enum constant: " + enumConstants[0]
+            );
+
             return enumConstants[0];
         }
     }
@@ -855,7 +900,7 @@ public class CommonUtils {
     }
 
     public static String compactWhiteSpaces(String str) {
-        return str.replaceAll("\\s+", " ");
+        return WHITESPACE_PATTERN.matcher(str).replaceAll(" ");
     }
 
     public static String getSingleLineString(String displayString) {
@@ -1167,4 +1212,7 @@ public class CommonUtils {
         return String.join(":\n", result);
     }
 
+    public static String addTextIndent(@NotNull String text, @NotNull String indent) {
+        return text.replace("\n", "\n" + indent);
+    }
 }
