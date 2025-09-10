@@ -24,4 +24,13 @@ public class HttpConstants {
     public static final String HEADER_AUTHORIZATION = "Authorization";
 
     public static final String CONTENT_TYPE_JSON = "application/json";
+
+    public static final int CODE_BAD_REQUEST = 400;
+    public static final int CODE_UNAUTHORIZED = 401;
+    public static final int CODE_FORBIDDEN = 403;
+    public static final int CODE_NOT_FOUND = 404;
+    public static final int CODE_PAYLOAD_TOO_LARGE = 413;
+    public static final int CODE_TOO_MANY_REQUESTS = 429;
+    public static final int CODE_INTERNAL_SERVER_ERROR = 500;
+
 }
