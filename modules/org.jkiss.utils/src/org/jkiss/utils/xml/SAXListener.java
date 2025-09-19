@@ -1,6 +1,6 @@
 /*
  * DBeaver - Universal Database Manager
- * Copyright (C) 2010-2024 DBeaver Corp and others
+ * Copyright (C) 2010-2025 DBeaver Corp and others
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,8 @@
 
 package org.jkiss.utils.xml;
 
+import org.jkiss.code.NotNull;
+import org.jkiss.code.Nullable;
 import org.xml.sax.Attributes;
 
 /**
@@ -25,22 +27,22 @@ import org.xml.sax.Attributes;
 public interface SAXListener {
 
 	void saxStartElement(
-        SAXReader reader,
-        String namespaceURI,
-        String localName,
-        org.xml.sax.Attributes atts)
-		throws XMLException;
+        @NotNull SAXReader reader,
+        @Nullable String namespaceURI,
+        @NotNull String localName,
+        @NotNull Attributes attributes
+    ) throws XMLException;
 
 	void saxText(
-        SAXReader reader,
-        String data)
-		throws XMLException;
+        @NotNull SAXReader reader,
+        @NotNull String data
+    ) throws XMLException;
 
 	void saxEndElement(
-        SAXReader reader,
-        String namespaceURI,
-        String localName)
-		throws XMLException;
+        @NotNull SAXReader reader,
+        @Nullable String namespaceURI,
+        @NotNull String localName
+    ) throws XMLException;
 
 
     /**
@@ -49,15 +51,24 @@ public interface SAXListener {
     class BaseListener implements SAXListener {
 
         @Override
-        public void saxStartElement(SAXReader reader, String namespaceURI, String localName, Attributes atts) throws XMLException {
+        public void saxStartElement(
+            @NotNull SAXReader reader,
+            @Nullable String namespaceURI,
+            @NotNull String localName,
+            @NotNull Attributes attributes
+        ) throws XMLException {
         }
 
         @Override
-        public void saxText(SAXReader reader, String data) throws XMLException {
+        public void saxText(@NotNull SAXReader reader, @NotNull String data) throws XMLException {
         }
 
         @Override
-        public void saxEndElement(SAXReader reader, String namespaceURI, String localName) throws XMLException {
+        public void saxEndElement(
+            @NotNull SAXReader reader,
+            @Nullable String namespaceURI,
+            @NotNull String localName
+        ) throws XMLException {
         }
     }
     SAXListener EMPTY_LISTENER = new BaseListener();
