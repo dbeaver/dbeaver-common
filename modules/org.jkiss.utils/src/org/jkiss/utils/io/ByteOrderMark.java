@@ -1,6 +1,6 @@
 /*
  * DBeaver - Universal Database Manager
- * Copyright (C) 2010-2024 DBeaver Corp and others
+ * Copyright (C) 2010-2025 DBeaver Corp and others
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,27 +24,27 @@ public enum ByteOrderMark implements Comparable<ByteOrderMark> {
     /**
      * UTF-8 BOM
      */
-    UTF_8("UTF-8", new int[]{0xEF, 0xBB, 0xBF}),
+    UTF_8("UTF-8", new int[] {0xEF, 0xBB, 0xBF}),
 
     /**
      * UTF-16BE BOM (Big-Endian)
      */
-    UTF_16BE("UTF-16BE", new int[]{0xFE, 0xFF}),
+    UTF_16BE("UTF-16BE", new int[] {0xFE, 0xFF}),
 
     /**
      * UTF-16LE BOM (Little-Endian)
      */
-    UTF_16LE("UTF-16LE", new int[]{0xFF, 0xFE}),
+    UTF_16LE("UTF-16LE", new int[] {0xFF, 0xFE}),
 
     /**
      * UTF-32BE BOM (Big-Endian)
      */
-    UTF_32BE("UTF-32BE", new int[]{0x00, 0x00, 0xFE, 0xFF}),
+    UTF_32BE("UTF-32BE", new int[] {0x00, 0x00, 0xFE, 0xFF}),
 
     /**
      * UTF-32LE BOM (Little-Endian)
      */
-    UTF_32LE("UTF-32LE", new int[]{0xFF, 0xFE, 0x00, 0x00});
+    UTF_32LE("UTF-32LE", new int[] {0xFF, 0xFE, 0x00, 0x00});
 
     private final String charsetName;
     private final int[] bytes;

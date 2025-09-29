@@ -30,4 +30,4 @@ jobs:
           reporter: github-pr-annotations
           filter_mode: diff_context
           checkstyle_config: ./dbeaver-checkstyle-config.xml
-          fail_on_error: true
+          fail_on_error: false

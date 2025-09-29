@@ -17,10 +17,11 @@
     </organization>
 
     <properties>
-        <dbeaver-version>25.2.0</dbeaver-version>
+        <dbeaver-version>25.2.2</dbeaver-version>
 
-        <tycho-version>4.0.12</tycho-version>
-        <eclipse-version>2025-06</eclipse-version>
+        <tycho-version>5.0.0</tycho-version>
+        <eclipse-version>2025-09</eclipse-version>
+
         <maven>3.9.9</maven>
         <maven-version>${maven}</maven-version>
 
@@ -49,7 +50,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.build.timestamp.format>yyyyMMddHHmm</maven.build.timestamp.format>
 
-        <spring.boot.version>3.4.5</spring.boot.version>
+        <spring.boot.version>3.5.5</spring.boot.version>
         <jetty.version>12.0.15</jetty.version>
         <clickhouse.jdbc.version>0.8.5</clickhouse.jdbc.version>
         <google.gson.version>2.12.1</google.gson.version>
@@ -63,7 +64,7 @@
         <junit-platform-version>1.11.0</junit-platform-version>
 
         <dbeaver.common.version>2.5.0-SNAPSHOT</dbeaver.common.version>
-        <lm.version>3.0.16-SNAPSHOT</lm.version>
+        <lm.version>3.0.19-SNAPSHOT</lm.version>
         <dm.version>0.0.4-SNAPSHOT</dm.version>
     </properties>
 
