@@ -85,8 +85,9 @@ public class AlphanumericComparator implements Comparator<CharSequence> {
         for (int i = 0; i < len; i++) {
             char c1 = Character.toUpperCase(b1.get(b1.position() + i));
             char c2 = Character.toUpperCase(b2.get(b2.position() + i));
-            if (c1 != c2) {
-                return c1 - c2;
+            int compareResult = Character.compare(c1, c2);
+            if (compareResult != 0) {
+                return compareResult;
             }
         }
         return b1.remaining() - b2.remaining();
