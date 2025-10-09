@@ -30,7 +30,7 @@ public class OAuthRequestPostBuilder {
     private String clientSecret;
 
     public OAuthRequestPostBuilder(String authUrl) {
-        if (CommonUtils.isNotEmpty(authUrl)){
+        if (CommonUtils.isNotEmpty(authUrl)) {
             this.tokenUri = URI.create(authUrl);
         }
     }
