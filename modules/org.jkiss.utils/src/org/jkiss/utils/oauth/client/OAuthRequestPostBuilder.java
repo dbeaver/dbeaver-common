@@ -16,16 +16,23 @@
  */
 package org.jkiss.utils.oauth.client;
 
+import org.jkiss.utils.CommonUtils;
+
+import java.net.URI;
 import java.net.URLEncoder;
 import java.net.http.HttpRequest;
 import java.nio.charset.StandardCharsets;
 
 public class OAuthRequestPostBuilder {
+    private URI tokenUri;
     private String clientId;
     private String grantType;
     private String clientSecret;
 
     public OAuthRequestPostBuilder(String authUrl) {
+        if (CommonUtils.isNotEmpty(authUrl)){
+            this.tokenUri = URI.create(authUrl);
+        }
     }
 
     public OAuthRequestPostBuilder withClientId(String clientId) {
@@ -48,7 +55,8 @@ public class OAuthRequestPostBuilder {
     }
 
     public HttpRequest build() {
-        return HttpRequest.newBuilder().POST(HttpRequest.BodyPublishers.ofString(
+        HttpRequest.Builder builder = tokenUri == null ? HttpRequest.newBuilder() : HttpRequest.newBuilder(tokenUri);
+        return builder.POST(HttpRequest.BodyPublishers.ofString(
                 "&grant_type=" + URLEncoder.encode(grantType, StandardCharsets.UTF_8)
         )).header("Authorization", "Basic " +
                 java.util.Base64.getEncoder().encodeToString((clientId + ":" + clientSecret).getBytes(StandardCharsets.UTF_8)))
