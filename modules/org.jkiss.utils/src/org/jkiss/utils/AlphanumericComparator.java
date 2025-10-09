@@ -45,11 +45,11 @@ public class AlphanumericComparator implements Comparator<CharSequence> {
         return compare(o1, o2, false);
     }
 
-    public int compareIgnoreCase(CharSequence o1, CharSequence o2) {
+    public int compareIgnoreCase(@NotNull CharSequence o1,@NotNull CharSequence o2) {
         return compare(o1, o2, true);
     }
 
-    private int compare(CharSequence o1, CharSequence o2, boolean ignoreCase) {
+    private int compare(@NotNull CharSequence o1, @NotNull CharSequence o2, boolean ignoreCase) {
         CharBuffer b1 = CharBuffer.wrap(o1);
         CharBuffer b2 = CharBuffer.wrap(o2);
 
@@ -80,7 +80,7 @@ public class AlphanumericComparator implements Comparator<CharSequence> {
         return ignoreCase ? compareLettersIgnoreCase(b1, b2) : b1.compareTo(b2);
     }
 
-    private static int compareLettersIgnoreCase(CharBuffer b1, CharBuffer b2) {
+    private static int compareLettersIgnoreCase(@NotNull CharBuffer b1,@NotNull CharBuffer b2) {
         int len = Math.min(b1.remaining(), b2.remaining());
         for (int i = 0; i < len; i++) {
             char c1 = Character.toUpperCase(b1.get(b1.position() + i));
