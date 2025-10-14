@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jkiss.utils.oauth;
+package org.jkiss.utils.oauth.code;
 
 import com.sun.net.httpserver.HttpServer;
 import org.jkiss.code.NotNull;
@@ -34,7 +34,7 @@ import java.util.stream.Stream;
  * Handles the temporary HTTP server that listens for OAuth callback requests.
  * Extracts the authorization code or error from the query string and returns it to the caller.
  */
-public class OAuthResponseHandler implements Closeable {
+public class OAuthCodeResponseHandler implements Closeable {
 
     private static HttpServer httpServer;
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
@@ -51,7 +51,7 @@ public class OAuthResponseHandler implements Closeable {
      * @param port             the port to listen on
      * @param callbackEndpoint the expected endpoint path (e.g. "/callback")
      */
-    public OAuthResponseHandler(int port, @NotNull String callbackEndpoint) {
+    public OAuthCodeResponseHandler(int port, @NotNull String callbackEndpoint) {
         this.port = port;
         this.callbackEndpoint = callbackEndpoint;
     }
