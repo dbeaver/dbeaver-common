@@ -85,7 +85,7 @@ jobs:
                   git clone --depth 1 -b "$default_branch" "https://$GH_TOKEN@github.com/dbeaver/$dep_repo.git"
               done < "$repo/project.deps"
               mvn clean verify -B -T1C -f "$repo"
-              mvn clean verify -B -T1C -f "$repo/p2"
+              mvn clean verify -B -f "$repo/p2"
               if [ -n "$output" ]; then
                   output+=" "
               fi
