@@ -1,6 +1,6 @@
 /*
  * DBeaver - Universal Database Manager
- * Copyright (C) 2010-2024 DBeaver Corp and others
+ * Copyright (C) 2010-2025 DBeaver Corp and others
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,10 @@ package org.jkiss.utils;
 import com.google.gson.*;
 
 import java.lang.reflect.Type;
-import java.time.*;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAccessor;
 import java.time.temporal.TemporalQueries;
@@ -31,7 +34,7 @@ public class GsonUtils {
     private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter
         .ofPattern("MMM d, yyyy[, h:mm:ss a]")
         .localizedBy(Locale.ENGLISH)
-        .withZone(ZoneId.of("UTC"));
+        .withZone(StandardConstants.ZONE_ID_UTC);
 
     public static GsonBuilder gsonBuilder() {
         return new GsonBuilder()
@@ -55,7 +58,7 @@ public class GsonUtils {
     public static class DateTypeAdapter implements JsonSerializer<Date>, JsonDeserializer<Date> {
         @Override
         public synchronized JsonElement serialize(Date date, Type type, JsonSerializationContext jsonSerializationContext) {
-            return new JsonPrimitive(LocalDateTime.ofInstant(date.toInstant(), ZoneId.of("UTC")).format(DATE_TIME_FORMATTER));
+            return new JsonPrimitive(LocalDateTime.ofInstant(date.toInstant(), StandardConstants.ZONE_ID_UTC).format(DATE_TIME_FORMATTER));
         }
 
         @Override

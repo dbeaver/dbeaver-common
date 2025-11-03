@@ -1,6 +1,6 @@
 /*
  * DBeaver - Universal Database Manager
- * Copyright (C) 2010-2024 DBeaver Corp and others
+ * Copyright (C) 2010-2025 DBeaver Corp and others
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,8 @@
  * limitations under the License.
  */
 package org.jkiss.utils;
+
+import java.time.ZoneId;
 
 /**
  * Standard Java constants
@@ -46,4 +48,6 @@ public abstract class StandardConstants {
     public static final String ISO_DATE_PATTERN = "yyyy-MM-dd";
     public static final String ISO_TIME_PATTERN = "HH:mm:ss'Z'";
     public static final String ISO_TIMESTAMP_PATTERN = "yyyy-MM-dd'T'HH:mm:ss'Z'";
+
+    public static final ZoneId ZONE_ID_UTC = ZoneId.of("UTC");
 }
