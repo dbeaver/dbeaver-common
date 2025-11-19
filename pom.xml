@@ -9,6 +9,7 @@
         <version>2.5.0-SNAPSHOT</version>
         <relativePath>root/pom.xml</relativePath>
     </parent>
+    <version>2.5.0-SNAPSHOT</version>
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>com.dbeaver.common.main</artifactId>

@@ -11,10 +11,6 @@
     <name>DBeaver build root</name>
     <description>DBeaver build root module</description>
 
-    <modules>
-        <module>../</module>
-    </modules>
-
     <organization>
         <name>DBeaver Corp</name>
         <url>https://dbeaver.com</url>
