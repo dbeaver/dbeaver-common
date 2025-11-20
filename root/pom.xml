@@ -20,7 +20,7 @@
         <dbeaver-version>25.3.0</dbeaver-version>
 
         <tycho-version>5.0.0</tycho-version>
-        <eclipse-version>2025-12</eclipse-version>
+        <eclipse-version>2025-12/202511211000</eclipse-version>
 
         <maven>3.9.9</maven>
         <maven-version>${maven}</maven-version>
