@@ -881,6 +881,17 @@ public class CommonUtils {
         return str.regionMatches(true, 0, startPart, 0, startPart.length());
     }
 
+    public static boolean endsWithIgnoreCase(@Nullable String str, @Nullable String endPart) {
+        if (isEmpty(str) || isEmpty(endPart)) {
+            return false;
+        }
+        int start = str.length() - endPart.length();
+        if (start < 0) {
+            return false;
+        }
+        return str.regionMatches(true, start, endPart, 0, endPart.length());
+    }
+
     public static String niceFormatFloat(float val) {
         if (val == (int) val)
             return String.valueOf((int)val);
