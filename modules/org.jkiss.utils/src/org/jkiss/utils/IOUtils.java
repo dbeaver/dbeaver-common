@@ -463,11 +463,11 @@ public final class IOUtils {
         return divPos < 0 || divPos == 1 || filePath.startsWith("file:");
     }
 
-    public static boolean isLocalURI(URI uri) {
+    public static boolean isLocalURI(@NotNull URI uri) {
         return uri.getScheme().equals("file");
     }
 
-    public static boolean isLocalPath(Path filePath) {
+    public static boolean isLocalPath(@NotNull Path filePath) {
         return isLocalURI(filePath.toUri());
     }
 
