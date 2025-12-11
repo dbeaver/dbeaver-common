@@ -36,6 +36,8 @@ import java.util.stream.Stream;
  */
 public class OAuthCodeResponseHandler implements Closeable {
 
+    private static final String PARAM_CODE = "code";
+    private static final String PARAM_ERROR = "error";
     private static HttpServer httpServer;
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
     private static final String SUCCESSFUL_ANSWER_FOR_AUTH = "Auth has been completed";
@@ -87,16 +89,14 @@ public class OAuthCodeResponseHandler implements Closeable {
                 callbackEndpoint, exchange -> {
                     String query = exchange.getRequestURI().getQuery();
                     String answer;
-                    Map<String, String> params = Stream.of(query.split("&"))
-                        .map(kv -> kv.split("=", 2))
-                        .collect(Collectors.toMap(kv -> kv[0], kv -> kv[kv.length - 1]));
-                    String code = params.get("code");
+                    Map<String, String> params = getResponseParams(query);
+                    String code = params.get(PARAM_CODE);
                     if (CommonUtils.isNotEmpty(code)) {
                         result.set(code);
                         answer = SUCCESSFUL_ANSWER_FOR_AUTH;
                     } else {
                         hasErrors.set(true);
-                        String error = params.get("error");
+                        String error = params.get(PARAM_ERROR);
                         if (CommonUtils.isNotEmpty(error)) {
                             result.set(error);
                         }
@@ -117,6 +117,13 @@ public class OAuthCodeResponseHandler implements Closeable {
             }
             return result.get();
         });
+    }
+
+    @NotNull
+    protected Map<String, String> getResponseParams(@NotNull String query) {
+        return Stream.of(query.split("&"))
+            .map(kv -> kv.split("=", 2))
+            .collect(Collectors.toMap(kv -> kv[0], kv -> kv[kv.length - 1]));
     }
 
     /**
