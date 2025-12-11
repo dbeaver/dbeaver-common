@@ -124,7 +124,8 @@ public final class StringUtils {
         return result.toString();
     }
 
-    public static String firstNonEmpty(String a, String b) {
+    @Nullable
+    public static String firstNonEmpty(@Nullable String a, @Nullable String b) {
         return CommonUtils.isEmpty(a) ? b : a;
     }
 }
