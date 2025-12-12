@@ -92,13 +92,13 @@ public final class StringUtils {
     /**
      * Converts an {@code under_score} string to {@code camelCase}.
      *
-     * {@snippet id="underScoreToCamelCaseExample" lang="java" :
-     * String value = underScoreToCamelCase("some_field");
+     * {@snippet id = "underScoreToCamelCaseExample" lang = "java":
+     * String value = underscoreToCamelCase("some_field");
      * // value == "someField"
-     * }
+     *}
      */
     @Nullable
-    public static String underScoreToCamelCase(@Nullable String str) {
+    public static String underscoreToCamelCase(@Nullable String str) {
         if (CommonUtils.isEmpty(str)) {
             return str;
         }
@@ -111,13 +111,11 @@ public final class StringUtils {
 
             if (ch == '_') {
                 toUpper = true;
+            } else if (toUpper) {
+                result.append(Character.toUpperCase(ch));
+                toUpper = false;
             } else {
-                if (toUpper) {
-                    result.append(Character.toUpperCase(ch));
-                    toUpper = false;
-                } else {
-                    result.append(Character.toLowerCase(ch));
-                }
+                result.append(Character.toLowerCase(ch));
             }
         }
 
