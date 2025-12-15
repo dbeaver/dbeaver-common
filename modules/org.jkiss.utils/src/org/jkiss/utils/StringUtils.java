@@ -89,4 +89,41 @@ public final class StringUtils {
         return str;
     }
 
+    /**
+     * Converts an {@code under_score} string to {@code camelCase}.
+     *
+     * {@snippet id = "underScoreToCamelCaseExample" lang = "java":
+     * String value = underscoreToCamelCase("some_field");
+     * // value == "someField"
+     *}
+     */
+    @Nullable
+    public static String underscoreToCamelCase(@Nullable String str) {
+        if (CommonUtils.isEmpty(str)) {
+            return str;
+        }
+
+        StringBuilder result = new StringBuilder(str.length());
+        boolean toUpper = false;
+
+        for (int i = 0; i < str.length(); i++) {
+            char ch = str.charAt(i);
+
+            if (ch == '_') {
+                toUpper = true;
+            } else if (toUpper) {
+                result.append(Character.toUpperCase(ch));
+                toUpper = false;
+            } else {
+                result.append(Character.toLowerCase(ch));
+            }
+        }
+
+        return result.toString();
+    }
+
+    @Nullable
+    public static String firstNonEmpty(@Nullable String a, @Nullable String b) {
+        return CommonUtils.isEmpty(a) ? b : a;
+    }
 }
