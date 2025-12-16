@@ -119,13 +119,6 @@ public class OAuthCodeResponseHandler implements Closeable {
         });
     }
 
-    @NotNull
-    protected Map<String, String> getResponseParams(@NotNull String query) {
-        return Stream.of(query.split("&"))
-            .map(kv -> kv.split("=", 2))
-            .collect(Collectors.toMap(kv -> kv[0], kv -> kv[kv.length - 1]));
-    }
-
     /**
      * Adds a temporary HTTP context at the callback endpoint to respond with a 200 OK
      * and immediately removes itself. This is typically used as a stub or placeholder context.
@@ -151,5 +144,12 @@ public class OAuthCodeResponseHandler implements Closeable {
             httpServer.stop(0);
         }
         executor.shutdown();
+    }
+
+    @NotNull
+    public static Map<String, String> getResponseParams(@NotNull String query) {
+        return Stream.of(query.split("&"))
+            .map(kv -> kv.split("=", 2))
+            .collect(Collectors.toMap(kv -> kv[0], kv -> kv[kv.length - 1]));
     }
 }

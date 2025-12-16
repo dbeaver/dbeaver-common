@@ -20,6 +20,7 @@ import com.google.gson.*;
 import org.jkiss.code.NotNull;
 import org.jkiss.code.Nullable;
 import org.jkiss.utils.CommonUtils;
+import org.jkiss.utils.HttpConstants;
 import org.jkiss.utils.oauth.IOAuthHandler;
 import org.jkiss.utils.oauth.OAuthConstants;
 
@@ -132,7 +133,7 @@ public class OAuthCodeHandler implements IOAuthHandler {
             String code = handler.requestCode().get(timeout, TimeUnit.SECONDS);
 
             HttpRequest.Builder postBuilder = HttpRequest.newBuilder().uri(URI.create(tokenURL));
-            postBuilder.header("Content-type", "application/x-www-form-urlencoded");
+            postBuilder.header(HttpConstants.HEADER_CONTENT_TYPE, HttpConstants.CONTENT_TYPE_APP_FORM);
             postBuilder.POST(HttpRequest.BodyPublishers.ofString(createTokenRequestParameters(code, verifier)));
             postBuilder.timeout(Duration.ofSeconds(timeout));
 
