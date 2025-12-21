@@ -39,5 +39,6 @@ public class HttpConstants {
     public static final int CODE_TOO_MANY_REQUESTS = 429;
     public static final int CODE_TOKEN_EXPIRED = 440;
     public static final int CODE_INTERNAL_SERVER_ERROR = 500;
+    public static final int CODE_TOKEN_EXPIRED = 440;
 
 }
