@@ -23,6 +23,12 @@ public class HttpConstants {
     public static final String HEADER_CONTENT_TYPE = "Content-Type";
     public static final String HEADER_AUTHORIZATION = "Authorization";
 
+    public static final String HEADER_ACCESS_CONTROL_ALLOW_ORIGIN = "Access-Control-Allow-Origin";
+    public static final String HEADER_ACCESS_CONTROL_ALLOW_CREDENTIALS = "Access-Control-Allow-Credentials";
+    public static final String HEADER_ACCESS_CONTROL_REQUEST_HEADERS = "Access-Control-Request-Headers";
+    public static final String HEADER_ACCESS_CONTROL_ALLOW_HEADERS = "Access-Control-Allow-Headers";
+    public static final String HEADER_ACCESS_CONTROL_ALLOW_METHODS = "Access-Control-Allow-Methods";
+
     public static final String CONTENT_TYPE_JSON = "application/json";
     public static final String CONTENT_TYPE_APP_FORM = "application/x-www-form-urlencoded";
 
@@ -32,6 +38,7 @@ public class HttpConstants {
     public static final int CODE_NOT_FOUND = 404;
     public static final int CODE_PAYLOAD_TOO_LARGE = 413;
     public static final int CODE_TOO_MANY_REQUESTS = 429;
+    public static final int CODE_TOKEN_EXPIRED = 440;
     public static final int CODE_INTERNAL_SERVER_ERROR = 500;
 
 }
