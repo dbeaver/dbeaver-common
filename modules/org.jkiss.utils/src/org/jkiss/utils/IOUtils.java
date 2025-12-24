@@ -30,6 +30,7 @@ import java.nio.channels.ReadableByteChannel;
 import java.nio.channels.WritableByteChannel;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -50,7 +51,7 @@ public final class IOUtils {
             closeable.close();
         } catch (IOException e) {
             log.log(
-                java.util.logging.Level.WARNING,
+                Level.WARNING,
                 "Failed to close closeable: " + closeable.getClass().getName(),
                 e
             );
@@ -62,10 +63,16 @@ public final class IOUtils {
             closeable.close();
         } catch (Exception e) {
             log.log(
-                java.util.logging.Level.WARNING,
+                Level.WARNING,
                 "Failed to close closeable: " + closeable.getClass().getName(),
                 e
             );
+        }
+    }
+
+    public static void closeQuietly(AutoCloseable... closeable) {
+        for (AutoCloseable c : closeable) {
+            close(c);
         }
     }
 
