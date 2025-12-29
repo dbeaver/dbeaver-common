@@ -30,6 +30,7 @@ public class HttpConstants {
     public static final String HEADER_ACCESS_CONTROL_ALLOW_METHODS = "Access-Control-Allow-Methods";
 
     public static final String CONTENT_TYPE_JSON = "application/json";
+    public static final String CONTENT_TYPE_APP_FORM = "application/x-www-form-urlencoded";
 
     public static final int CODE_BAD_REQUEST = 400;
     public static final int CODE_UNAUTHORIZED = 401;

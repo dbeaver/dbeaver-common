@@ -51,6 +51,7 @@ public class OAuthRequestURLBuilder {
     private boolean includeNonce = true;
     private boolean includePKCE = false;
     private String codeChallenge;
+    private String state;
 
     /**
      * Constructs a new OAuthRequestURLBuilder with the base authorization URL.
@@ -140,6 +141,12 @@ public class OAuthRequestURLBuilder {
         return withParam("prompt", prompt);
     }
 
+    public OAuthRequestURLBuilder withState(@NotNull String state) {
+        this.state = state;
+        this.includeState = true;
+        return this;
+    }
+
     /**
      * Disables automatic state generation.
      *
@@ -196,7 +203,8 @@ public class OAuthRequestURLBuilder {
         }
 
         if (includeState) {
-            params.putIfAbsent("state", UUID.randomUUID().toString());
+            // TODO: we must validate state on callback
+            params.putIfAbsent("state", state == null ? UUID.randomUUID().toString() : state);
         }
 
         if (includeNonce) {

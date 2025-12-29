@@ -20,6 +20,7 @@ import com.google.gson.*;
 import org.jkiss.code.NotNull;
 import org.jkiss.code.Nullable;
 import org.jkiss.utils.CommonUtils;
+import org.jkiss.utils.HttpConstants;
 import org.jkiss.utils.oauth.IOAuthHandler;
 import org.jkiss.utils.oauth.OAuthConstants;
 
@@ -68,6 +69,8 @@ public class OAuthCodeHandler implements IOAuthHandler {
     @NotNull
     protected String callbackEndpoint = OAuthConstants.DEFAULT_CALLBACK_ENDPOINT;
     @Nullable
+    protected String state;
+    @Nullable
     protected String codeChallenge;
 
     /**
@@ -111,6 +114,11 @@ public class OAuthCodeHandler implements IOAuthHandler {
         this.callbackEndpoint = callbackEndpoint;
     }
 
+    @Nullable
+    public String getState() {
+        return state;
+    }
+
     /**
      * Executes the full OAuth authorization code flow and retrieves the access token.
      *
@@ -119,13 +127,13 @@ public class OAuthCodeHandler implements IOAuthHandler {
      */
     @Override
     public Map<String, String> authorize() throws IOException {
-        try (OAuthCodeResponseHandler handler = new OAuthCodeResponseHandler(callbackPort, callbackEndpoint)) {
+        try (OAuthCodeResponseHandler handler = createCodeResponseHandler()) {
             String verifier = generateCodeChallengeAndVerifier();
             startSSO(handler);
             String code = handler.requestCode().get(timeout, TimeUnit.SECONDS);
 
             HttpRequest.Builder postBuilder = HttpRequest.newBuilder().uri(URI.create(tokenURL));
-            postBuilder.header("Content-type", "application/x-www-form-urlencoded");
+            postBuilder.header(HttpConstants.HEADER_CONTENT_TYPE, HttpConstants.CONTENT_TYPE_APP_FORM);
             postBuilder.POST(HttpRequest.BodyPublishers.ofString(createTokenRequestParameters(code, verifier)));
             postBuilder.timeout(Duration.ofSeconds(timeout));
 
@@ -141,6 +149,11 @@ public class OAuthCodeHandler implements IOAuthHandler {
         } catch (InterruptedException | ExecutionException | TimeoutException e) {
             throw new IOException(e);
         }
+    }
+
+    @NotNull
+    protected OAuthCodeResponseHandler createCodeResponseHandler() {
+        return new OAuthCodeResponseHandler(callbackPort, callbackEndpoint);
     }
 
     /**
@@ -169,7 +182,7 @@ public class OAuthCodeHandler implements IOAuthHandler {
      * @param handler OAuth response handler
      * @throws IOException if the desktop browser cannot be launched
      */
-    private void startSSO(@NotNull OAuthCodeResponseHandler handler) throws IOException {
+    protected void startSSO(@NotNull OAuthCodeResponseHandler handler) throws IOException {
         handler.initServer();
         createBrowser(buildAuthUrl());
     }
@@ -242,7 +255,7 @@ public class OAuthCodeHandler implements IOAuthHandler {
         parameters.put("code_verifier", verifier);
         parameters.put(
             "redirect_uri",
-            String.format(OAuthConstants.AUTH_SSO_CALLBACK_TEMPLATE, callbackPort, callbackEndpoint)
+            getRedirectUri()
         );
         return OAuthRequestURLBuilder.buildURLParameters(parameters);
     }
@@ -256,8 +269,13 @@ public class OAuthCodeHandler implements IOAuthHandler {
     protected String buildAuthUrl() throws IOException {
         return new OAuthRequestURLBuilder(authUrl)
             .withClientId(clientId)
-            .withRedirectURI(String.format(OAuthConstants.AUTH_SSO_CALLBACK_TEMPLATE, callbackPort, callbackEndpoint))
+            .withRedirectURI(getRedirectUri())
             .withCodeChallenge(codeChallenge)
             .build();
+    }
+
+    @NotNull
+    protected String getRedirectUri() {
+        return String.format(OAuthConstants.AUTH_SSO_CALLBACK_TEMPLATE, callbackPort, callbackEndpoint);
     }
 }
