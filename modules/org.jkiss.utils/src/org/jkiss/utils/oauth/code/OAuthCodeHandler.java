@@ -127,7 +127,7 @@ public class OAuthCodeHandler implements IOAuthHandler {
      */
     @Override
     public Map<String, String> authorize() throws IOException {
-        try (OAuthCodeResponseHandler handler = getCodeResponseHandler()) {
+        try (OAuthCodeResponseHandler handler = createCodeResponseHandler()) {
             String verifier = generateCodeChallengeAndVerifier();
             startSSO(handler);
             String code = handler.requestCode().get(timeout, TimeUnit.SECONDS);
@@ -152,7 +152,7 @@ public class OAuthCodeHandler implements IOAuthHandler {
     }
 
     @NotNull
-    protected OAuthCodeResponseHandler getCodeResponseHandler() {
+    protected OAuthCodeResponseHandler createCodeResponseHandler() {
         return new OAuthCodeResponseHandler(callbackPort, callbackEndpoint);
     }
 
