@@ -26,6 +26,7 @@ import java.time.format.DateTimeFormatter;
 
 public class RpcConstants {
     public static final int SC_OK = 200;
+    public static final int SC_NO_CONTENT = 204;
     public static final int SC_FORBIDDEN = 403;
     public static final int SC_UNSUPPORTED = 405;
     public static final int SC_NOT_FOUND = 404;

@@ -36,20 +36,19 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.*;
 import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class RestServer<T> {
+public class RestServer {
     private static final Logger log = Logger.getLogger(RestServer.class.getName());
+
     private HttpServer server;
     private String landingPage;
 
-    public RestServer(
+    public <T> RestServer(
         @NotNull Class<T> cls,
         @NotNull T object,
         @NotNull Gson gson,
@@ -64,9 +63,31 @@ public class RestServer<T> {
         server.start();
     }
 
+    private RestServer(
+        @NotNull List<ControllerDef<?>> controllers,
+        @NotNull Gson gson,
+        @NotNull Predicate<InetSocketAddress> filter,
+        int port,
+        int backlog
+    ) throws IOException {
+        InetSocketAddress listenAddr = new InetSocketAddress(InetAddress.getLoopbackAddress(), port);
+        server = HttpServer.create(listenAddr, backlog);
+        controllers.forEach(ctrl ->
+            server.createContext(ctrl.path, createHandler((Class<Object>) ctrl.cls, ctrl.instance, gson, filter))
+        );
+        server.setExecutor(createExecutor());
+        server.start();
+    }
+
     @NotNull
-    public static <T> Builder<T> builder(@NotNull Class<T> cls, @NotNull T object) {
-        return new Builder<>(object, cls);
+    public static <T> Builder builder(@NotNull Class<T> cls, @NotNull T object) {
+        Builder builder = new Builder();
+        builder.addController("/", cls, object);
+        return builder;
+    }
+
+    public static Builder builder() {
+        return new Builder();
     }
 
     public boolean isRunning() {
@@ -105,7 +126,7 @@ public class RestServer<T> {
     }
 
     @NotNull
-    protected RequestHandler createHandler(
+    protected <T> RequestHandler createHandler(
         @NotNull Class<T> cls,
         @NotNull T object,
         @NotNull Gson gson,
@@ -116,7 +137,7 @@ public class RestServer<T> {
 
     private static final Type REQUEST_TYPE = new TypeToken<Map<String, JsonElement>>() {}.getType();
 
-    protected class RequestHandler implements HttpHandler {
+    protected class RequestHandler<T> implements HttpHandler {
 
         private final T object;
         private final Gson gson;
@@ -210,7 +231,12 @@ public class RestServer<T> {
             }
 
             final URI uri = exchange.getRequestURI();
-            final String path = uri.getPath().replaceAll("^/+", "");
+            final String context = exchange.getHttpContext().getPath();
+            String path = uri.getPath();
+            if (path.startsWith(context)) {
+                path = path.substring(context.length());
+            }
+            path = path.replaceAll("^/+", "");
             final Method method = mappings.get(path);
 
             if (method == null) {
@@ -292,59 +318,69 @@ public class RestServer<T> {
         return new Response<>(result, type, RpcConstants.SC_OK);
     }
 
-    public static final class Builder<T> {
+    public static final class Builder {
         private static final Predicate<InetSocketAddress> DEFAULT_PREDICATE = address -> true;
 
-        private final T object;
-        private final Class<T> cls;
         private Gson gson;
         private int port;
         private int backlog;
         private Predicate<InetSocketAddress> filter = DEFAULT_PREDICATE;
         private String landingPage;
+        private final List<ControllerDef<?>> controllers = new ArrayList<>();
 
-        private Builder(@NotNull T object, @NotNull Class<T> cls) {
-            this.object = object;
-            this.cls = cls;
+        private Builder() {
             this.gson = RpcConstants.DEFAULT_GSON;
             this.port = 0;
             this.backlog = 0;
         }
 
         @NotNull
-        public Builder<T> setGson(@NotNull Gson gson) {
+        public Builder addController(
+            @NotNull String path,
+            @NotNull Class<?> cls,
+            @NotNull Object instance
+        ) {
+            if (!path.startsWith("/")) {
+                path = "/" + path;
+            }
+            controllers.add(new ControllerDef<>(path, cls, instance));
+            return this;
+        }
+
+        @NotNull
+        public Builder setGson(@NotNull Gson gson) {
             this.gson = gson;
             return this;
         }
 
         @NotNull
-        public Builder<T> setPort(int port) {
+        public Builder setPort(int port) {
             this.port = port;
             return this;
         }
 
         @NotNull
-        public Builder<T> setBacklog(int backlog) {
+        public Builder setBacklog(int backlog) {
             this.backlog = backlog;
             return this;
         }
 
         @NotNull
-        public Builder<T> setLandingPage(String landingPage) {
+        public Builder setLandingPage(String landingPage) {
             this.landingPage = landingPage;
             return this;
         }
 
         @NotNull
-        public Builder<T> setFilter(@NotNull Predicate<InetSocketAddress> filter) {
+        public Builder setFilter(@NotNull Predicate<InetSocketAddress> filter) {
             this.filter = filter;
             return this;
         }
 
         @NotNull
-        public RestServer<T> create() {
+        public RestServer create() {
             try {
-                RestServer<T> restServer = new RestServer<>(cls, object, gson, filter, port, backlog);
+                RestServer restServer = new RestServer(controllers, gson, filter, port, backlog);
                 if (landingPage != null) {
                     restServer.setLandingPage(landingPage);
                 }
@@ -353,6 +389,7 @@ public class RestServer<T> {
                 throw new UncheckedIOException(e);
             }
         }
+
     }
 
     private static class Response<T> {
@@ -366,4 +403,18 @@ public class RestServer<T> {
             this.code = code;
         }
     }
+
+    private static final class ControllerDef<T> {
+        final String path;
+        final Class<T> cls;
+        final Object instance;
+
+        ControllerDef(String path, Class<T> cls, Object instance) {
+            this.path = path;
+            this.cls = cls;
+            this.instance = instance;
+        }
+    }
+
+
 }
