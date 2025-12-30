@@ -340,10 +340,8 @@ public class RestServer {
             @NotNull Class<?> cls,
             @NotNull Object instance
         ) {
-            if (!path.startsWith("/")) {
-                path = "/" + path;
-            }
-            controllers.add(new ControllerDef<>(path, cls, instance));
+            String normalizedPath = path.startsWith("/") ? path : "/" + path;
+            controllers.add(new ControllerDef<>(normalizedPath, cls, instance));
             return this;
         }
 
