@@ -233,7 +233,7 @@
       <message key="name.invalidPattern" value="Interface type name ''{0}'' must match pattern ''{1}''."/>
     </module>
     <module name="IllegalIdentifierName">
-      <property name="format" value="^[A-Za-z][A-Z0-9_]*$"/>
+      <property name="format" value="^[A-Za-z][A-Za-z0-9_]*$"/>
       <property name="tokens" value="ENUM_CONSTANT_DEF"/>
       <message key="name.invalidPattern" value="Enum constant name ''{0}'' must match pattern ''{1}''."/>
     </module>
