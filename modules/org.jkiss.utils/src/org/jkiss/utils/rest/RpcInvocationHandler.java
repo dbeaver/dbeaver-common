@@ -18,6 +18,7 @@ package org.jkiss.utils.rest;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
+import com.google.gson.JsonParseException;
 import org.jkiss.code.NotNull;
 import org.jkiss.code.Nullable;
 import org.jkiss.utils.BeanUtils;
@@ -27,8 +28,12 @@ import java.lang.reflect.*;
 import java.net.URI;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public abstract class RpcInvocationHandler implements InvocationHandler, RestProxy {
+
+    private static final Logger log = Logger.getLogger(RpcInvocationHandler.class.getName());
 
     @NotNull
     private final Class<?> clientClass;
@@ -115,11 +120,14 @@ public abstract class RpcInvocationHandler implements InvocationHandler, RestPro
             }
 
             try {
+                System.out.println("CONTENTS: " +  contents);
                 return gson.fromJson(contents, returnType);
             } catch (Throwable e) {
+                log.log(Level.WARNING, "Failed to parse json response: \n" + contents, e);
                 //just debug breakpoint, rethrow it
                 throw e;
             }
+
         } catch (RpcException e) {
             if (e.getErrorClass() != null) {
                 Throwable error = null;
