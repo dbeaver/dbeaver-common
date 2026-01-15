@@ -84,8 +84,8 @@ jobs:
                   git clone --depth 1 -b "$GITHUB_HEAD_REF" "https://$GH_TOKEN@github.com/$GITHUB_REPOSITORY_OWNER/$dep_repo.git" || \
                   git clone --depth 1 -b "$default_branch" "https://$GH_TOKEN@github.com/dbeaver/$dep_repo.git"
               done < "$repo/project.deps"
-              mvn clean verify -B -T1C -f "$repo"
-              mvn clean verify -B -f "$repo/p2"
+              ./dbeaver-common/mvnw clean verify -B -T1C -f "$repo"
+              ./dbeaver-common/mvnw clean verify -B -f "$repo/p2"
               if [ -n "$output" ]; then
                   output+=" "
               fi
@@ -97,5 +97,5 @@ jobs:
           fi
 
       - name: Compile
-        run: mvn clean verify -B -T1C ${{ inputs.mvn-args }} ${{ steps.prepare-custom-p2.outputs.p2-mvn-flags }}
+        run: ../dbeaver-common/mvnw clean verify -B -T1C ${{ inputs.mvn-args }} ${{ steps.prepare-custom-p2.outputs.p2-mvn-flags }}
         working-directory: ${{ inputs.project-directory || env.CHECKOUT_PATH || '.' }}
