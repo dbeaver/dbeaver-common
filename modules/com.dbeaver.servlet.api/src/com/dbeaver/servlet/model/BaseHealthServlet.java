@@ -40,7 +40,6 @@ public class BaseHealthServlet extends HttpServlet {
     protected static final String OK_STATUS = "ok";
     protected static final String NO_CONNECTION_STATUS = "no connection";
     protected static final String DB_SERVICE = "database";
-    protected static final String DB_STATISTICS_SERVICE = "statistics db";
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse response) throws ServletException, IOException {
