@@ -1,0 +1,1 @@
+For additional details and source code, see [ShadelessFox/checkstyle-nullability-annotations](https://github.com/ShadelessFox/checkstyle-nullability-annotations)
