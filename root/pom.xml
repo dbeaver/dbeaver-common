@@ -46,6 +46,7 @@
 
         <maven.compiler.source>${java.version}</maven.compiler.source>
         <maven.compiler.target>${java.version}</maven.compiler.target>
+        <tycho.compiler.id>javac</tycho.compiler.id>
 
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.build.timestamp.format>yyyyMMddHHmm</maven.build.timestamp.format>
@@ -335,6 +336,7 @@
                     <useProjectSettings>false</useProjectSettings>
                     <source>${maven.compiler.source}</source>
                     <target>${maven.compiler.target}</target>
+                    <compilerId>${tycho.compiler.id}</compilerId>
                     <compilerVersion>${maven.compiler.source}</compilerVersion>
                 </configuration>
             </plugin>
