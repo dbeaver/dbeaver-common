@@ -1,6 +1,6 @@
 /*
  * DBeaver - Universal Database Manager
- * Copyright (C) 2010-2025 DBeaver Corp and others
+ * Copyright (C) 2010-2026 DBeaver Corp and others
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,7 @@ import java.util.Date;
 import java.util.Locale;
 
 /**
- * Formatter adapted to support nanoseconds from java.sql.Timestanp.
+ * Formatter adapted to support nanoseconds from java.sql.Timestamp.
  */
 public class ExtendedDateFormat extends SimpleDateFormat {
 
@@ -37,13 +37,11 @@ public class ExtendedDateFormat extends SimpleDateFormat {
     private boolean nanoOptional;
     private String nanoPrefix, nanoPostfix;
 
-    public ExtendedDateFormat(String pattern)
-    {
+    public ExtendedDateFormat(@NotNull String pattern) {
         this(pattern, Locale.getDefault());
     }
 
-    public ExtendedDateFormat(String pattern, Locale locale)
-    {
+    public ExtendedDateFormat(@NotNull String pattern, @NotNull Locale locale) {
         super(stripNanos(pattern), locale);
 
         int quoteCount = 0;
@@ -95,13 +93,18 @@ public class ExtendedDateFormat extends SimpleDateFormat {
     }
 
     @Override
-    public StringBuffer format(@NotNull Date date, @NotNull StringBuffer toAppendTo, @NotNull FieldPosition pos)
-    {
+    public StringBuffer format(@NotNull Date date, @NotNull StringBuffer toAppendTo, @NotNull FieldPosition pos) {
         StringBuffer result = super.format(date, toAppendTo, pos);
         if (nanoStart >= 0) {
-            long nanos = 0;
+            long nanos;
             if (date instanceof Timestamp) {
                 nanos = ((Timestamp) date).getNanos();
+            } else {
+                // Extract milliseconds from Date and convert to nanoseconds
+                nanos = (date.getTime() % 1000) * 1_000_000;
+                if (nanos < 0) {
+                    nanos += 1_000_000_000; // Handle negative milliseconds
+                }
             }
             if (!nanoOptional || nanos > 0) {
                 StringBuilder nanosRes = new StringBuilder(nanoLength);
@@ -122,29 +125,29 @@ public class ExtendedDateFormat extends SimpleDateFormat {
                     nanoStr = nanoStr.substring(0, nanoLength);
                 } else {
                     // Pad with 0s
-                    for (int i = 0; i < nanoLength - nanoStr.length(); i++) {
-                        nanosRes.append("0");
+                    int padLength = nanoLength - nanoStr.length();
+                    if (padLength > 0) {
+                        nanosRes.append("0".repeat(padLength));
                     }
                 }
                 nanosRes.append(nanoStr);
                 if (nanoPostfix != null) {
                     nanosRes.append(nanoPostfix);
                 }
-                result.insert(nanoStart, nanosRes.toString());
+                result.insert(nanoStart, nanosRes);
             }
         }
         return result;
     }
 
     @Override
-    public Date parse(@NotNull String text, @NotNull ParsePosition pos)
-    {
+    public Date parse(@NotNull String text, @NotNull ParsePosition pos) {
         Date date = super.parse(text, pos);
         if (date == null) {
             return null;
         }
         int index = pos.getIndex();
-        if (index < text.length() && nanoStart > 0) {
+        if (index < text.length() && nanoStart >= 0) {
             long nanos = 0;
             if (nanoPrefix != null) {
                 index += nanoPrefix.length();
@@ -176,8 +179,8 @@ public class ExtendedDateFormat extends SimpleDateFormat {
         return date;
     }
 
-    private static String stripNanos(String pattern)
-    {
+    @NotNull
+    private static String stripNanos(@NotNull String pattern) {
         for (int i = 0; i < pattern.length(); i++) {
             char c = pattern.charAt(i);
             if (c == '\'') {
