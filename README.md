@@ -24,7 +24,7 @@ Various utilities (similar to Apache Commons and Google Guava).
     <dependency>
       <groupId>com.dbeaver.common</groupId>
       <artifactId>org.jkiss.utils</artifactId>
-      <version>2.2.0</version>
+      <version>2.5.0</version>
     </dependency>
 ```
 
@@ -39,7 +39,7 @@ driver, connection, statements, result sets and metadata read.
     <dependency>
       <groupId>com.dbeaver.common</groupId>
       <artifactId>com.dbeaver.jdbc.api</artifactId>
-      <version>2.2.0</version>
+      <version>2.5.0</version>
     </dependency>
 ```
 
@@ -52,6 +52,6 @@ Simple RPC client-server implementation.
     <dependency>
       <groupId>com.dbeaver.common</groupId>
       <artifactId>com.dbeaver.rpc</artifactId>
-      <version>2.2.0</version>
+      <version>2.5.0</version>
     </dependency>
 ```
