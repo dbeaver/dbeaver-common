@@ -1,6 +1,6 @@
 /*
  * DBeaver - Universal Database Manager
- * Copyright (C) 2010-2025 DBeaver Corp and others
+ * Copyright (C) 2010-2026 DBeaver Corp and others
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,6 @@ import com.sun.net.httpserver.HttpServer;
 import org.jkiss.code.NotNull;
 import org.jkiss.utils.CommonUtils;
 
-import java.io.Closeable;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.Map;
@@ -34,7 +33,7 @@ import java.util.stream.Stream;
  * Handles the temporary HTTP server that listens for OAuth callback requests.
  * Extracts the authorization code or error from the query string and returns it to the caller.
  */
-public class OAuthCodeResponseHandler implements Closeable {
+public class OAuthCodeResponseHandler implements IOAuthCodeResponseHandler {
 
     private static final String PARAM_CODE = "code";
     private static final String PARAM_ERROR = "error";
@@ -64,6 +63,7 @@ public class OAuthCodeResponseHandler implements Closeable {
      *
      * @throws IOException if the server cannot be created or bound to the selected port.
      */
+    @Override
     public void initServer() throws IOException {
         try {
             httpServer = HttpServer.create(new InetSocketAddress(port), 1);
@@ -81,6 +81,7 @@ public class OAuthCodeResponseHandler implements Closeable {
      *
      * @return a {@link Future} containing the received authorization code, or throws an exception if an error occurred.
      */
+    @Override
     public Future<String> requestCode() {
         return executor.submit(() -> {
             AtomicReference<String> result = new AtomicReference<>();
@@ -123,6 +124,7 @@ public class OAuthCodeResponseHandler implements Closeable {
      * Adds a temporary HTTP context at the callback endpoint to respond with a 200 OK
      * and immediately removes itself. This is typically used as a stub or placeholder context.
      */
+    @Override
     public void addStabContext() {
         httpServer.createContext(
             callbackEndpoint, exchange -> {
