@@ -1,6 +1,6 @@
 /*
  * DBeaver - Universal Database Manager
- * Copyright (C) 2010-2025 DBeaver Corp and others
+ * Copyright (C) 2010-2026 DBeaver Corp and others
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -64,14 +64,17 @@ public class OAuthCodeHandler implements IOAuthHandler {
     protected final String authUrl;
     @NotNull
     protected final String tokenURL;
-    protected final int callbackPort;
-    protected int timeout = OAuthConstants.AUTH_DEFAULT_SSO_TIMEOUT;
     @NotNull
-    protected String callbackEndpoint = OAuthConstants.DEFAULT_CALLBACK_ENDPOINT;
+    protected final String redirectUri;
+    protected final int callbackPort;
+    @NotNull
+    protected final String callbackEndpoint;
+    protected int timeout;
     @Nullable
     protected String state;
     @Nullable
     protected String codeChallenge;
+
 
     /**
      * Constructs an OAuthHandler with required parameters.
@@ -87,14 +90,19 @@ public class OAuthCodeHandler implements IOAuthHandler {
         @Nullable String secretId,
         @NotNull String authUrl,
         @NotNull String tokenURL,
+        @NotNull String callbackEndpoint,
+        @NotNull String redirectUri,
         int callbackPort
     ) {
         this.clientId = clientId;
         this.secretId = secretId;
         this.authUrl = authUrl;
         this.tokenURL = tokenURL;
+        this.callbackEndpoint = callbackEndpoint;
         this.callbackPort = callbackPort;
+        this.redirectUri = redirectUri;
     }
+
 
     /**
      * Sets the timeout (in seconds) to wait for the OAuth callback response.
@@ -103,15 +111,6 @@ public class OAuthCodeHandler implements IOAuthHandler {
      */
     public void setTimeout(int timeout) {
         this.timeout = timeout;
-    }
-
-    /**
-     * Sets a custom callback endpoint path (e.g. "/callback").
-     *
-     * @param callbackEndpoint path part of the redirect URI
-     */
-    public void setCallbackEndpoint(@NotNull String callbackEndpoint) {
-        this.callbackEndpoint = callbackEndpoint;
     }
 
     @Nullable
@@ -127,13 +126,13 @@ public class OAuthCodeHandler implements IOAuthHandler {
      */
     @Override
     public Map<String, String> authorize() throws IOException {
-        try (OAuthCodeResponseHandler handler = createCodeResponseHandler()) {
+        try (IOAuthCodeResponseHandler handler = createCodeResponseHandler()) {
             String verifier = generateCodeChallengeAndVerifier();
             startSSO(handler);
             String code = handler.requestCode().get(timeout, TimeUnit.SECONDS);
 
             HttpRequest.Builder postBuilder = HttpRequest.newBuilder().uri(URI.create(tokenURL));
-            postBuilder.header(HttpConstants.HEADER_CONTENT_TYPE, HttpConstants.CONTENT_TYPE_APP_FORM);
+            postBuilder.headers(getHeaderParameters());
             postBuilder.POST(HttpRequest.BodyPublishers.ofString(createTokenRequestParameters(code, verifier)));
             postBuilder.timeout(Duration.ofSeconds(timeout));
 
@@ -152,7 +151,12 @@ public class OAuthCodeHandler implements IOAuthHandler {
     }
 
     @NotNull
-    protected OAuthCodeResponseHandler createCodeResponseHandler() {
+    protected String[] getHeaderParameters() {
+        return new String[] {HttpConstants.HEADER_CONTENT_TYPE, HttpConstants.CONTENT_TYPE_APP_FORM};
+    }
+
+    @NotNull
+    protected IOAuthCodeResponseHandler createCodeResponseHandler() {
         return new OAuthCodeResponseHandler(callbackPort, callbackEndpoint);
     }
 
@@ -182,7 +186,7 @@ public class OAuthCodeHandler implements IOAuthHandler {
      * @param handler OAuth response handler
      * @throws IOException if the desktop browser cannot be launched
      */
-    protected void startSSO(@NotNull OAuthCodeResponseHandler handler) throws IOException {
+    protected void startSSO(@NotNull IOAuthCodeResponseHandler handler) throws IOException {
         handler.initServer();
         createBrowser(buildAuthUrl());
     }
@@ -267,15 +271,106 @@ public class OAuthCodeHandler implements IOAuthHandler {
      * @throws IOException if URL cannot be constructed
      */
     protected String buildAuthUrl() throws IOException {
-        return new OAuthRequestURLBuilder(authUrl)
+        var builder = new OAuthRequestURLBuilder(authUrl)
             .withClientId(clientId)
-            .withRedirectURI(getRedirectUri())
-            .withCodeChallenge(codeChallenge)
-            .build();
+            .withRedirectURI(redirectUri);
+        if (codeChallenge != null) {
+            builder.withCodeChallenge(codeChallenge);
+        }
+        return builder.build();
     }
 
     @NotNull
     protected String getRedirectUri() {
-        return String.format(OAuthConstants.AUTH_SSO_CALLBACK_TEMPLATE, callbackPort, callbackEndpoint);
+        return redirectUri;
+    }
+
+    @NotNull
+    public static OAuthCodeHandlerBuilder<?> builder() {
+        return new OAuthCodeHandlerBuilder<>();
+    }
+
+    public static class OAuthCodeHandlerBuilder<T extends OAuthCodeHandler> {
+        protected String clientId;
+        protected String secretId;
+        protected String authUrl;
+        protected String tokenURL;
+        protected String redirectUri;
+        protected int callbackPort = 0;
+
+        protected int timeout = OAuthConstants.AUTH_DEFAULT_SSO_TIMEOUT;
+        protected String callbackEndpoint = OAuthConstants.DEFAULT_CALLBACK_ENDPOINT;
+        protected String state;
+
+
+        public OAuthCodeHandlerBuilder<T> withClientId(@NotNull String clientId) {
+            this.clientId = clientId;
+            return this;
+        }
+
+        public OAuthCodeHandlerBuilder<T> withSecretId(@Nullable String secretId) {
+            this.secretId = secretId;
+            return this;
+        }
+
+        public OAuthCodeHandlerBuilder<T> withAuthUrl(@NotNull String authUrl) {
+            this.authUrl = authUrl;
+            return this;
+        }
+
+        public OAuthCodeHandlerBuilder<T> withTokenUrl(@NotNull String tokenURL) {
+            this.tokenURL = tokenURL;
+            return this;
+        }
+
+        public OAuthCodeHandlerBuilder<T> withCallbackPort(int port) {
+            this.callbackPort = port;
+            return this;
+        }
+
+        public OAuthCodeHandlerBuilder<T> withTimeout(int seconds) {
+            this.timeout = seconds;
+            return this;
+        }
+
+        public OAuthCodeHandlerBuilder<T> withCallbackEndpoint(@NotNull String endpoint) {
+            this.callbackEndpoint = endpoint;
+            return this;
+        }
+
+        public OAuthCodeHandlerBuilder<T> withRedirectUri(@NotNull String redirectUri) {
+            this.redirectUri = redirectUri;
+            return this;
+        }
+
+        @NotNull
+        public T build() {
+            if (CommonUtils.isEmpty(clientId)) {
+                throw new IllegalStateException("clientId is required");
+            }
+            if (CommonUtils.isEmpty(authUrl)) {
+                throw new IllegalStateException("authUrl is required");
+            }
+            if (CommonUtils.isEmpty(tokenURL)) {
+                throw new IllegalStateException("tokenURL is required");
+            }
+            if (CommonUtils.isEmpty(redirectUri)) {
+                this.redirectUri = String.format(OAuthConstants.AUTH_SSO_CALLBACK_TEMPLATE, callbackPort, callbackEndpoint);
+            }
+
+            T handler = createOAuthCodeHandler();
+
+            if (timeout > 0) {
+                handler.setTimeout(timeout);
+            }
+
+            return handler;
+        }
+
+        @NotNull
+        protected T createOAuthCodeHandler() {
+            //noinspection unchecked
+            return (T) new OAuthCodeHandler(clientId, secretId, authUrl, tokenURL, callbackEndpoint, redirectUri, callbackPort);
+        }
     }
 }
