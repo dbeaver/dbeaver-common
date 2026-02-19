@@ -22,6 +22,7 @@ public class HttpConstants {
     public static final String HEADER_X_REFERRER = "X-Referrer";
     public static final String HEADER_CONTENT_TYPE = "Content-Type";
     public static final String HEADER_AUTHORIZATION = "Authorization";
+    public static final String HEADER_BEARER = "Bearer";
 
     public static final String HEADER_ACCESS_CONTROL_ALLOW_ORIGIN = "Access-Control-Allow-Origin";
     public static final String HEADER_ACCESS_CONTROL_ALLOW_CREDENTIALS = "Access-Control-Allow-Credentials";
