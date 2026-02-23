@@ -1,6 +1,6 @@
 /*
  * DBeaver - Universal Database Manager
- * Copyright (C) 2010-2025 DBeaver Corp and others
+ * Copyright (C) 2010-2026 DBeaver Corp and others
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,6 +33,7 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.regex.Matcher;
@@ -45,13 +46,13 @@ public abstract class HttpTransportInvocationHandler extends RpcInvocationHandle
 
     private final ExecutorService httpExecutor;
     private final HttpClient client;
+    private final Map<String, String> extraHeaders;
 
     protected HttpTransportInvocationHandler(
         @NotNull Class<?> clientClass,
         @NotNull URI uri,
         @NotNull Gson gson,
-        @NotNull String userAgent,
-        @Nullable SSLContext sslContext
+        @NotNull String userAgent, @Nullable SSLContext sslContext, @NotNull Map<String, String> extraHeaders
     ) {
         super(clientClass, uri, gson, userAgent);
         this.httpExecutor = Executors.newSingleThreadExecutor();
@@ -62,6 +63,7 @@ public abstract class HttpTransportInvocationHandler extends RpcInvocationHandle
             clientBuilder.sslContext(sslContext);
         }
         this.client = clientBuilder.build();
+        this.extraHeaders = extraHeaders;
     }
 
     protected String invokeRemoteMethodOverHttp(
@@ -80,6 +82,10 @@ public abstract class HttpTransportInvocationHandler extends RpcInvocationHandle
 
         if (methodMapping != null && methodMapping.timeout() > 0) {
             builder.timeout(Duration.ofSeconds(methodMapping.timeout()));
+        }
+
+        for (Map.Entry<String, String> entry : extraHeaders.entrySet()) {
+            builder.header(entry.getKey(), entry.getValue());
         }
 
         final HttpResponse<String> response = client.send(
