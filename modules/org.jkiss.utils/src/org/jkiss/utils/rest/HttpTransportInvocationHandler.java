@@ -46,13 +46,15 @@ public abstract class HttpTransportInvocationHandler extends RpcInvocationHandle
 
     private final ExecutorService httpExecutor;
     private final HttpClient client;
-    private final Map<String, String> extraHeaders;
+    private final Map<String, String> headers;
 
     protected HttpTransportInvocationHandler(
         @NotNull Class<?> clientClass,
         @NotNull URI uri,
         @NotNull Gson gson,
-        @NotNull String userAgent, @Nullable SSLContext sslContext, @NotNull Map<String, String> extraHeaders
+        @NotNull String userAgent,
+        @Nullable SSLContext sslContext,
+        @NotNull Map<String, String> headers
     ) {
         super(clientClass, uri, gson, userAgent);
         this.httpExecutor = Executors.newSingleThreadExecutor();
@@ -63,7 +65,7 @@ public abstract class HttpTransportInvocationHandler extends RpcInvocationHandle
             clientBuilder.sslContext(sslContext);
         }
         this.client = clientBuilder.build();
-        this.extraHeaders = extraHeaders;
+        this.headers = headers;
     }
 
     protected String invokeRemoteMethodOverHttp(
@@ -84,7 +86,7 @@ public abstract class HttpTransportInvocationHandler extends RpcInvocationHandle
             builder.timeout(Duration.ofSeconds(methodMapping.timeout()));
         }
 
-        for (Map.Entry<String, String> entry : extraHeaders.entrySet()) {
+        for (Map.Entry<String, String> entry : headers.entrySet()) {
             builder.header(entry.getKey(), entry.getValue());
         }
 

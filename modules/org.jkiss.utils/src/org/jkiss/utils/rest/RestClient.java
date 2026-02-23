@@ -43,7 +43,7 @@ public class RestClient extends RpcClient {
         private RestEndpointResolver resolver;
         private String userAgent;
         private SSLContext sslContext;
-        private Map<String, String> extraHeaders = Map.of();
+        private Map<String, String> headers = Map.of();
 
         private Builder(@NotNull URI uri, @NotNull Class<T> cls) {
             this.uri = uri;
@@ -74,8 +74,8 @@ public class RestClient extends RpcClient {
             return this;
         }
 
-        public Builder<T> setExtraHeaders(@NotNull Map<String, String> extraHeaders) {
-            this.extraHeaders = extraHeaders;
+        public Builder<T> setHeaders(@NotNull Map<String, String> headers) {
+            this.headers = headers;
             return this;
         }
 
@@ -83,7 +83,7 @@ public class RestClient extends RpcClient {
         public T create() {
             return createProxy(
                 cls,
-                new RestInvocationHandler(cls, uri, gson, resolver, userAgent, sslContext, extraHeaders)
+                new RestInvocationHandler(cls, uri, gson, resolver, userAgent, sslContext, headers)
             );
         }
     }
@@ -99,9 +99,9 @@ public class RestClient extends RpcClient {
             @NotNull RestEndpointResolver resolver,
             @NotNull String userAgent,
             @Nullable SSLContext sslContext,
-            @NotNull Map<String, String> extraHeaders
+            @NotNull Map<String, String> headers
         ) {
-            super(clientClass, uri, gson, userAgent, sslContext, extraHeaders);
+            super(clientClass, uri, gson, userAgent, sslContext, headers);
             this.resolver = resolver;
         }
 
