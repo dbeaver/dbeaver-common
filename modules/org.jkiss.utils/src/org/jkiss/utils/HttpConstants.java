@@ -42,4 +42,5 @@ public class HttpConstants {
     public static final int CODE_TOKEN_EXPIRED = 440;
     public static final int CODE_INTERNAL_SERVER_ERROR = 500;
 
+    public static final String BEARER_PREFIX = "Bearer ";
 }
