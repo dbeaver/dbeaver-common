@@ -31,6 +31,9 @@ public class HttpConstants {
 
     public static final String CONTENT_TYPE_JSON = "application/json";
     public static final String CONTENT_TYPE_APP_FORM = "application/x-www-form-urlencoded";
+    public static final String CONTENT_TYPE_OCTET_STREAM = "application/octet-stream";
+    public static final String CONTENT_TYPE_TEXT_PLAIN = "text/plain";
+    public static final String CONTENT_TYPE_TEXT_XML = "text/xml";
 
     public static final int CODE_OK = 200;
     public static final int CODE_BAD_REQUEST = 400;

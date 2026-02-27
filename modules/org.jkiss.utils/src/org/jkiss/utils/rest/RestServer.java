@@ -26,6 +26,7 @@ import com.sun.net.httpserver.HttpServer;
 import org.jkiss.code.NotNull;
 import org.jkiss.code.Nullable;
 import org.jkiss.utils.CommonUtils;
+import org.jkiss.utils.HttpConstants;
 
 import java.io.*;
 import java.lang.reflect.InvocationTargetException;
@@ -149,7 +150,7 @@ public class RestServer<T> {
                     String responseText;
                     if (response.type == void.class) {
                         responseText = CommonUtils.toString(response.object);
-                        exchange.getResponseHeaders().add("Content-Type", "text/plain");
+                        exchange.getResponseHeaders().add(HttpConstants.HEADER_CONTENT_TYPE, HttpConstants.CONTENT_TYPE_TEXT_PLAIN);
                     } else {
                         try {
                             responseText = gson.toJson(response.object, response.type);
@@ -161,7 +162,7 @@ public class RestServer<T> {
                             sendError(exchange, RpcConstants.SC_SERVER_ERROR, buf.toString());
                             return;
                         }
-                        exchange.getResponseHeaders().add("Content-Type", "application/json");
+                        exchange.getResponseHeaders().add(HttpConstants.HEADER_CONTENT_TYPE, HttpConstants.CONTENT_TYPE_JSON);
                     }
                     byte[] responseBytes = responseText.getBytes(StandardCharsets.UTF_8);
 
@@ -184,7 +185,7 @@ public class RestServer<T> {
             String responseText = responseObject.toString();
             byte[] result = responseText.getBytes(StandardCharsets.UTF_8);
 
-            exchange.getResponseHeaders().add("Content-Type", "text/plain");
+            exchange.getResponseHeaders().add(HttpConstants.HEADER_CONTENT_TYPE, HttpConstants.CONTENT_TYPE_TEXT_PLAIN);
             exchange.sendResponseHeaders(resultCode, result.length);
             try (OutputStream responseBody = exchange.getResponseBody()) {
                 responseBody.write(result);
