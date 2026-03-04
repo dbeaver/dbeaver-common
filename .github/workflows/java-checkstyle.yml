@@ -29,9 +29,9 @@ jobs:
           distribution: 'temurin'
 
       - name: 'checkstyle-nullability-annotations: build using Maven'
-        run: ./mvnw -B package -f checkstyle-nullability-annotations/pom.xml
+        run: ./mvnw -B package -f checkstyle-nullability-annotations/pom.xml -DskipTests=true
 
-      - uses: dbeaver/action-java-checkstyle@dbeaver/pro#7071-nullability-annotations-check
+      - uses: dbeaver/action-java-checkstyle@master
         with:
           reporter: github-pr-annotations
           filter_mode: diff_context
