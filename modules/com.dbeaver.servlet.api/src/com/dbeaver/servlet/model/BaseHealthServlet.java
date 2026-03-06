@@ -23,6 +23,7 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.jkiss.code.NotNull;
+import org.jkiss.utils.HttpConstants;
 import org.jkiss.utils.rest.RpcConstants;
 
 import java.io.IOException;
@@ -43,7 +44,7 @@ public class BaseHealthServlet extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse response) throws ServletException, IOException {
-        response.setContentType("application/json");
+        response.setContentType(HttpConstants.CONTENT_TYPE_JSON);
         response.setHeader("Access-Control-Allow-Origin", "*");
         boolean extendedStatus = Boolean.parseBoolean(req.getParameter(PARAM_EXTENDED_STATUS));
         if (extendedStatus) {
