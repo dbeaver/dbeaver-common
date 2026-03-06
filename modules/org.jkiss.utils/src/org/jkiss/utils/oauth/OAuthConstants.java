@@ -1,6 +1,6 @@
 /*
  * DBeaver - Universal Database Manager
- * Copyright (C) 2010-2025 DBeaver Corp and others
+ * Copyright (C) 2010-2026 DBeaver Corp and others
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,6 +29,9 @@ public class OAuthConstants {
     public static final String RESULT_PROP_TOKEN_ID = "id_token";
     public static final String GRANT_TYPE_CLIENT_CREDENTIALS = "client_credentials";
     public static final String GRANT_TYPE_AUTH_CODE = "authorization_code";
+
+    public static final String RESPONSE_PARAM_ACCESS_TOKEN = "access_token";
+    public static final String RESPONSE_PARAM_REFRESH_TOKEN = "refresh_token";
 
     private OAuthConstants() {
     }
