@@ -18,5 +18,52 @@ package org.jkiss.utils.oauth;
 
 import org.jkiss.code.Nullable;
 
-public record OAuthTokens(@Nullable String accessToken, @Nullable String refreshToken) {
+import java.util.Objects;
+
+public final class OAuthTokens {
+    @Nullable
+    private final String accessToken;
+    @Nullable
+    private final String refreshToken;
+
+    public OAuthTokens(@Nullable String accessToken, @Nullable String refreshToken) {
+        this.accessToken = accessToken;
+        this.refreshToken = refreshToken;
+    }
+
+    @Nullable
+    public String accessToken() {
+        return accessToken;
+    }
+
+    @Nullable
+    public String refreshToken() {
+        return refreshToken;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == this) {
+            return true;
+        }
+        if (obj == null || obj.getClass() != this.getClass()) {
+            return false;
+        }
+        var that = (OAuthTokens) obj;
+        return Objects.equals(this.accessToken, that.accessToken) &&
+            Objects.equals(this.refreshToken, that.refreshToken);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(accessToken, refreshToken);
+    }
+
+    @Override
+    public String toString() {
+        return "OAuthTokens[" +
+            "accessToken=" + accessToken + ", " +
+            "refreshToken=" + refreshToken + ']';
+    }
+
 }

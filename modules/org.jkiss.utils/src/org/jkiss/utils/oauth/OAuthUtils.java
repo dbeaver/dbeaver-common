@@ -70,13 +70,11 @@ public class OAuthUtils {
         @NotNull String body,
         int timeoutSec
     ) throws IOException {
-        try (
-            HttpClient client = HttpClient.newBuilder()
-                .cookieHandler(new CookieManager())
-                .version(HttpClient.Version.HTTP_1_1)
-                .build()
-        ) {
-
+        HttpClient client = HttpClient.newBuilder()
+            .cookieHandler(new CookieManager())
+            .version(HttpClient.Version.HTTP_1_1)
+            .build();
+        try {
             HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(endpoint))
                 .timeout(Duration.ofSeconds(timeoutSec))
@@ -89,6 +87,14 @@ public class OAuthUtils {
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
                 throw new IOException("Interrupted while requesting token", e);
+            }
+        } finally {
+            if (client instanceof AutoCloseable) {
+                try {
+                    ((AutoCloseable) client).close();
+                } catch (Exception e) {
+                    // Ignore
+                }
             }
         }
     }
