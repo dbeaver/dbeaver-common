@@ -1,6 +1,6 @@
 /*
  * DBeaver - Universal Database Manager
- * Copyright (C) 2010-2025 DBeaver Corp and others
+ * Copyright (C) 2010-2026 DBeaver Corp and others
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@ import com.sun.net.httpserver.HttpServer;
 import org.jkiss.code.NotNull;
 import org.jkiss.code.Nullable;
 import org.jkiss.utils.CommonUtils;
+import org.jkiss.utils.HttpConstants;
 
 import java.io.*;
 import java.lang.reflect.InvocationTargetException;
@@ -55,11 +56,12 @@ public class RestServer<T> {
         @NotNull Gson gson,
         @NotNull Predicate<InetSocketAddress> filter,
         int port,
-        int backlog
+        int backlog,
+        @NotNull RequestHandlerFactory<T> handlerFactory
     ) throws IOException {
         InetSocketAddress listenAddr = new InetSocketAddress(InetAddress.getLoopbackAddress(), port);
         server = HttpServer.create(listenAddr, backlog);
-        server.createContext("/", createHandler(cls, object, gson, filter));
+        server.createContext("/", handlerFactory.createHandler(cls, object, gson, filter, landingPage));
         server.setExecutor(createExecutor());
         server.start();
     }
@@ -104,35 +106,29 @@ public class RestServer<T> {
         return new ThreadPoolExecutor(1, 10, 60, TimeUnit.SECONDS, new LinkedBlockingQueue<>());
     }
 
-    @NotNull
-    protected RequestHandler createHandler(
-        @NotNull Class<T> cls,
-        @NotNull T object,
-        @NotNull Gson gson,
-        @NotNull Predicate<InetSocketAddress> filter
-    ) {
-        return new RequestHandler(cls, object, gson, filter);
-    }
-
     private static final Type REQUEST_TYPE = new TypeToken<Map<String, JsonElement>>() {}.getType();
 
-    protected class RequestHandler implements HttpHandler {
+    public static class RequestHandler<T> implements HttpHandler {
 
         private final T object;
         private final Gson gson;
         private final Map<String, Method> mappings;
         private final Predicate<InetSocketAddress> filter;
+        @Nullable
+        private final String landingPage;
 
-        protected RequestHandler(
+        public RequestHandler(
             @NotNull Class<T> cls,
             @NotNull T object,
             @NotNull Gson gson,
-            @NotNull Predicate<InetSocketAddress> filter
+            @NotNull Predicate<InetSocketAddress> filter,
+            @Nullable String landingPage
         ) {
             this.object = object;
             this.gson = gson;
             this.mappings = createMappings(cls);
             this.filter = filter;
+            this.landingPage = landingPage;
         }
 
         @Override
@@ -154,7 +150,7 @@ public class RestServer<T> {
                     String responseText;
                     if (response.type == void.class) {
                         responseText = CommonUtils.toString(response.object);
-                        exchange.getResponseHeaders().add("Content-Type", "text/plain");
+                        exchange.getResponseHeaders().add(HttpConstants.HEADER_CONTENT_TYPE, HttpConstants.CONTENT_TYPE_TEXT_PLAIN);
                     } else {
                         try {
                             responseText = gson.toJson(response.object, response.type);
@@ -166,7 +162,7 @@ public class RestServer<T> {
                             sendError(exchange, RpcConstants.SC_SERVER_ERROR, buf.toString());
                             return;
                         }
-                        exchange.getResponseHeaders().add("Content-Type", "application/json");
+                        exchange.getResponseHeaders().add(HttpConstants.HEADER_CONTENT_TYPE, HttpConstants.CONTENT_TYPE_JSON);
                     }
                     byte[] responseBytes = responseText.getBytes(StandardCharsets.UTF_8);
 
@@ -185,11 +181,11 @@ public class RestServer<T> {
             }
         }
 
-        private void sendError(HttpExchange exchange, int resultCode, Object responseObject) throws IOException {
+        protected void sendError(HttpExchange exchange, int resultCode, Object responseObject) throws IOException {
             String responseText = responseObject.toString();
             byte[] result = responseText.getBytes(StandardCharsets.UTF_8);
 
-            exchange.getResponseHeaders().add("Content-Type", "text/plain");
+            exchange.getResponseHeaders().add(HttpConstants.HEADER_CONTENT_TYPE, HttpConstants.CONTENT_TYPE_TEXT_PLAIN);
             exchange.sendResponseHeaders(resultCode, result.length);
             try (OutputStream responseBody = exchange.getResponseBody()) {
                 responseBody.write(result);
@@ -302,6 +298,7 @@ public class RestServer<T> {
         private int backlog;
         private Predicate<InetSocketAddress> filter = DEFAULT_PREDICATE;
         private String landingPage;
+        private RequestHandlerFactory<T> handlerFactory = RequestHandler::new;
 
         private Builder(@NotNull T object, @NotNull Class<T> cls) {
             this.object = object;
@@ -341,10 +338,15 @@ public class RestServer<T> {
             return this;
         }
 
+        public Builder<T> setHandlerFactory(@NotNull RequestHandlerFactory<T> handlerFactory) {
+            this.handlerFactory = handlerFactory;
+            return this;
+        }
+
         @NotNull
         public RestServer<T> create() {
             try {
-                RestServer<T> restServer = new RestServer<>(cls, object, gson, filter, port, backlog);
+                RestServer<T> restServer = new RestServer<>(cls, object, gson, filter, port, backlog, handlerFactory);
                 if (landingPage != null) {
                     restServer.setLandingPage(landingPage);
                 }

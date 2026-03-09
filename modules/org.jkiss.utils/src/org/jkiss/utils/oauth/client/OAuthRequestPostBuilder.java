@@ -1,6 +1,6 @@
 /*
  * DBeaver - Universal Database Manager
- * Copyright (C) 2010-2025 DBeaver Corp and others
+ * Copyright (C) 2010-2026 DBeaver Corp and others
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package org.jkiss.utils.oauth.client;
 
 import org.jkiss.utils.CommonUtils;
+import org.jkiss.utils.HttpConstants;
 
 import java.net.URI;
 import java.net.URLEncoder;
@@ -58,9 +59,9 @@ public class OAuthRequestPostBuilder {
         HttpRequest.Builder builder = tokenUri == null ? HttpRequest.newBuilder() : HttpRequest.newBuilder(tokenUri);
         return builder.POST(HttpRequest.BodyPublishers.ofString(
                 "&grant_type=" + URLEncoder.encode(grantType, StandardCharsets.UTF_8)
-        )).header("Authorization", "Basic " +
+        )).header(HttpConstants.HEADER_AUTHORIZATION, "Basic " +
                 java.util.Base64.getEncoder().encodeToString((clientId + ":" + clientSecret).getBytes(StandardCharsets.UTF_8)))
-                .header("Content-Type", "application/x-www-form-urlencoded")
+                .header(HttpConstants.HEADER_CONTENT_TYPE, HttpConstants.CONTENT_TYPE_APP_FORM)
                 .build();
     }
 }
