@@ -1,6 +1,6 @@
 /*
  * DBeaver - Universal Database Manager
- * Copyright (C) 2010-2025 DBeaver Corp and others
+ * Copyright (C) 2010-2026 DBeaver Corp and others
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,6 +43,7 @@ public class RestClient extends RpcClient {
         private RestEndpointResolver resolver;
         private String userAgent;
         private SSLContext sslContext;
+        private Map<String, String> headers = Map.of();
 
         private Builder(@NotNull URI uri, @NotNull Class<T> cls) {
             this.uri = uri;
@@ -73,11 +74,17 @@ public class RestClient extends RpcClient {
             return this;
         }
 
+        public Builder<T> setHeaders(@NotNull Map<String, String> headers) {
+            this.headers = headers;
+            return this;
+        }
+
         @NotNull
         public T create() {
             return createProxy(
                 cls,
-                new RestInvocationHandler(cls, uri, gson, resolver, userAgent, sslContext));
+                new RestInvocationHandler(cls, uri, gson, resolver, userAgent, sslContext, headers)
+            );
         }
     }
 
@@ -91,9 +98,10 @@ public class RestClient extends RpcClient {
             @NotNull Gson gson,
             @NotNull RestEndpointResolver resolver,
             @NotNull String userAgent,
-            @Nullable SSLContext sslContext
+            @Nullable SSLContext sslContext,
+            @NotNull Map<String, String> headers
         ) {
-            super(clientClass, uri, gson, userAgent, sslContext);
+            super(clientClass, uri, gson, userAgent, sslContext, headers);
             this.resolver = resolver;
         }
 
