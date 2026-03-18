@@ -958,7 +958,7 @@ public class CommonUtils {
      *
      */
     public static int compareNumbers(Number value1, Number value2) {
-        if (value1 == value2) return 0;
+        if (Objects.equals(value1,value2)) return 0;
         if (value1 == null) return -1;
         if (value2 == null) return 1;
 
