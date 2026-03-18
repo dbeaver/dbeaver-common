@@ -22,6 +22,8 @@ import org.jkiss.code.Nullable;
 
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.*;
 import java.util.function.Function;
 import java.util.logging.Level;
@@ -937,9 +939,105 @@ public class CommonUtils {
         return toString(o1).compareTo(toString(o2));
     }
 
+    /**
+     * Compares two {@link Number} objects with type-aware precision handling.
+     *
+     * <p>This method attempts to compare numbers without losing precision by following these rules:</p>
+     * <ul>
+     *   <li>Uses {@link BigDecimal} comparison if either value is a {@link BigDecimal} or if high precision is required.</li>
+     *   <li>Uses integer comparison (long or BigInteger) if both values are integer types.</li>
+     *   <li>Falls back to {@code double} comparison for floating-point types or mixed types.
+     *       <b>Note:</b> Precision loss may occur if comparing very large integers (e.g., {@link Long#MAX_VALUE})
+     *       with floating-point numbers due to the limitations of double precision.</li>
+     * </ul>
+     *
+     * @param value1 the first number, should not be {@code null}
+     * @param value2 the second number, should not be {@code null}
+     * @return a negative integer, zero, or a positive integer as {@code value1} is less than,
+     *         equal to, or greater than {@code value2}
+     *
+     */
     public static int compareNumbers(Number value1, Number value2) {
-        double numDiff = value1.doubleValue() - value2.doubleValue();
-        return numDiff < 0 ? -1 : (numDiff > 0 ? 1 : 0);
+        if (value1 == value2) return 0;
+        if (value1 == null) return -1;
+        if (value2 == null) return 1;
+
+        // 1. In the presence of NaN or Infinity, Double.compare is required, as BigDecimal does not support these values.
+        boolean v1isFloatingPoint = (value1 instanceof Double || value1 instanceof Float);
+        boolean v2isFloatingPoint = (value2 instanceof Double || value2 instanceof Float);
+        if ((v1isFloatingPoint && isSpecialFloatingPoint(value1)) || (v2isFloatingPoint && isSpecialFloatingPoint(value2))) {
+            return Double.compare(value1.doubleValue(), value2.doubleValue());
+        }
+
+        // 2. Precise comparison for high-precision decimals
+        if (value1 instanceof BigDecimal || value2 instanceof BigDecimal) {
+            BigDecimal b1 = toBigDecimal(value1);
+            BigDecimal b2 = toBigDecimal(value2);
+            return b1.compareTo(b2);
+        }
+        boolean isV1IntegerType = isIntegerType(value1);
+        boolean isV2IntegerType = isIntegerType(value2);
+
+        // 3. Precise comparison for integer types
+        if (isV1IntegerType && isV2IntegerType) {
+            if (value1 instanceof BigInteger || value2 instanceof BigInteger) {
+                BigInteger b1 = toBigInteger(value1);
+                BigInteger b2 = toBigInteger(value2);
+                return b1.compareTo(b2);
+            }
+            return Long.compare(value1.longValue(), value2.longValue());
+        }
+
+        // 4. Fallback to double comparison for Float/Double
+        return Double.compare(value1.doubleValue(), value2.doubleValue());
+    }
+
+    /**
+     * Checks if the number is a Double or Float representing NaN or Infinity.
+     */
+    public static boolean isSpecialFloatingPoint(Number number) {
+        if (number instanceof Double) {
+            double d = (Double) number;
+            return Double.isNaN(d) || Double.isInfinite(d);
+        }
+        if (number instanceof Float) {
+            float f = (Float) number;
+            return Float.isNaN(f) || Float.isInfinite(f);
+        }
+        return false;
+    }
+
+    public static boolean isIntegerType(Number number) {
+        return number instanceof Long ||
+                number instanceof Integer ||
+                number instanceof Short ||
+                number instanceof Byte ||
+                number instanceof BigInteger;
+    }
+
+    public static BigInteger toBigInteger(Number number) {
+        if (number instanceof BigInteger) {
+            return (BigInteger) number;
+        }
+        return BigInteger.valueOf(number.longValue());
+    }
+
+    /**
+     * Safely converts a Number to a BigDecimal without losing precision.
+     */
+    public static BigDecimal toBigDecimal(Number number) {
+        if (number instanceof BigDecimal) {
+            return (BigDecimal) number;
+        }
+        if (number instanceof BigInteger) {
+            return new BigDecimal((BigInteger) number);
+        }
+        if (isIntegerType(number)) {
+            return BigDecimal.valueOf(number.longValue());
+        }
+        // For Double and Float, converting via String prevents introducing
+        // floating-point inaccuracies (e.g., 0.1 becoming 0.10000000000000000555)
+        return new BigDecimal(number.toString());
     }
 
     public static String cutExtraLines(String message, int maxLines) {
