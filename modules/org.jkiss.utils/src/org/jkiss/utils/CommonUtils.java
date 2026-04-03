@@ -18,6 +18,7 @@
 package org.jkiss.utils;
 
 import org.jkiss.code.NotNull;
+import org.jkiss.code.NotNullWhen;
 import org.jkiss.code.Nullable;
 
 import java.io.File;
@@ -179,12 +180,17 @@ public class CommonUtils {
         return value != null ? value : defaultValue;
     }
 
+    @NotNullWhen("defaultValue != null")
+    public static <T> T nvl(@Nullable T value, @Nullable T defaultValue) {
+        return value != null ? value : defaultValue;
+    }
+
     public static boolean isEmpty(@Nullable CharSequence value) {
         return value == null || value.length() == 0;
     }
 
     public static boolean isEmpty(@Nullable String value) {
-        return value == null || value.length() == 0;
+        return value == null || value.isEmpty();
     }
 
     public static boolean isNotEmpty(@Nullable String value) {
@@ -299,8 +305,7 @@ public class CommonUtils {
         if (value == null) {
             return defaultValue;
         } else if (value instanceof Boolean) {
-            Boolean b = (Boolean) value;
-            return b;
+            return (Boolean) value;
         } else {
             return getBoolean(value.toString(), defaultValue);
         }
@@ -308,7 +313,7 @@ public class CommonUtils {
 
     @NotNull
     public static String getLineSeparator() {
-        String lineSeparator = System.getProperty(StandardConstants.ENV_LINE_SEPARATOR);
+        String lineSeparator = System.lineSeparator();
         return lineSeparator == null ? "\n" : lineSeparator;
     }
 
@@ -393,8 +398,7 @@ public class CommonUtils {
         if (object == null) {
             return "";
         } else if (object instanceof String) {
-            String s = (String) object;
-            return s;
+            return (String) object;
         } else {
             String strValue = object.toString();
             return strValue == null ? "" : strValue;
@@ -405,8 +409,7 @@ public class CommonUtils {
         if (object == null) {
             return def;
         } else if (object instanceof String) {
-            String s = (String) object;
-            return s;
+            return (String) object;
         } else {
             return object.toString();
         }
@@ -416,8 +419,7 @@ public class CommonUtils {
         if (object == null) {
             return def;
         } else if (object instanceof Boolean) {
-            Boolean b = (Boolean) object;
-            return b;
+            return (Boolean) object;
         } else {
             return getBoolean(object.toString(), def);
         }
@@ -744,7 +746,7 @@ public class CommonUtils {
             return defValue;
         }
         name = name.trim();
-        if (name.length() == 0) {
+        if (name.isEmpty()) {
             return defValue;
         }
         if (underscoreSpaces) {
