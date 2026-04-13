@@ -17,9 +17,13 @@
 
 package org.jkiss.code;
 
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+
 /**
  * Not null when expression is true
  */
+@Retention(RetentionPolicy.SOURCE)
 public @interface NotNullWhen {
 
     @NotNull

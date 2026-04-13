@@ -18,12 +18,15 @@
 package org.jkiss.code;
 
 import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
  * Marks constructors which are invoked by using reflection
  */
 @Target(value = {ElementType.CONSTRUCTOR, ElementType.METHOD})
+@Retention(RetentionPolicy.SOURCE)
 public @interface DynamicCall {
 
 }
