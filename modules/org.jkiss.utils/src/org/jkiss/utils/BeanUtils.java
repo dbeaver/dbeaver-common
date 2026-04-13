@@ -1,6 +1,6 @@
 /*
  * DBeaver - Universal Database Manager
- * Copyright (C) 2010-2024 DBeaver Corp and others
+ * Copyright (C) 2010-2026 DBeaver Corp and others
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -165,18 +165,13 @@ public class BeanUtils {
     }
 
     public static boolean isCollectionType(Type type) {
-        if (type instanceof Class && Collection.class.isAssignableFrom((Class<?>) type)) {
-/*
-            if (type instanceof ParameterizedType) {
-                ParameterizedType pt = (ParameterizedType)type;
-                if (pt.getActualTypeArguments().length == 1) {
-                    return true;
-                }
-            }
-*/
-            return true;
+        if (type instanceof Class) {
+            return Collection.class.isAssignableFrom((Class<?>) type);
+        } else if (type instanceof ParameterizedType) {
+            return isCollectionType(((ParameterizedType) type).getRawType());
+        } else {
+            return isArrayType(type);
         }
-        return isArrayType(type);
     }
 
     public static Class<?> getCollectionType(Type type) {
