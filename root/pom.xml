@@ -65,7 +65,7 @@
 
         <dbeaver.common.version>2.7.0-SNAPSHOT</dbeaver.common.version>
         <lm.version>3.0.32-SNAPSHOT</lm.version>
-        <dm.version>0.0.9-SNAPSHOT</dm.version>
+        <dm.version>0.0.10-SNAPSHOT</dm.version>
         <commons-cli.version>1.3.1</commons-cli.version>
     </properties>
 
