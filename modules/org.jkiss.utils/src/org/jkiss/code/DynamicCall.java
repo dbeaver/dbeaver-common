@@ -17,16 +17,16 @@
 
 package org.jkiss.code;
 
+import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
- * Not null when expression is true
+ * Marks constructors which are invoked by using reflection
  */
+@Target(value = {ElementType.CONSTRUCTOR, ElementType.METHOD})
 @Retention(RetentionPolicy.SOURCE)
-public @interface NotNullWhen {
-
-    @NotNull
-    String value();
+public @interface DynamicCall {
 
 }
