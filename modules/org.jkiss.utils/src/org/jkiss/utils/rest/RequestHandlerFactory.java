@@ -24,9 +24,9 @@ import java.net.InetSocketAddress;
 import java.util.function.Predicate;
 
 @FunctionalInterface
-public interface RequestHandlerFactory {
+public interface RequestHandlerFactory<T> {
     @NotNull
-    <T> RestServer.RequestHandler<T> createHandler(
+    RestServer.RequestHandler<T> createHandler(
         @NotNull Class<T> cls,
         @NotNull T object,
         @NotNull Gson gson,
