@@ -49,6 +49,7 @@ import java.util.logging.Logger;
 
 public class RestServer {
     private static final Logger log = Logger.getLogger(RestServer.class.getName());
+    private static final Object EMPTY_CONTROLLER = new Object();
     private static final RequestHandlerFactory DEFAULT_HANDLER_FACTORY = new RequestHandlerFactory() {
         @NotNull
         @Override
@@ -64,7 +65,6 @@ public class RestServer {
     };
 
     private HttpServer server;
-    private String landingPage;
 
     public <T> RestServer(
         @NotNull Class<T> cls,
@@ -106,12 +106,28 @@ public class RestServer {
         @Nullable String landingPage,
         @NotNull RequestHandlerFactory handlerFactory
     ) throws IOException {
-        this.landingPage = landingPage;
         InetSocketAddress listenAddr = new InetSocketAddress(InetAddress.getLoopbackAddress(), port);
         server = HttpServer.create(listenAddr, backlog);
-        controllers.forEach(ctrl ->
-            server.createContext(ctrl.path, createHandler(ctrl, gson, filter, landingPage, handlerFactory))
-        );
+        boolean hasRootController = controllers.stream().anyMatch(ctrl -> "/".equals(ctrl.path));
+        if (controllers.isEmpty()) {
+            createEmptyRootContext(gson, filter, landingPage, handlerFactory);
+        } else {
+            controllers.forEach(ctrl ->
+                server.createContext(
+                    ctrl.path,
+                    createHandler(
+                        ctrl,
+                        gson,
+                        filter,
+                        "/".equals(ctrl.path) ? landingPage : null,
+                        handlerFactory
+                    )
+                )
+            );
+            if (!hasRootController && landingPage != null) {
+                createEmptyRootContext(gson, filter, landingPage, handlerFactory);
+            }
+        }
         server.setExecutor(createExecutor());
         server.start();
     }
@@ -154,13 +170,27 @@ public class RestServer {
         return server.getAddress();
     }
 
-    void setLandingPage(@Nullable String landingPage) {
-        this.landingPage = landingPage;
-    }
-
     @NotNull
     protected Executor createExecutor() {
         return new ThreadPoolExecutor(1, 10, 60, TimeUnit.SECONDS, new LinkedBlockingQueue<>());
+    }
+
+    private void createEmptyRootContext(
+        @NotNull Gson gson,
+        @NotNull Predicate<InetSocketAddress> filter,
+        @Nullable String landingPage,
+        @NotNull RequestHandlerFactory handlerFactory
+    ) {
+        server.createContext(
+            "/",
+            createHandler(
+                new ControllerDef<>("/", Object.class, EMPTY_CONTROLLER),
+                gson,
+                filter,
+                landingPage,
+                handlerFactory
+            )
+        );
     }
 
     @NotNull
