@@ -14,16 +14,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.jkiss.utils.rest;
 
-package org.jkiss.code;
+import com.google.gson.Gson;
+import org.jkiss.code.NotNull;
+import org.jkiss.code.Nullable;
 
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
+import java.net.InetSocketAddress;
+import java.util.function.Predicate;
 
-/**
- * Nullable annotation
- */
-@Retention(RetentionPolicy.SOURCE)
-public @interface Nullable {
-
+@FunctionalInterface
+public interface RequestHandlerFactory {
+    @NotNull
+    <T> RestServer.RequestHandler<T> createHandler(
+        @NotNull Class<T> cls,
+        @NotNull T object,
+        @NotNull Gson gson,
+        @NotNull Predicate<InetSocketAddress> filter,
+        @Nullable String landingPage
+    );
 }

@@ -21,9 +21,12 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
 /**
- * Nullable annotation
+ * Not null when expression is true
  */
 @Retention(RetentionPolicy.SOURCE)
-public @interface Nullable {
+public @interface NotNullWhen {
+
+    @NotNull
+    String value();
 
 }

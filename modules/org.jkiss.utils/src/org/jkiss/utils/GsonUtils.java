@@ -1,6 +1,6 @@
 /*
  * DBeaver - Universal Database Manager
- * Copyright (C) 2010-2024 DBeaver Corp and others
+ * Copyright (C) 2010-2026 DBeaver Corp and others
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -68,6 +68,19 @@ public class GsonUtils {
             } else {
                 return Date.from(localDate.atStartOfDay().toInstant(ZoneOffset.UTC));
             }
+        }
+    }
+
+    public static final class InstantIsoAdapter implements JsonDeserializer<Instant>, JsonSerializer<Instant> {
+        @Override
+        public Instant deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) {
+            if (json == null || json.isJsonNull()) return null;
+            return Instant.parse(json.getAsString());
+        }
+
+        @Override
+        public JsonElement serialize(Instant src, Type typeOfSrc, JsonSerializationContext context) {
+            return src == null ? JsonNull.INSTANCE : new JsonPrimitive(src.toString());
         }
     }
 }

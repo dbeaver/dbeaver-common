@@ -1,6 +1,6 @@
 /*
  * DBeaver - Universal Database Manager
- * Copyright (C) 2010-2025 DBeaver Corp and others
+ * Copyright (C) 2010-2026 DBeaver Corp and others
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@ import com.sun.net.httpserver.HttpServer;
 import org.jkiss.code.NotNull;
 import org.jkiss.code.Nullable;
 import org.jkiss.utils.CommonUtils;
+import org.jkiss.utils.HttpConstants;
 
 import java.io.*;
 import java.lang.reflect.InvocationTargetException;
@@ -36,7 +37,11 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.*;
 import java.util.function.Predicate;
 import java.util.logging.Level;
@@ -44,6 +49,19 @@ import java.util.logging.Logger;
 
 public class RestServer {
     private static final Logger log = Logger.getLogger(RestServer.class.getName());
+    private static final RequestHandlerFactory DEFAULT_HANDLER_FACTORY = new RequestHandlerFactory() {
+        @NotNull
+        @Override
+        public <T> RequestHandler<T> createHandler(
+            @NotNull Class<T> cls,
+            @NotNull T object,
+            @NotNull Gson gson,
+            @NotNull Predicate<InetSocketAddress> filter,
+            @Nullable String landingPage
+        ) {
+            return new RequestHandler<>(cls, object, gson, filter, landingPage);
+        }
+    };
 
     private HttpServer server;
     private String landingPage;
@@ -56,11 +74,27 @@ public class RestServer {
         int port,
         int backlog
     ) throws IOException {
-        InetSocketAddress listenAddr = new InetSocketAddress(InetAddress.getLoopbackAddress(), port);
-        server = HttpServer.create(listenAddr, backlog);
-        server.createContext("/", createHandler(cls, object, gson, filter));
-        server.setExecutor(createExecutor());
-        server.start();
+        this(cls, object, gson, filter, port, backlog, DEFAULT_HANDLER_FACTORY);
+    }
+
+    public <T> RestServer(
+        @NotNull Class<T> cls,
+        @NotNull T object,
+        @NotNull Gson gson,
+        @NotNull Predicate<InetSocketAddress> filter,
+        int port,
+        int backlog,
+        @NotNull RequestHandlerFactory handlerFactory
+    ) throws IOException {
+        this(
+            Collections.singletonList(new ControllerDef<>("/", cls, object)),
+            gson,
+            filter,
+            port,
+            backlog,
+            null,
+            handlerFactory
+        );
     }
 
     private RestServer(
@@ -68,12 +102,15 @@ public class RestServer {
         @NotNull Gson gson,
         @NotNull Predicate<InetSocketAddress> filter,
         int port,
-        int backlog
+        int backlog,
+        @Nullable String landingPage,
+        @NotNull RequestHandlerFactory handlerFactory
     ) throws IOException {
+        this.landingPage = landingPage;
         InetSocketAddress listenAddr = new InetSocketAddress(InetAddress.getLoopbackAddress(), port);
         server = HttpServer.create(listenAddr, backlog);
         controllers.forEach(ctrl ->
-            server.createContext(ctrl.path, createHandler((Class<Object>) ctrl.cls, ctrl.instance, gson, filter))
+            server.createContext(ctrl.path, createHandler(ctrl, gson, filter, landingPage, handlerFactory))
         );
         server.setExecutor(createExecutor());
         server.start();
@@ -126,34 +163,39 @@ public class RestServer {
     }
 
     @NotNull
-    protected <T> RequestHandler createHandler(
-        @NotNull Class<T> cls,
-        @NotNull T object,
+    private static <T> RequestHandler<T> createHandler(
+        @NotNull ControllerDef<T> controller,
         @NotNull Gson gson,
-        @NotNull Predicate<InetSocketAddress> filter
+        @NotNull Predicate<InetSocketAddress> filter,
+        @Nullable String landingPage,
+        @NotNull RequestHandlerFactory handlerFactory
     ) {
-        return new RequestHandler(cls, object, gson, filter);
+        return handlerFactory.createHandler(controller.cls, controller.instance, gson, filter, landingPage);
     }
 
     private static final Type REQUEST_TYPE = new TypeToken<Map<String, JsonElement>>() {}.getType();
 
-    protected class RequestHandler<T> implements HttpHandler {
+    public static class RequestHandler<T> implements HttpHandler {
 
         private final T object;
         private final Gson gson;
         private final Map<String, Method> mappings;
         private final Predicate<InetSocketAddress> filter;
+        @Nullable
+        private final String landingPage;
 
-        protected RequestHandler(
+        public RequestHandler(
             @NotNull Class<T> cls,
             @NotNull T object,
             @NotNull Gson gson,
-            @NotNull Predicate<InetSocketAddress> filter
+            @NotNull Predicate<InetSocketAddress> filter,
+            @Nullable String landingPage
         ) {
             this.object = object;
             this.gson = gson;
             this.mappings = createMappings(cls);
             this.filter = filter;
+            this.landingPage = landingPage;
         }
 
         @Override
@@ -175,19 +217,18 @@ public class RestServer {
                     String responseText;
                     if (response.type == void.class) {
                         responseText = CommonUtils.toString(response.object);
-                        exchange.getResponseHeaders().add("Content-Type", "text/plain");
+                        exchange.getResponseHeaders().add(HttpConstants.HEADER_CONTENT_TYPE, HttpConstants.CONTENT_TYPE_TEXT_PLAIN);
                     } else {
                         try {
                             responseText = gson.toJson(response.object, response.type);
                         } catch (Throwable e) {
-                            // Serialization error
                             StringWriter buf = new StringWriter();
                             new RpcException("JSON serialization error: " + e.getMessage(), e).printStackTrace(new PrintWriter(buf, true));
 
                             sendError(exchange, RpcConstants.SC_SERVER_ERROR, buf.toString());
                             return;
                         }
-                        exchange.getResponseHeaders().add("Content-Type", "application/json");
+                        exchange.getResponseHeaders().add(HttpConstants.HEADER_CONTENT_TYPE, HttpConstants.CONTENT_TYPE_JSON);
                     }
                     byte[] responseBytes = responseText.getBytes(StandardCharsets.UTF_8);
 
@@ -206,11 +247,11 @@ public class RestServer {
             }
         }
 
-        private void sendError(HttpExchange exchange, int resultCode, Object responseObject) throws IOException {
+        protected void sendError(HttpExchange exchange, int resultCode, Object responseObject) throws IOException {
             String responseText = responseObject.toString();
             byte[] result = responseText.getBytes(StandardCharsets.UTF_8);
 
-            exchange.getResponseHeaders().add("Content-Type", "text/plain");
+            exchange.getResponseHeaders().add(HttpConstants.HEADER_CONTENT_TYPE, HttpConstants.CONTENT_TYPE_TEXT_PLAIN);
             exchange.sendResponseHeaders(resultCode, result.length);
             try (OutputStream responseBody = exchange.getResponseBody()) {
                 responseBody.write(result);
@@ -327,6 +368,7 @@ public class RestServer {
         private Predicate<InetSocketAddress> filter = DEFAULT_PREDICATE;
         private String landingPage;
         private final List<ControllerDef<?>> controllers = new ArrayList<>();
+        private RequestHandlerFactory handlerFactory = DEFAULT_HANDLER_FACTORY;
 
         private Builder() {
             this.gson = RpcConstants.DEFAULT_GSON;
@@ -335,10 +377,10 @@ public class RestServer {
         }
 
         @NotNull
-        public Builder addController(
+        public <T> Builder addController(
             @NotNull String path,
-            @NotNull Class<?> cls,
-            @NotNull Object instance
+            @NotNull Class<T> cls,
+            @NotNull T instance
         ) {
             String normalizedPath = path.startsWith("/") ? path : "/" + path;
             controllers.add(new ControllerDef<>(normalizedPath, cls, instance));
@@ -375,14 +417,15 @@ public class RestServer {
             return this;
         }
 
+        public Builder setHandlerFactory(@NotNull RequestHandlerFactory handlerFactory) {
+            this.handlerFactory = handlerFactory;
+            return this;
+        }
+
         @NotNull
         public RestServer create() {
             try {
-                RestServer restServer = new RestServer(controllers, gson, filter, port, backlog);
-                if (landingPage != null) {
-                    restServer.setLandingPage(landingPage);
-                }
-                return restServer;
+                return new RestServer(controllers, gson, filter, port, backlog, landingPage, handlerFactory);
             } catch (IOException e) {
                 throw new UncheckedIOException(e);
             }
@@ -405,9 +448,9 @@ public class RestServer {
     private static final class ControllerDef<T> {
         final String path;
         final Class<T> cls;
-        final Object instance;
+        final T instance;
 
-        ControllerDef(String path, Class<T> cls, Object instance) {
+        ControllerDef(String path, Class<T> cls, T instance) {
             this.path = path;
             this.cls = cls;
             this.instance = instance;

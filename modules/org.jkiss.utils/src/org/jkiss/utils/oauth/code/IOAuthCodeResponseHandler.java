@@ -14,16 +14,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.jkiss.utils.oauth.code;
 
-package org.jkiss.code;
+import java.io.Closeable;
+import java.io.IOException;
+import java.util.concurrent.Future;
 
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
+public interface IOAuthCodeResponseHandler extends Closeable {
 
-/**
- * Nullable annotation
- */
-@Retention(RetentionPolicy.SOURCE)
-public @interface Nullable {
+    void initServer() throws IOException;
 
+    Future<String> requestCode();
+
+    void addStabContext();
 }

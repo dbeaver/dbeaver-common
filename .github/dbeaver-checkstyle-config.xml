@@ -361,5 +361,10 @@
              default="checkstyle-xpath-suppressions.xml" />
       <property name="optional" value="true"/>
     </module>
+    <module name="NullabilityAnnotationsCheck">
+      <property name="tokens" value="CTOR_DEF, METHOD_DEF"/>
+      <property name="nonnullClassNames" value="org.jkiss.code.NotNull"/>
+      <property name="nullableClassNames" value="org.jkiss.code.Nullable"/>
+    </module>
   </module>
 </module>
