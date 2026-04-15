@@ -49,12 +49,12 @@ import java.util.logging.Logger;
 
 public class RestServer {
     private static final Logger log = Logger.getLogger(RestServer.class.getName());
-    private static final RequestHandlerFactory<?> DEFAULT_HANDLER_FACTORY = new RequestHandlerFactory<Object>() {
+    private static final RequestHandlerFactory DEFAULT_HANDLER_FACTORY = new RequestHandlerFactory() {
         @NotNull
         @Override
-        public RequestHandler<Object> createHandler(
-            @NotNull Class<Object> cls,
-            @NotNull Object object,
+        public <T> RequestHandler<T> createHandler(
+            @NotNull Class<T> cls,
+            @NotNull T object,
             @NotNull Gson gson,
             @NotNull Predicate<InetSocketAddress> filter,
             @Nullable String landingPage
@@ -74,7 +74,7 @@ public class RestServer {
         int port,
         int backlog
     ) throws IOException {
-        this(cls, object, gson, filter, port, backlog, getDefaultHandlerFactory());
+        this(cls, object, gson, filter, port, backlog, DEFAULT_HANDLER_FACTORY);
     }
 
     public <T> RestServer(
@@ -84,7 +84,7 @@ public class RestServer {
         @NotNull Predicate<InetSocketAddress> filter,
         int port,
         int backlog,
-        @NotNull RequestHandlerFactory<T> handlerFactory
+        @NotNull RequestHandlerFactory handlerFactory
     ) throws IOException {
         this(
             Collections.singletonList(new ControllerDef<>("/", cls, object)),
@@ -104,7 +104,7 @@ public class RestServer {
         int port,
         int backlog,
         @Nullable String landingPage,
-        @NotNull RequestHandlerFactory<?> handlerFactory
+        @NotNull RequestHandlerFactory handlerFactory
     ) throws IOException {
         this.landingPage = landingPage;
         InetSocketAddress listenAddr = new InetSocketAddress(InetAddress.getLoopbackAddress(), port);
@@ -169,22 +169,9 @@ public class RestServer {
         @NotNull Gson gson,
         @NotNull Predicate<InetSocketAddress> filter,
         @Nullable String landingPage,
-        @NotNull RequestHandlerFactory<?> handlerFactory
+        @NotNull RequestHandlerFactory handlerFactory
     ) {
-        RequestHandlerFactory<T> typedHandlerFactory = getTypedHandlerFactory(handlerFactory);
-        return typedHandlerFactory.createHandler(controller.cls, controller.instance, gson, filter, landingPage);
-    }
-
-    @NotNull
-    @SuppressWarnings("unchecked")
-    private static <T> RequestHandlerFactory<T> getDefaultHandlerFactory() {
-        return (RequestHandlerFactory<T>) DEFAULT_HANDLER_FACTORY;
-    }
-
-    @NotNull
-    @SuppressWarnings("unchecked")
-    private static <T> RequestHandlerFactory<T> getTypedHandlerFactory(@NotNull RequestHandlerFactory<?> handlerFactory) {
-        return (RequestHandlerFactory<T>) handlerFactory;
+        return handlerFactory.createHandler(controller.cls, controller.instance, gson, filter, landingPage);
     }
 
     private static final Type REQUEST_TYPE = new TypeToken<Map<String, JsonElement>>() {}.getType();
@@ -382,7 +369,7 @@ public class RestServer {
         private Predicate<InetSocketAddress> filter = DEFAULT_PREDICATE;
         private String landingPage;
         private final List<ControllerDef<?>> controllers = new ArrayList<>();
-        private RequestHandlerFactory<?> handlerFactory = DEFAULT_HANDLER_FACTORY;
+        private RequestHandlerFactory handlerFactory = DEFAULT_HANDLER_FACTORY;
 
         private Builder() {
             this.gson = RpcConstants.DEFAULT_GSON;
@@ -431,7 +418,7 @@ public class RestServer {
             return this;
         }
 
-        public Builder setHandlerFactory(@NotNull RequestHandlerFactory<?> handlerFactory) {
+        public Builder setHandlerFactory(@NotNull RequestHandlerFactory handlerFactory) {
             this.handlerFactory = handlerFactory;
             return this;
         }
