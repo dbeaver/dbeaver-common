@@ -95,7 +95,7 @@ public abstract class AbstractJdbcResultSet<
 
     @Override
     public String getString(int columnIndex) throws SQLException {
-        return CommonUtils.toString(getObject(columnIndex));
+        return CommonUtils.toString(getObject(columnIndex), null);
     }
 
     @Override
