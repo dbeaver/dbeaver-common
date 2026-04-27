@@ -51,7 +51,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.build.timestamp.format>yyyyMMddHHmm</maven.build.timestamp.format>
 
-        <spring.boot.version>4.0.4</spring.boot.version>
+        <spring.boot.version>4.0.6</spring.boot.version>
         <jetty.version>12.1.7</jetty.version>
         <clickhouse.jdbc.version>0.8.5</clickhouse.jdbc.version>
         <google.gson.version>2.13.2</google.gson.version>
