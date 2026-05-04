@@ -72,6 +72,10 @@ public class OAuthCodeHandler implements IOAuthHandler {
     protected int timeout;
     @Nullable
     protected String state;
+
+    @Nullable
+    protected String scope;
+
     @Nullable
     protected String codeChallenge;
 
@@ -92,7 +96,8 @@ public class OAuthCodeHandler implements IOAuthHandler {
         @NotNull String tokenURL,
         @NotNull String callbackEndpoint,
         @NotNull String redirectUri,
-        int callbackPort
+        int callbackPort,
+        @Nullable String scope
     ) {
         this.clientId = clientId;
         this.secretId = secretId;
@@ -101,6 +106,7 @@ public class OAuthCodeHandler implements IOAuthHandler {
         this.callbackEndpoint = callbackEndpoint;
         this.callbackPort = callbackPort;
         this.redirectUri = redirectUri;
+        this.scope = scope;
     }
 
 
@@ -277,6 +283,9 @@ public class OAuthCodeHandler implements IOAuthHandler {
         if (codeChallenge != null) {
             builder.withCodeChallenge(codeChallenge);
         }
+        if (CommonUtils.isNotEmpty(scope)) {
+            builder.withScope(scope);
+        }
         return builder.build();
     }
 
@@ -297,6 +306,8 @@ public class OAuthCodeHandler implements IOAuthHandler {
         protected String tokenURL;
         protected String redirectUri;
         protected int callbackPort = 0;
+
+        protected String scope;
 
         protected int timeout = OAuthConstants.AUTH_DEFAULT_SSO_TIMEOUT;
         protected String callbackEndpoint = OAuthConstants.DEFAULT_CALLBACK_ENDPOINT;
@@ -344,6 +355,12 @@ public class OAuthCodeHandler implements IOAuthHandler {
         }
 
         @NotNull
+        public OAuthCodeHandlerBuilder<T> withScope(@NotNull String scope) {
+            this.scope = scope;
+            return this;
+        }
+
+        @NotNull
         public T build() {
             if (CommonUtils.isEmpty(clientId)) {
                 throw new IllegalStateException("clientId is required");
@@ -370,7 +387,7 @@ public class OAuthCodeHandler implements IOAuthHandler {
         @NotNull
         protected T createOAuthCodeHandler() {
             //noinspection unchecked
-            return (T) new OAuthCodeHandler(clientId, secretId, authUrl, tokenURL, callbackEndpoint, redirectUri, callbackPort);
+            return (T) new OAuthCodeHandler(clientId, secretId, authUrl, tokenURL, callbackEndpoint, redirectUri, callbackPort, scope);
         }
     }
 }
