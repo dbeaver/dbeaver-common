@@ -74,7 +74,7 @@ public class OAuthCodeHandler implements IOAuthHandler {
     protected String state;
 
     @Nullable
-    protected String scope;
+    protected final String scope;
 
     @Nullable
     protected String codeChallenge;
@@ -96,6 +96,28 @@ public class OAuthCodeHandler implements IOAuthHandler {
         @NotNull String tokenURL,
         @NotNull String callbackEndpoint,
         @NotNull String redirectUri,
+        int callbackPort
+    ) {
+        this(clientId, secretId, authUrl, tokenURL, callbackEndpoint, redirectUri, callbackPort, null);
+    }
+
+    /**
+     * Constructs an OAuthHandler with required parameters.
+     *
+     * @param clientId     the OAuth client ID
+     * @param secretId     the OAuth client secret (nullable for PKCE-only flows)
+     * @param authUrl      the authorization endpoint URL
+     * @param tokenURL     the token exchange endpoint URL
+     * @param callbackPort the port on which the temporary server will listen for the callback
+     * @param scope        requested scope
+     */
+    public OAuthCodeHandler(
+        @NotNull String clientId,
+        @Nullable String secretId,
+        @NotNull String authUrl,
+        @NotNull String tokenURL,
+        @NotNull String callbackEndpoint,
+        @NotNull String redirectUri,
         int callbackPort,
         @Nullable String scope
     ) {
@@ -108,7 +130,6 @@ public class OAuthCodeHandler implements IOAuthHandler {
         this.redirectUri = redirectUri;
         this.scope = scope;
     }
-
 
     /**
      * Sets the timeout (in seconds) to wait for the OAuth callback response.
