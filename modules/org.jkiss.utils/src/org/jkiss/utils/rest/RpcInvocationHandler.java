@@ -120,7 +120,6 @@ public abstract class RpcInvocationHandler implements InvocationHandler, RestPro
             }
 
             try {
-//                System.out.println("CONTENTS: " +  contents);
                 return gson.fromJson(contents, returnType);
             } catch (Throwable e) {
                 log.log(Level.WARNING, "Failed to parse json response: \n" + contents, e);
