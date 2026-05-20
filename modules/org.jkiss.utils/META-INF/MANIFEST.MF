@@ -21,5 +21,6 @@ Export-Package: org.jkiss.api,
  org.jkiss.utils.time,
  org.jkiss.utils.xml,
  org.jkiss.utils.function,
- org.jkiss.utils.rpc
+ org.jkiss.utils.rpc,
+ org.jkiss.utils.process
 Automatic-Module-Name: org.jkiss.utils
