@@ -1,5 +1,5 @@
 # DBeaver Common
-[![CI](https://github.com/dbeaver/dbeaver-common/actions/workflows/push-pr-devel.yml/badge.svg)](https://github.com/dbeaver/dbeaver-jdbc-libsql/actions/workflows/push-pr-devel.yml)
+[![CI](https://github.com/dbeaver/dbeaver-common/actions/workflows/push-pr-devel.yml/badge.svg)](https://github.com/dbeaver/dbeaver-common/actions/workflows/push-pr-devel.yml)
 [![Apache 2.0](https://img.shields.io/github/license/cronn-de/jira-sync.svg)](http://www.apache.org/licenses/LICENSE-2.0)
 
 Common utils and dependencies for all [DBeaver](https://github.com/dbeaver) projects
