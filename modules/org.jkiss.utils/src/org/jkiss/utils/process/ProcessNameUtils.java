@@ -16,16 +16,10 @@
  */
 package org.jkiss.utils.process;
 
-import com.sun.jna.Library;
-import com.sun.jna.Native;
 import org.jkiss.code.NotNull;
 import org.jkiss.utils.CommonUtils;
 import org.jkiss.utils.StandardConstants;
 
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -35,14 +29,6 @@ public class ProcessNameUtils {
     private static final String OS_WINDOWS = "win";
     private static final String OS_LINUX = "linux";
     private static final String OS_MAC = "mac";
-
-    private interface Carbon extends Library {
-        Carbon INSTANCE = Native.load("ApplicationServices", Carbon.class);
-
-        int GetCurrentProcess(@NotNull int[] psn);
-
-        int CPSSetProcessName(@NotNull int[] psn, @NotNull byte[] name);
-    }
 
     private ProcessNameUtils() {
     }
@@ -59,14 +45,6 @@ public class ProcessNameUtils {
         shellCommand.add("-c");
         shellCommand.add(buildExecNamedCommand(processName, command));
         return shellCommand;
-    }
-
-    public static void setRuntimeProcessName(@NotNull String processName) throws IOException {
-        if (isMac()) {
-            setMacProcessName(processName);
-        } else if (isLinux()) {
-            Files.writeString(Path.of("/proc/self/comm"), processName + "\n");
-        }
     }
 
     @NotNull
@@ -86,28 +64,15 @@ public class ProcessNameUtils {
         return CommonUtils.escapeBourneShellString(arg);
     }
 
-    private static void setMacProcessName(@NotNull String processName) {
-        int[] psn = new int[2];
-        int rc = Carbon.INSTANCE.GetCurrentProcess(psn);
-        if (rc != 0) {
-            throw new IllegalStateException("GetCurrentProcess rc=" + rc);
-        }
-        byte[] utf8 = (processName + "\0").getBytes(StandardCharsets.UTF_8);
-        rc = Carbon.INSTANCE.CPSSetProcessName(psn, utf8);
-        if (rc != 0) {
-            throw new IllegalStateException("CPSSetProcessName rc=" + rc);
-        }
-    }
-
-    private static boolean isWindows() {
+    public static boolean isWindows() {
         return getOsName().contains(OS_WINDOWS);
     }
 
-    private static boolean isLinux() {
+    public static boolean isLinux() {
         return getOsName().contains(OS_LINUX);
     }
 
-    private static boolean isMac() {
+    public static boolean isMac() {
         return getOsName().contains(OS_MAC);
     }
 

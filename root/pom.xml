@@ -17,7 +17,7 @@
     </organization>
 
     <properties>
-        <dbeaver-version>26.0.4</dbeaver-version>
+        <dbeaver-version>26.1.0</dbeaver-version>
 
         <tycho-version>5.0.2</tycho-version>
         <eclipse-version>2026-03</eclipse-version>
@@ -64,8 +64,8 @@
         <junit-platform-version>1.11.0</junit-platform-version>
 
         <dbeaver.common.version>2.7.0-SNAPSHOT</dbeaver.common.version>
-        <lm.version>3.0.33-SNAPSHOT</lm.version>
-        <dm.version>0.0.10-SNAPSHOT</dm.version>
+        <lm.version>3.0.35-SNAPSHOT</lm.version>
+        <dm.version>0.0.15-SNAPSHOT</dm.version>
         <commons-cli.version>1.3.1</commons-cli.version>
     </properties>
 

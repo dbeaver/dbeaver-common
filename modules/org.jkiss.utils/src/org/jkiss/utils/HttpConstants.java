@@ -25,6 +25,8 @@ public class HttpConstants {
     public static final String HEADER_API_KEY = "X-API-Key";
     public static final String HEADER_AUTHENTICATE = "WWW-Authenticate";
 
+    public static final String HEADER_CONTENT_DISPOSITION = "Content-Disposition";
+
     public static final String HEADER_ACCESS_CONTROL_ALLOW_ORIGIN = "Access-Control-Allow-Origin";
     public static final String HEADER_ACCESS_CONTROL_ALLOW_CREDENTIALS = "Access-Control-Allow-Credentials";
     public static final String HEADER_ACCESS_CONTROL_REQUEST_HEADERS = "Access-Control-Request-Headers";
@@ -36,6 +38,7 @@ public class HttpConstants {
     public static final String CONTENT_TYPE_OCTET_STREAM = "application/octet-stream";
     public static final String CONTENT_TYPE_TEXT_PLAIN = "text/plain";
     public static final String CONTENT_TYPE_TEXT_XML = "text/xml";
+    public static final String CONTENT_TYPE_CSV = "text/csv";
 
     public static final int CODE_OK = 200;
     public static final int CODE_ACCEPTED = 202;
