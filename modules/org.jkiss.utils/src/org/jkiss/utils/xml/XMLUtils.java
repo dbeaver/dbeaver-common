@@ -1,6 +1,6 @@
 /*
  * DBeaver - Universal Database Manager
- * Copyright (C) 2010-2025 DBeaver Corp and others
+ * Copyright (C) 2010-2026 DBeaver Corp and others
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,6 +38,10 @@ import javax.xml.parsers.DocumentBuilderFactory;
  * Common XML utils
  */
 public class XMLUtils {
+
+    public static final String FEATURE_EXTERNAL_GENERAL_ENTITIES = "http://xml.org/sax/features/external-general-entities";
+    public static final String FEATURE_EXTERNAL_PARAMETER_ENTITIES = "http://xml.org/sax/features/external-parameter-entities";
+    public static final String FEATURE_DISALLOW_DOCTYPE_DECL = "http://apache.org/xml/features/disallow-doctype-decl";
 
     @NotNull
     public static Document parseDocument(@NotNull String fileName) throws XMLException {
@@ -77,7 +81,7 @@ public class XMLUtils {
         try {
             DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
             dbf.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
-            dbf.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
+            dbf.setFeature(FEATURE_DISALLOW_DOCTYPE_DECL, true);
             DocumentBuilder xmlBuilder = dbf.newDocumentBuilder();
             return xmlBuilder.parse(source);
         } catch (Exception er) {
@@ -302,5 +306,15 @@ public class XMLUtils {
             }
         }
         return children;
+    }
+
+    @NotNull
+    public static String xmlHeader() {
+        return "<?xml version=\"1.0\"?>";
+    }
+
+    @NotNull
+    public static String xmlHeader(@NotNull String encoding) {
+        return "<?xml version=\"1.0\" encoding=\"" + encoding + "\"?>";
     }
 }
