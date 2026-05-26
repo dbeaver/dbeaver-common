@@ -1,6 +1,6 @@
 /*
  * DBeaver - Universal Database Manager
- * Copyright (C) 2010-2024 DBeaver Corp and others
+ * Copyright (C) 2010-2026 DBeaver Corp and others
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,8 +18,6 @@ package org.jkiss.utils.xml;
 
 import org.xml.sax.*;
 
-import javax.xml.parsers.FactoryConfigurationError;
-import javax.xml.parsers.ParserConfigurationException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
@@ -28,6 +26,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import javax.xml.XMLConstants;
+import javax.xml.parsers.FactoryConfigurationError;
+import javax.xml.parsers.ParserConfigurationException;
 
 /**
  * SAX document reader
@@ -97,8 +98,8 @@ public final class SAXReader implements ContentHandler, EntityResolver, DTDHandl
         // Get reader and parse using SAX2 API
         try {
             XMLReader saxReader = parser.getSAXParser().getXMLReader();
-            saxReader.setFeature(javax.xml.XMLConstants.FEATURE_SECURE_PROCESSING, true );
-            saxReader.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
+            saxReader.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
+            saxReader.setFeature(XMLUtils.FEATURE_DISALLOW_DOCTYPE_DECL, true);
 
             saxReader.setErrorHandler(new ParseErrorHandler());
             saxReader.setContentHandler(this);
