@@ -46,6 +46,8 @@ public class OAuthCodeResponseHandler implements IOAuthCodeResponseHandler {
     @NotNull
     private final String callbackEndpoint;
 
+    private volatile boolean notShutDown;
+
     /**
      * Creates a new instance of the response handler.
      *
@@ -83,6 +85,7 @@ public class OAuthCodeResponseHandler implements IOAuthCodeResponseHandler {
      */
     @Override
     public Future<String> requestCode() {
+        notShutDown = true;
         return executor.submit(() -> {
             AtomicReference<String> result = new AtomicReference<>();
             AtomicBoolean hasErrors = new AtomicBoolean(false);
@@ -109,7 +112,7 @@ public class OAuthCodeResponseHandler implements IOAuthCodeResponseHandler {
                     exchange.close();
                 }
             );
-            while (result.get() == null) {
+            while (result.get() == null && notShutDown) {
                 Thread.onSpinWait();
             }
             httpServer.removeContext(callbackEndpoint);
@@ -146,6 +149,7 @@ public class OAuthCodeResponseHandler implements IOAuthCodeResponseHandler {
             httpServer.stop(0);
         }
         executor.shutdown();
+        notShutDown = false;
     }
 
     @NotNull
