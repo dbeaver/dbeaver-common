@@ -1,6 +1,6 @@
 /*
  * DBeaver - Universal Database Manager
- * Copyright (C) 2010-2025 DBeaver Corp and others
+ * Copyright (C) 2010-2026 DBeaver Corp and others
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,6 +31,10 @@ import java.util.Map;
  Stream oriented XML document builder.
  */
 public class XMLBuilder {
+
+    private static final String XMLNS = "xmlns";
+    private static final String NS_XML = "http://www.w3.org/TR/REC-xml";
+    private static final String PREFIX_XML = "xml";
 
     public final class Element implements AutoCloseable {
 
@@ -66,8 +70,8 @@ public class XMLBuilder {
         }
 
         public String getNamespacePrefix(String nsURI) {
-            if (nsURI.equals(XMLConstants.NS_XML)) {
-                return XMLConstants.PREFIX_XML;
+            if (nsURI.equals(NS_XML)) {
+                return PREFIX_XML;
             }
             String prefix = (nsStack == null ? null : nsStack.get(nsURI));
             return prefix != null ?
@@ -163,9 +167,9 @@ public class XMLBuilder {
 
         if (printHeader) {
             if (documentEncoding != null) {
-                this.writer.write(XMLConstants.XML_HEADER(documentEncoding));
+                this.writer.write(XMLUtils.xmlHeader(documentEncoding));
             } else {
-                this.writer.write(XMLConstants.XML_HEADER());
+                this.writer.write(XMLUtils.xmlHeader());
             }
         }
     }
@@ -297,7 +301,7 @@ public class XMLBuilder {
         if (element == null) {
             throw new IllegalStateException("Namespace outside of element");
         }
-        String attrName = XMLConstants.XMLNS;
+        String attrName = XMLNS;
         if (nsPrefix != null) {
             attrName = attrName + ':' + nsPrefix;
             element.addNamespace(nsURI, nsPrefix);
