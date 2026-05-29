@@ -119,7 +119,7 @@ class CSVReaderTest {
 
     @ParameterizedTest
     @MethodSource("provideSeparators")
-    void testReadAllEscapedSeparator(@NotNull String separator, @NotNull String quote, @NotNull String escape) throws Exception {
+    void testReadAllEscapedEscape(@NotNull String separator, @NotNull String quote, @NotNull String escape) throws Exception {
         assertReadAll(
             rows(
                 row("a", "b" + escape + "c", "d")
