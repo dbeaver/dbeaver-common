@@ -39,7 +39,7 @@ class CSVReaderTest {
     private static final String DEFAULT_ESCAPE = "\\";
 
     @ParameterizedTest
-    @ValueSource(strings = {DEFAULT_SEPARATOR, ";"/*, ",,", ";;;"*/})
+    @ValueSource(strings = {DEFAULT_SEPARATOR, ";"})
     void testReadAllSingleLine(@NotNull String separator) throws Exception {
         // given
         String input = "a,b,c";
@@ -58,7 +58,7 @@ class CSVReaderTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {DEFAULT_SEPARATOR, ";"/*, ",,", ";;;"*/})
+    @ValueSource(strings = {DEFAULT_SEPARATOR, ";"})
     void testReadAllMultiLine(@NotNull String separator) throws Exception {
         assertReadAll(
             rows(
@@ -117,17 +117,19 @@ class CSVReaderTest {
         );
     }
 
-/*    @Test
-    void testReadAllEscapedSeparator() throws Exception {
+    @ParameterizedTest
+    @MethodSource("provideSeparators")
+    void testReadAllEscapedSeparator(@NotNull String separator, @NotNull String quote, @NotNull String escape) throws Exception {
         assertReadAll(
-            """
-                a,b\\,c,d
-                """,
             rows(
-                row("a", "b,c", "d")
-            )
+                row("a", "b" + escape + "c", "d")
+            ),
+            "a,b\\" + escape + "c,d",
+            separator,
+            quote,
+            escape
         );
-    }*/
+    }
 
     private void assertReadAll(
         @NotNull List<String[]> expected,
@@ -206,11 +208,7 @@ class CSVReaderTest {
             //defaults
             Arguments.of(DEFAULT_SEPARATOR, DEFAULT_QUOTE, DEFAULT_ESCAPE),
             // alternative one char
-            Arguments.of(";", "'", "~")/*,
-            // two chars
-            Arguments.of(DEFAULT_SEPARATOR.repeat(2), DEFAULT_QUOTE.repeat(2), DEFAULT_ESCAPE.repeat(2)),
-            //alternative two chars
-            Arguments.of(";;", "''", "~~")*/
+            Arguments.of(";", "'", "~")
         );
     }
 
