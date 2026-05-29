@@ -21,7 +21,6 @@ import org.jkiss.code.Nullable;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.junit.jupiter.params.provider.ValueSource;
 
 import java.io.StringReader;
 import java.util.Arrays;
@@ -38,8 +37,13 @@ class CSVReaderTest {
     private static final String DEFAULT_QUOTE = "\"";
     private static final String DEFAULT_ESCAPE = "\\";
 
+    private static final String ALTERNATIVE_SEPARATOR = "|";
+    private static final String ALTERNATIVE_QUOTE = "'";
+    private static final String ALTERNATIVE_ESCAPE = "~";
+
+
     @ParameterizedTest
-    @ValueSource(strings = {DEFAULT_SEPARATOR, ";"})
+    @MethodSource("provideSeparators")
     void testReadAllSingleLine(@NotNull String separator) throws Exception {
         // given
         String input = "a,b,c";
@@ -58,7 +62,7 @@ class CSVReaderTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {DEFAULT_SEPARATOR, ";"})
+    @MethodSource("provideSeparators")
     void testReadAllMultiLine(@NotNull String separator) throws Exception {
         assertReadAll(
             rows(
@@ -208,7 +212,11 @@ class CSVReaderTest {
             //defaults
             Arguments.of(DEFAULT_SEPARATOR, DEFAULT_QUOTE, DEFAULT_ESCAPE),
             // alternative one char
-            Arguments.of(";", "'", "~")
+            Arguments.of(ALTERNATIVE_SEPARATOR, ALTERNATIVE_QUOTE, ALTERNATIVE_ESCAPE),
+            // default 2 chars
+            Arguments.of(DEFAULT_SEPARATOR.repeat(2), DEFAULT_QUOTE.repeat(2), DEFAULT_ESCAPE.repeat(2)),
+            // alternative 3 chars
+            Arguments.of(ALTERNATIVE_SEPARATOR.repeat(3), ALTERNATIVE_QUOTE.repeat(3), ALTERNATIVE_ESCAPE.repeat(3))
         );
     }
 
