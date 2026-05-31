@@ -37,7 +37,7 @@ class CSVReaderTest {
     private static final String DEFAULT_QUOTE = "\"";
     private static final String DEFAULT_ESCAPE = "\\";
 
-    private static final String ALTERNATIVE_SEPARATOR = "|";
+    private static final String ALTERNATIVE_SEPARATOR = ".";
     private static final String ALTERNATIVE_QUOTE = "'";
     private static final String ALTERNATIVE_ESCAPE = "~";
 
@@ -213,8 +213,8 @@ class CSVReaderTest {
             Arguments.of(DEFAULT_SEPARATOR, DEFAULT_QUOTE, DEFAULT_ESCAPE),
             // alternative one char
             Arguments.of(ALTERNATIVE_SEPARATOR, ALTERNATIVE_QUOTE, ALTERNATIVE_ESCAPE),
-            // default 2 chars
-            Arguments.of(DEFAULT_SEPARATOR.repeat(2), DEFAULT_QUOTE.repeat(2), DEFAULT_ESCAPE.repeat(2)),
+            // default + alt 2 chars
+            Arguments.of(DEFAULT_SEPARATOR + ALTERNATIVE_SEPARATOR, DEFAULT_QUOTE + ALTERNATIVE_QUOTE, DEFAULT_ESCAPE + ALTERNATIVE_ESCAPE),
             // alternative 3 chars
             Arguments.of(ALTERNATIVE_SEPARATOR.repeat(3), ALTERNATIVE_QUOTE.repeat(3), ALTERNATIVE_ESCAPE.repeat(3))
         );
