@@ -359,6 +359,7 @@ public class CSVParser {
                     }
                 }
             } else if (isSpecialChar(i, nextLine, separator)) {
+                i += separator.length() - 1;
                 if (!inQuotes(inQuotes)) {
                     tokensOnThisLine.add(convertEmptyToNullIfNeeded(sb.toString(), fromQuotedField));
                     sb.setLength(0);
@@ -366,7 +367,6 @@ public class CSVParser {
                 } else {
                     // separator inside quotes is normal char
                     sb.append(separator);
-                    i += separator.length();
                 }
             } else {
                 if (!strictQuotes || inQuotes(inQuotes)) {

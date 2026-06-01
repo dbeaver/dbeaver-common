@@ -45,6 +45,14 @@ class CSVReaderTest {
 
     @Nested
     class ReaderConstructorTest {
+
+        @Test
+        public void testNullCharInQuoteAndEscapeDoesNotThrow() {
+            String csv = "test";
+            assertDoesNotThrow(() -> new CSVReader(new StringReader(csv), DEFAULT_SEPARATOR, CSVParser.NULL_CHARACTER, DEFAULT_ESCAPE));
+            assertDoesNotThrow(() -> new CSVReader(new StringReader(csv), DEFAULT_SEPARATOR, DEFAULT_QUOTE, CSVParser.NULL_CHARACTER));
+        }
+
         @Test
         void testNullCharInSeparatorThrows() {
             String csv = "test";
@@ -55,10 +63,20 @@ class CSVReaderTest {
         }
 
         @Test
-        public void testNullCharInQuoteAndEscapeDoesNotThrow() {
+        public void testSameMainSeparatorsThrows() {
             String csv = "test";
-            assertDoesNotThrow(() -> new CSVReader(new StringReader(csv), DEFAULT_SEPARATOR, CSVParser.NULL_CHARACTER, DEFAULT_ESCAPE));
-            assertDoesNotThrow(() -> new CSVReader(new StringReader(csv), DEFAULT_SEPARATOR, DEFAULT_QUOTE, CSVParser.NULL_CHARACTER));
+            assertThrows(
+                UnsupportedOperationException.class,
+                () -> new CSVReader(new StringReader(csv), DEFAULT_SEPARATOR, DEFAULT_SEPARATOR, DEFAULT_ESCAPE)
+            );
+            assertThrows(
+                UnsupportedOperationException.class,
+                () -> new CSVReader(new StringReader(csv), DEFAULT_SEPARATOR, DEFAULT_ESCAPE, DEFAULT_ESCAPE)
+            );
+            assertThrows(
+                UnsupportedOperationException.class,
+                () -> new CSVReader(new StringReader(csv), DEFAULT_SEPARATOR, DEFAULT_ESCAPE, DEFAULT_SEPARATOR)
+            );
         }
 
         @Test
@@ -69,9 +87,10 @@ class CSVReaderTest {
         }
     }
 
+
     @ParameterizedTest
     @MethodSource("provideSeparators")
-    void testReadAllSingleLine(@NotNull String separator) throws Exception {
+    void testReadAllBasicCase(@NotNull String separator) throws Exception {
         // given
         String input = "a,b,c";
         List<String[]> expected = rows(
@@ -236,23 +255,6 @@ class CSVReaderTest {
             separator,
             quote,
             escape
-        );
-    }
-
-    @Test
-    public void testSameMainSeparatorsThrows() {
-        String csv = "test";
-        assertThrows(
-            UnsupportedOperationException.class,
-            () -> new CSVReader(new StringReader(csv), DEFAULT_SEPARATOR, DEFAULT_SEPARATOR, DEFAULT_ESCAPE)
-        );
-        assertThrows(
-            UnsupportedOperationException.class,
-            () -> new CSVReader(new StringReader(csv), DEFAULT_SEPARATOR, DEFAULT_ESCAPE, DEFAULT_ESCAPE)
-        );
-        assertThrows(
-            UnsupportedOperationException.class,
-            () -> new CSVReader(new StringReader(csv), DEFAULT_SEPARATOR, DEFAULT_ESCAPE, DEFAULT_SEPARATOR)
         );
     }
 

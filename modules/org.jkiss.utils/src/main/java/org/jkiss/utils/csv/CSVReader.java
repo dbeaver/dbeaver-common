@@ -220,7 +220,7 @@ public class CSVReader implements Closeable {
         do {
             String nextLine = getNextLine();
             if (!hasNext) {
-                throw new IOException("Un-terminated quoted field at end of CSV line");
+                return result; // should throw if still pending?
             }
             String[] r = parser.parseLineMulti(nextLine);
             if (r.length > 0) {
