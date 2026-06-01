@@ -18,7 +18,7 @@ package org.jkiss.utils.csv;
 
 import org.jkiss.code.NotNull;
 import org.jkiss.code.Nullable;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -44,7 +44,7 @@ class CSVReaderTest {
 
 
     @Test
-    public void testNullCharInSeparatorThrows() {
+    void testNullCharInSeparatorThrows() {
         String csv = "test";
         assertThrows(
             UnsupportedOperationException.class,
@@ -401,8 +401,10 @@ class CSVReaderTest {
             Arguments.of(ALTERNATIVE_SEPARATOR, ALTERNATIVE_QUOTE, ALTERNATIVE_ESCAPE),
             // default + alt 2 chars
             Arguments.of(DEFAULT_SEPARATOR + ALTERNATIVE_SEPARATOR, DEFAULT_QUOTE + ALTERNATIVE_QUOTE, DEFAULT_ESCAPE + ALTERNATIVE_ESCAPE),
-            // all special chars but starts same
-            Arguments.of(DEFAULT_SEPARATOR, DEFAULT_SEPARATOR + DEFAULT_QUOTE, DEFAULT_SEPARATOR + DEFAULT_ESCAPE)
+            // all special chars but starts same all cases
+            Arguments.of(DEFAULT_SEPARATOR, DEFAULT_SEPARATOR + DEFAULT_QUOTE, DEFAULT_SEPARATOR + DEFAULT_ESCAPE),
+            Arguments.of(DEFAULT_QUOTE + DEFAULT_SEPARATOR, DEFAULT_QUOTE, DEFAULT_QUOTE + DEFAULT_ESCAPE),
+            Arguments.of(DEFAULT_ESCAPE + DEFAULT_QUOTE + DEFAULT_SEPARATOR, DEFAULT_ESCAPE + DEFAULT_QUOTE, DEFAULT_ESCAPE)
         );
     }
 
