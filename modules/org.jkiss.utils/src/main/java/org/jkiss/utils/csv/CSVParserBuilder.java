@@ -25,6 +25,8 @@
 package org.jkiss.utils.csv;
 
 
+import org.jkiss.code.NotNull;
+
 /**
  * Builder for creating a CSVParser.
  *
@@ -40,9 +42,9 @@ package org.jkiss.utils.csv;
  */
 public class CSVParserBuilder {
 
-    private char separator = CSVParser.DEFAULT_SEPARATOR;
-    private char quoteChar = CSVParser.DEFAULT_QUOTE_CHARACTER;
-    private char escapeChar = CSVParser.DEFAULT_ESCAPE_CHARACTER;
+    private CharSequence separator = CSVParser.DEFAULT_SEPARATOR;
+    private CharSequence quoteChar = CSVParser.DEFAULT_QUOTE_CHARACTER;
+    private CharSequence escapeChar = CSVParser.DEFAULT_ESCAPE_CHARACTER;
     private boolean strictQuotes = CSVParser.DEFAULT_STRICT_QUOTES;
     private boolean ignoreLeadingWhiteSpace = CSVParser.DEFAULT_IGNORE_LEADING_WHITESPACE;
     private boolean ignoreQuotations = CSVParser.DEFAULT_IGNORE_QUOTATIONS;
@@ -61,7 +63,7 @@ public class CSVParserBuilder {
      * @return The CSVParserBuilder
      */
     public CSVParserBuilder withSeparator(
-        final char separator
+        @NotNull CharSequence separator
     ) {
         this.separator = separator;
         return this;
@@ -75,7 +77,7 @@ public class CSVParserBuilder {
      * @return The CSVParserBuilder
      */
     public CSVParserBuilder withQuoteChar(
-        final char quoteChar
+        @NotNull CharSequence quoteChar
     ) {
         this.quoteChar = quoteChar;
         return this;
@@ -88,8 +90,9 @@ public class CSVParserBuilder {
      * @param escapeChar the character to use for escaping a separator or quote.
      * @return The CSVParserBuilder
      */
+    @NotNull
     public CSVParserBuilder withEscapeChar(
-        final char escapeChar
+        @NotNull CharSequence escapeChar
     ) {
         this.escapeChar = escapeChar;
         return this;
@@ -157,21 +160,24 @@ public class CSVParserBuilder {
     /**
      * @return the defined separator.
      */
-    public char getSeparator() {
+    @NotNull
+    public CharSequence getSeparator() {
         return separator;
     }
 
     /**
      * @return the defined quotation character.
      */
-    public char getQuoteChar() {
+    @NotNull
+    public CharSequence getQuoteChar() {
         return quoteChar;
     }
 
     /**
      * @return the defined escape character.
      */
-    public char getEscapeChar() {
+    @NotNull
+    public CharSequence getEscapeChar() {
         return escapeChar;
     }
 
