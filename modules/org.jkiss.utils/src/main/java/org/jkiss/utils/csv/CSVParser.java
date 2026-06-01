@@ -359,6 +359,8 @@ public class CSVParser {
             if (c == this.escape) {
                 if (isNextCharacterEscapable(nextLine, inQuotes(inQuotes), i)) {
                     i = appendNextCharacterAndAdvanceLoop(nextLine, sb, i);
+                } else {
+                    sb.append(c);
                 }
             } else if (c == quotechar) {
                 if (isNextCharacterEscapedQuote(nextLine, inQuotes(inQuotes), i)) {

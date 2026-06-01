@@ -123,6 +123,21 @@ class CSVReaderTest {
 
     @ParameterizedTest
     @MethodSource("provideSeparators")
+    void testReadAllEscapedSimpleCharIsAppendedWithEscape(@NotNull String separator, @NotNull String quote, @NotNull String escape)
+    throws Exception {
+        assertReadAll(
+            rows(
+                row("a", escape + "b", "c")
+            ),
+            "a,\\b,c",
+            separator,
+            quote,
+            escape
+        );
+    }
+
+    @ParameterizedTest
+    @MethodSource("provideSeparators")
     void testReadAllEscapedEscape(@NotNull String separator, @NotNull String quote, @NotNull String escape) throws Exception {
         assertReadAll(
             rows(
