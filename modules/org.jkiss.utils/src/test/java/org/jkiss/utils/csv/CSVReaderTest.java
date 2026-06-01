@@ -18,6 +18,7 @@ package org.jkiss.utils.csv;
 
 import org.jkiss.code.NotNull;
 import org.jkiss.code.Nullable;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -42,28 +43,30 @@ class CSVReaderTest {
     private static final String ALTERNATIVE_QUOTE = "'";
     private static final String ALTERNATIVE_ESCAPE = "~";
 
+    @Nested
+    class ReaderConstructorTest {
+        @Test
+        void testNullCharInSeparatorThrows() {
+            String csv = "test";
+            assertThrows(
+                UnsupportedOperationException.class,
+                () -> new CSVReader(new StringReader(csv), CSVParser.NULL_CHARACTER, DEFAULT_QUOTE, DEFAULT_ESCAPE)
+            );
+        }
 
-    @Test
-    void testNullCharInSeparatorThrows() {
-        String csv = "test";
-        assertThrows(
-            UnsupportedOperationException.class,
-            () -> new CSVReader(new StringReader(csv), CSVParser.NULL_CHARACTER, DEFAULT_QUOTE, DEFAULT_ESCAPE)
-        );
-    }
+        @Test
+        public void testNullCharInQuoteAndEscapeDoesNotThrow() {
+            String csv = "test";
+            assertDoesNotThrow(() -> new CSVReader(new StringReader(csv), DEFAULT_SEPARATOR, CSVParser.NULL_CHARACTER, DEFAULT_ESCAPE));
+            assertDoesNotThrow(() -> new CSVReader(new StringReader(csv), DEFAULT_SEPARATOR, DEFAULT_QUOTE, CSVParser.NULL_CHARACTER));
+        }
 
-    @Test
-    public void testNullCharInQuoteAndEscapeDoesNotThrow() {
-        String csv = "test";
-        assertDoesNotThrow(() -> new CSVReader(new StringReader(csv), DEFAULT_SEPARATOR, CSVParser.NULL_CHARACTER, DEFAULT_ESCAPE));
-        assertDoesNotThrow(() -> new CSVReader(new StringReader(csv), DEFAULT_SEPARATOR, DEFAULT_QUOTE, CSVParser.NULL_CHARACTER));
-    }
-
-    @Test
-    public void testUnfinishedQuotationShouldThrow() {
-        String csv = "a, \"b";
-        CSVReader reader = new CSVReader(new StringReader(csv), DEFAULT_SEPARATOR, DEFAULT_QUOTE, DEFAULT_ESCAPE);
-        assertThrows(IOException.class, reader::readAll);
+        @Test
+        public void testUnfinishedQuotationShouldThrow() {
+            String csv = "a," + DEFAULT_QUOTE + "b";
+            CSVReader reader = new CSVReader(new StringReader(csv), DEFAULT_SEPARATOR, DEFAULT_QUOTE, DEFAULT_ESCAPE);
+            assertThrows(IOException.class, reader::readAll);
+        }
     }
 
     @ParameterizedTest
