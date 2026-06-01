@@ -216,7 +216,7 @@ class CSVReaderTest {
 
     @ParameterizedTest
     @MethodSource("provideSeparators")
-    void testReadAllEscapeeInTheEndOfTheLine(@NotNull String separator, @NotNull String quote, @NotNull String escape)
+    void testReadAllEscapeInTheEndOfTheLine(@NotNull String separator, @NotNull String quote, @NotNull String escape)
     throws Exception {
         assertReadAll(
             rows(
@@ -224,6 +224,21 @@ class CSVReaderTest {
                 row(escape + "1", "2", "3")
             ),
             "a,b,c\\\n\\1,2,3",
+            separator,
+            quote,
+            escape
+        );
+    }
+
+    @ParameterizedTest
+    @MethodSource("provideSeparators")
+    void testEscapeInQuotesBeforeUnescapableCharAppended(@NotNull String separator, @NotNull String quote, @NotNull String escape)
+    throws Exception {
+        assertReadAll(
+            rows(
+                row("a", "\b", "c", "d")
+            ),
+            "a,\"\b" + escape + "\",c,d",
             separator,
             quote,
             escape
@@ -299,6 +314,7 @@ class CSVReaderTest {
             true
         );
     }
+    // todo add empty stuff tests
 
     private void assertReadAll(
         @NotNull List<String[]> expected,
