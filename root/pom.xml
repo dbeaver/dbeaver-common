@@ -42,7 +42,7 @@
         <!-- Component versions -->
         <java.version>21</java.version> <!-- Default Java version -->
         <java.version.drivers>17</java.version.drivers> <!-- Java version for JDBC drivers and other public artifacts -->
-        <java.version.min>11</java.version.min> <!-- Java version artifacts which must be deployed in legacy environment -->
+        <java.version.min>17</java.version.min> <!-- Java version artifacts which must be deployed in legacy environment -->
 
         <maven.compiler.source>${java.version}</maven.compiler.source>
         <maven.compiler.target>${java.version}</maven.compiler.target>
