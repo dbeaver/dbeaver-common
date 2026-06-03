@@ -44,7 +44,7 @@ public class CSVParser {
     /**
      * The default separator to use if none is supplied to the constructor.
      */
-    public static final CharSequence DEFAULT_SEPARATOR = ",";
+    public static final String DEFAULT_SEPARATOR = ",";
     /**
      * The average size of a line read by openCSV (used for setting the size of StringBuilders).
      */
@@ -53,12 +53,12 @@ public class CSVParser {
      * The default quote character to use if none is supplied to the
      * constructor.
      */
-    public static final CharSequence DEFAULT_QUOTE_CHARACTER = "\"";
+    public static final String DEFAULT_QUOTE_CHARACTER = "\"";
     /**
      * The default escape character to use if none is supplied to the
      * constructor.
      */
-    public static final CharSequence DEFAULT_ESCAPE_CHARACTER = "\\";
+    public static final String DEFAULT_ESCAPE_CHARACTER = "\\";
     /**
      * The default strict quote behavior to use if none is supplied to the
      * constructor.
@@ -76,7 +76,7 @@ public class CSVParser {
     /**
      * This is the "null" character - if a value is set to this then it is ignored.
      */
-    public static final CharSequence NULL_CHARACTER = "\0";
+    public static final String NULL_CHARACTER = "\0";
     /**
      * Denotes what field contents will cause the parser to return null:  EMPTY_SEPARATORS, EMPTY_QUOTES, BOTH, NEITHER (default)
      */
@@ -85,15 +85,15 @@ public class CSVParser {
     /**
      * This is the character that the CSVParser will treat as the separator.
      */
-    private final CharSequence separator;
+    private final String separator;
     /**
      * This is the character that the CSVParser will treat as the quotation character.
      */
-    private final CharSequence quotechar;
+    private final String quotechar;
     /**
      * This is the character that the CSVParser will treat as the escape character.
      */
-    private final CharSequence escape;
+    private final String escape;
     /**
      * Determines if the field is between quotes (true) or between separators (false).
      */
@@ -108,8 +108,11 @@ public class CSVParser {
     private final boolean ignoreQuotations;
     private final CSVReaderNullFieldIndicator nullFieldIndicator;
     // special chars must be parsed from the longest one
-    private final Map<CharSequence, CharacterStrategy> orderedSpecialChars = new TreeMap<>(Comparator.comparingInt(CharSequence::length)
-        .reversed());
+    private final Map<String, CharacterStrategy> orderedSpecialChars = new TreeMap<>(
+        Comparator.comparingInt(String::length)
+            .reversed()
+            .thenComparing(Comparator.naturalOrder())
+    );
 
     @Nullable
     private String pending;
@@ -132,9 +135,9 @@ public class CSVParser {
      * @param ignoreLeadingWhiteSpace if true, white space in front of a quote in a field is ignored
      */
     public CSVParser(
-        @NotNull CharSequence separator,
-        @NotNull CharSequence quotechar,
-        @NotNull CharSequence escape,
+        @NotNull String separator,
+        @NotNull String quotechar,
+        @NotNull String escape,
         boolean strictQuotes,
         boolean ignoreLeadingWhiteSpace
     ) {
@@ -153,9 +156,9 @@ public class CSVParser {
      * @param ignoreQuotations        if true, treat quotations like any other character.
      */
     public CSVParser(
-        @NotNull CharSequence separator,
-        @NotNull CharSequence quotechar,
-        @NotNull CharSequence escape,
+        @NotNull String separator,
+        @NotNull String quotechar,
+        @NotNull String escape,
         boolean strictQuotes,
         boolean ignoreLeadingWhiteSpace,
         boolean ignoreQuotations
@@ -177,9 +180,9 @@ public class CSVParser {
      *                                BOTH, NEITHER (default)
      */
     CSVParser(
-        @NotNull CharSequence separator,
-        @NotNull CharSequence quotechar,
-        @NotNull CharSequence escape,
+        @NotNull String separator,
+        @NotNull String quotechar,
+        @NotNull String escape,
         boolean strictQuotes,
         boolean ignoreLeadingWhiteSpace,
         boolean ignoreQuotations, CSVReaderNullFieldIndicator nullFieldIndicator
@@ -259,9 +262,9 @@ public class CSVParser {
      * @return true if any two of the three are the same.
      */
     private boolean anyCharactersAreTheSame(
-        @NotNull CharSequence separator,
-        @NotNull CharSequence quotechar,
-        @NotNull CharSequence escape
+        @NotNull String separator,
+        @NotNull String quotechar,
+        @NotNull String escape
     ) {
         return isSameCharacter(separator, quotechar) || isSameCharacter(separator, escape) || isSameCharacter(quotechar, escape);
     }
@@ -273,7 +276,7 @@ public class CSVParser {
      * @param c2 second character
      * @return true if both characters are the same and are not the defined NULL_CHARACTER
      */
-    private boolean isSameCharacter(@NotNull CharSequence c1, @NotNull CharSequence c2) {
+    private boolean isSameCharacter(@NotNull String c1, @NotNull String c2) {
         return !NULL_CHARACTER.equals(c1) && c1.equals(c2);
     }
 
@@ -372,13 +375,12 @@ public class CSVParser {
 
     @NotNull
     private CharacterStrategy defineStrategy() {
-        return orderedSpecialChars
-            .entrySet()
-            .stream()
-            .filter(e -> isSpecialChar(e.getKey()))
-            .map(Map.Entry::getValue)
-            .findFirst()
-            .orElse(CharacterStrategy.SIMPLE_CHAR);
+        for (Map.Entry<String, CSVParser.CharacterStrategy> specialCharEntry : orderedSpecialChars.entrySet()) {
+            if (isSpecialChar(specialCharEntry.getKey())) {
+                return specialCharEntry.getValue();
+            }
+        }
+        return CharacterStrategy.SIMPLE_CHAR;
     }
 
     @Nullable
@@ -406,14 +408,14 @@ public class CSVParser {
         return (inQuotes && !ignoreQuotations);
     }
 
-    private boolean isSpecialChar(@NotNull CharSequence specialChar) {
+    private boolean isSpecialChar(@NotNull String specialChar) {
         int localIndex = index;
         for (int i = 0; i < specialChar.length() && localIndex < currentLine.length(); i++, localIndex++) {
             if (specialChar.charAt(i) != currentLine.charAt(localIndex)) {
                 return false;
             }
         }
-        // reached line end not found sequence
+        // reached line end of the line, sequence not fully found Ex: separator -> sepa\n -> false
         return localIndex < currentLine.length();
     }
 

@@ -42,9 +42,9 @@ import org.jkiss.code.NotNull;
  */
 public class CSVParserBuilder {
 
-    private CharSequence separator = CSVParser.DEFAULT_SEPARATOR;
-    private CharSequence quoteChar = CSVParser.DEFAULT_QUOTE_CHARACTER;
-    private CharSequence escapeChar = CSVParser.DEFAULT_ESCAPE_CHARACTER;
+    private String separator = CSVParser.DEFAULT_SEPARATOR;
+    private String quoteChar = CSVParser.DEFAULT_QUOTE_CHARACTER;
+    private String escapeChar = CSVParser.DEFAULT_ESCAPE_CHARACTER;
     private boolean strictQuotes = CSVParser.DEFAULT_STRICT_QUOTES;
     private boolean ignoreLeadingWhiteSpace = CSVParser.DEFAULT_IGNORE_LEADING_WHITESPACE;
     private boolean ignoreQuotations = CSVParser.DEFAULT_IGNORE_QUOTATIONS;
@@ -63,7 +63,7 @@ public class CSVParserBuilder {
      * @return The CSVParserBuilder
      */
     public CSVParserBuilder withSeparator(
-        @NotNull CharSequence separator
+        @NotNull String separator
     ) {
         this.separator = separator;
         return this;
@@ -77,7 +77,7 @@ public class CSVParserBuilder {
      * @return The CSVParserBuilder
      */
     public CSVParserBuilder withQuoteChar(
-        @NotNull CharSequence quoteChar
+        @NotNull String quoteChar
     ) {
         this.quoteChar = quoteChar;
         return this;
@@ -92,7 +92,7 @@ public class CSVParserBuilder {
      */
     @NotNull
     public CSVParserBuilder withEscapeChar(
-        @NotNull CharSequence escapeChar
+        @NotNull String escapeChar
     ) {
         this.escapeChar = escapeChar;
         return this;
@@ -161,7 +161,7 @@ public class CSVParserBuilder {
      * @return the defined separator.
      */
     @NotNull
-    public CharSequence getSeparator() {
+    public String getSeparator() {
         return separator;
     }
 
@@ -169,7 +169,7 @@ public class CSVParserBuilder {
      * @return the defined quotation character.
      */
     @NotNull
-    public CharSequence getQuoteChar() {
+    public String getQuoteChar() {
         return quoteChar;
     }
 
@@ -177,7 +177,7 @@ public class CSVParserBuilder {
      * @return the defined escape character.
      */
     @NotNull
-    public CharSequence getEscapeChar() {
+    public String getEscapeChar() {
         return escapeChar;
     }
 

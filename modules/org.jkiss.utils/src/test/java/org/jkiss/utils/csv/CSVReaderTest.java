@@ -386,9 +386,9 @@ class CSVReaderTest {
     @NotNull
     private CSVReader createReader(
         @NotNull String csv,
-        @Nullable CharSequence separator,
-        @Nullable CharSequence quoteChar,
-        @Nullable CharSequence escape,
+        @Nullable String separator,
+        @Nullable String quoteChar,
+        @Nullable String escape,
         int line,
         boolean strictQuotes,
         boolean ignoreLeadingWhiteSpace

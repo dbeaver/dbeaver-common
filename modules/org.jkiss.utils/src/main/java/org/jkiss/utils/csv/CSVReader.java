@@ -74,8 +74,8 @@ public class CSVReader implements Closeable {
      */
 
     public CSVReader(
-        @NotNull Reader reader, @NotNull CharSequence separator,
-        @NotNull CharSequence quotechar, @NotNull CharSequence escape
+        @NotNull Reader reader, @NotNull String separator,
+        @NotNull String quotechar, @NotNull String escape
     ) {
         this(reader, separator, quotechar, escape, DEFAULT_SKIP_LINES, CSVParser.DEFAULT_STRICT_QUOTES);
     }
@@ -92,9 +92,9 @@ public class CSVReader implements Closeable {
      */
     public CSVReader(
         Reader reader,
-        @NotNull CharSequence separator,
-        @NotNull CharSequence quotechar,
-        @NotNull CharSequence escape,
+        @NotNull String separator,
+        @NotNull String quotechar,
+        @NotNull String escape,
         int line,
         boolean strictQuotes
     ) {
@@ -114,9 +114,9 @@ public class CSVReader implements Closeable {
      */
     public CSVReader(
         Reader reader,
-        @NotNull CharSequence separator,
-        @NotNull CharSequence quotechar,
-        @NotNull CharSequence escape,
+        @NotNull String separator,
+        @NotNull String quotechar,
+        @NotNull String escape,
         int line,
         boolean strictQuotes,
         boolean ignoreLeadingWhiteSpace
