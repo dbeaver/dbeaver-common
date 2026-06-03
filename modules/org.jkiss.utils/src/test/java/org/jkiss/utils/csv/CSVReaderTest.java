@@ -26,9 +26,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 
 import java.io.IOException;
 import java.io.StringReader;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -397,18 +395,26 @@ class CSVReaderTest {
 
     private String replaceInCSVToCustom(
         @NotNull String csvTemplate,
-        @Nullable CharSequence separator,
-        @Nullable CharSequence quoteChar,
-        @Nullable CharSequence escape
+        @Nullable String separator,
+        @Nullable String quoteChar,
+        @Nullable String escape
     ) {
-        if (separator != null) {
-            csvTemplate = csvTemplate.replace(DEFAULT_SEPARATOR, separator);
+        // to replace from the shortest one, not to cause conflicts
+        Map<String, String> orderedSeparators = new TreeMap<>(
+            Comparator.comparing(String::length).thenComparing(Comparator.naturalOrder())
+        );
+        if (separator != null && !separator.equals(DEFAULT_SEPARATOR)) {
+            orderedSeparators.put(separator, DEFAULT_SEPARATOR);
         }
-        if (quoteChar != null) {
-            csvTemplate = csvTemplate.replace(DEFAULT_QUOTE, quoteChar);
+        if (quoteChar != null && !quoteChar.equals(DEFAULT_QUOTE)) {
+            orderedSeparators.put(quoteChar, DEFAULT_QUOTE);
         }
-        if (escape != null) {
-            csvTemplate = csvTemplate.replace(DEFAULT_ESCAPE, escape);
+        if (escape != null && !escape.equals(DEFAULT_QUOTE)) {
+            orderedSeparators.put(escape, DEFAULT_ESCAPE);
+        }
+
+        for (Map.Entry<String, String> replacement : orderedSeparators.entrySet()) {
+            csvTemplate = csvTemplate.replace(replacement.getValue(), replacement.getKey());
         }
         return csvTemplate;
     }
