@@ -333,6 +333,7 @@ public class CSVParser {
             }
         }
         resetLineTokens();
+        currentLine = nextLine;
         while (index < nextLine.length()) {
             defineStrategy().process(this);
         }
@@ -357,6 +358,7 @@ public class CSVParser {
     private void resetLineTokens() {
         tokensOnThisLine = new ArrayList<>(INITIAL_READ_SIZE);
         currentToken = new StringBuilder();
+        currentLine = null;
         inQuotes = false;
         lastTokenFromQuotedField = false;
         if (pending != null) {
