@@ -93,13 +93,12 @@ class CSVReaderTest {
     void testReadAllBasicCase(@NotNull String separator) throws Exception {
         // given
         String input = "a,b,c";
-        List<String[]> expected = rows(
-            row("a", "b", "c")
-        );
 
         // then
         assertReadAll(
-            expected,
+            rows(
+                row("a", "b", "c")
+            ),
             input,
             separator,
             null,
@@ -140,13 +139,13 @@ class CSVReaderTest {
 
     @ParameterizedTest
     @MethodSource("provideSeparators")
-    void testReadAllMultilineInsideQuotes(@NotNull String separator, @NotNull String quote, @NotNull String escape) throws Exception {
+    void testReadAllQuotesInMiddleOfLineWithSeparator(@NotNull String separator, @NotNull String quote, @NotNull String escape)
+    throws Exception {
         assertReadAll(
             rows(
-                row("a", "hello\nworld", "c"),
-                row("1", "2", "3")
+                row("a", "bc\"d,e\"f", "g")
             ),
-            "a,\"hello\nworld\",c\n1,2,3",
+            "a,bc\"d,e\"f,g",
             separator,
             quote,
             escape
@@ -155,13 +154,28 @@ class CSVReaderTest {
 
     @ParameterizedTest
     @MethodSource("provideSeparators")
-    void testReadSeparatorInsideQuotes(@NotNull String separator, @NotNull String quote, @NotNull String escape) throws Exception {
+    void testReadAllQuotesInMiddleOfLineWithNewLine(@NotNull String separator, @NotNull String quote, @NotNull String escape)
+    throws Exception {
         assertReadAll(
             rows(
-                row("a", "hello" + separator + "world", "c"),
+                row("a", "bc\"d\ne\"f", "g")
+            ),
+            "a,bcd\nef,g",
+            separator,
+            quote,
+            escape
+        );
+    }
+
+    @ParameterizedTest
+    @MethodSource("provideSeparators")
+    void testReadAllMultilineInsideQuotes(@NotNull String separator, @NotNull String quote, @NotNull String escape) throws Exception {
+        assertReadAll(
+            rows(
+                row("a", "hello\nworld", "c"),
                 row("1", "2", "3")
             ),
-            "a,\"hello" + separator + "world\",c\n1,2,3",
+            "a,\"hello\nworld\",c\n1,2,3",
             separator,
             quote,
             escape
@@ -178,6 +192,21 @@ class CSVReaderTest {
                 row("\"\"a", "hello\"\"world", "\"\"c", "\"\"d\"\"")
             ),
             "\"a, hello\"world,c\",\"d\"",
+            separator,
+            quote,
+            escape
+        );
+    }
+
+    @ParameterizedTest
+    @MethodSource("provideSeparators")
+    void testReadSeparatorInsideQuotes(@NotNull String separator, @NotNull String quote, @NotNull String escape) throws Exception {
+        assertReadAll(
+            rows(
+                row("a", "hello" + separator + "world", "c"),
+                row("1", "2", "3")
+            ),
+            "a,\"hello" + separator + "world\",c\n1,2,3",
             separator,
             quote,
             escape
@@ -317,14 +346,14 @@ class CSVReaderTest {
     // todo add empty stuff tests
 
     private void assertReadAll(
-        @NotNull List<String[]> expected,
+        @NotNull List<List<String>> expectedTemplate,
         @NotNull String csvTemplate,
         @Nullable String separator,
         @Nullable String quoteChar,
         @Nullable String escape
     ) throws Exception {
         assertReadAll(
-            expected,
+            expectedTemplate,
             csvTemplate,
             separator,
             quoteChar,
@@ -336,7 +365,7 @@ class CSVReaderTest {
     }
 
     private void assertReadAll(
-        @NotNull List<String[]> expected,
+        @NotNull List<List<String>> expectedTemplate,
         @NotNull String csvTemplate,
         @Nullable String separator,
         @Nullable String quoteChar,
@@ -347,6 +376,7 @@ class CSVReaderTest {
     ) throws Exception {
 
         var csv = replaceInCSVToCustom(csvTemplate, separator, quoteChar, escape);
+        List<String[]> expected = replaceInExpected(expectedTemplate, separator, quoteChar, escape);
         try (CSVReader reader = createReader(csv, separator, quoteChar, escape, line, strictQuotes, ignoreLeadingWhiteSpace)) {
             List<String[]> actual = reader.readAll();
 
@@ -405,13 +435,41 @@ class CSVReaderTest {
     }
 
     @NotNull
-    private List<String[]> rows(String[]... rows) {
-        return List.of(rows);
+    private List<List<String>> rows(List<String>... rows) {
+        return Arrays.asList(rows);
     }
 
     @NotNull
-    private String[] row(String... values) {
-        return values;
+    private List<String> row(String... values) {
+        return Arrays.asList(values);
+    }
+
+    @NotNull
+    private List<String[]> replaceInExpected(
+        @NotNull List<List<String>> rows,
+        @Nullable String separator,
+        @Nullable String quoteChar,
+        @Nullable String escape
+    ) {
+        return rows
+            .stream()
+            .map(r -> replaceExpected(r, separator, quoteChar, escape))
+            .collect(Collectors.toList());
+
+    }
+
+    @NotNull
+    private String[] replaceExpected(
+        @NotNull List<String> row,
+        @Nullable String separator,
+        @Nullable String quoteChar,
+        @Nullable String escape
+    ) {
+        return row
+            .stream()
+            .map(r -> replaceInCSVToCustom(r, separator, quoteChar, escape))
+            .toArray(String[]::new);
+
     }
 
     private static List<Arguments> provideSeparators() {

@@ -122,6 +122,7 @@ public class CSVParser {
     private int index;
     private StringBuilder currentToken;
     private boolean inQuotes;
+    private boolean quotesInField;
     private boolean lastTokenFromQuotedField;
 
     /**
@@ -363,6 +364,7 @@ public class CSVParser {
         currentToken = new StringBuilder();
         currentLine = null;
         inQuotes = false;
+        quotesInField = false;
         lastTokenFromQuotedField = false;
         if (pending != null) {
             currentToken.append(pending);
@@ -490,12 +492,21 @@ public class CSVParser {
             } else {
                 inQuotes = false;
                 lastTokenFromQuotedField = true;
+                if (quotesInField) {
+                    currentToken.append(quotechar);
+                    quotesInField = false;
+                }
             }
             // if ignore quotations - just skip quotation completely
         } else if (!ignoreQuotations) {
             inQuotes = true;
             if (ignoreLeadingWhiteSpace && currentToken.length() > 0 && isAllWhiteSpace(currentToken)) {
                 currentToken.setLength(0);
+            }
+            // the tricky case of an embedded quote in the middle: a,b"c"d,e
+            if (currentToken.length() > 0) {
+                currentToken.append(quotechar);
+                quotesInField = true;
             }
         }
     }
