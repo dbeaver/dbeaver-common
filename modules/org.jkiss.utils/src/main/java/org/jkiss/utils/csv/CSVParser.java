@@ -411,13 +411,16 @@ public class CSVParser {
 
     private boolean isSpecialChar(@NotNull String specialChar) {
         int localIndex = index;
+        int matchingChars = 0;
         for (int i = 0; i < specialChar.length() && localIndex < currentLine.length(); i++, localIndex++) {
             if (specialChar.charAt(i) != currentLine.charAt(localIndex)) {
                 return false;
+            } else {
+                matchingChars++;
             }
         }
         // reached line end of the line, sequence not fully found Ex: separator -> sepa\n -> false
-        return localIndex < currentLine.length();
+        return matchingChars == specialChar.length();
     }
 
     /**

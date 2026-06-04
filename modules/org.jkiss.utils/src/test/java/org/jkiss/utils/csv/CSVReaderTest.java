@@ -20,14 +20,18 @@ import org.jkiss.code.NotNull;
 import org.jkiss.code.Nullable;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ArgumentsProvider;
+import org.junit.jupiter.params.provider.ArgumentsSource;
+import org.junit.jupiter.params.support.ParameterDeclarations;
 
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -37,9 +41,9 @@ class CSVReaderTest {
     private static final String DEFAULT_QUOTE = "\"";
     private static final String DEFAULT_ESCAPE = "\\";
 
-    private static final String ALTERNATIVE_SEPARATOR = ".";
-    private static final String ALTERNATIVE_QUOTE = "'";
-    private static final String ALTERNATIVE_ESCAPE = "~";
+    private static final String ALTERNATIVE_SEPARATOR = "s";
+    private static final String ALTERNATIVE_QUOTE = "q";
+    private static final String ALTERNATIVE_ESCAPE = "e";
 
     @Nested
     class ReaderConstructorTest {
@@ -87,8 +91,8 @@ class CSVReaderTest {
 
 
     @ParameterizedTest
-    @MethodSource("provideSeparators")
-    void testReadAllBasicCase(@NotNull String separator) throws Exception {
+    @ArgumentsSource(SeparatorsProvider.class)
+    void testBasicCase(@NotNull String separator) throws Exception {
         // given
         String input = "a,b,c";
 
@@ -105,8 +109,8 @@ class CSVReaderTest {
     }
 
     @ParameterizedTest
-    @MethodSource("provideSeparators")
-    void testReadAllMultiLine(@NotNull String separator) throws Exception {
+    @ArgumentsSource(SeparatorsProvider.class)
+    void testMultiLine(@NotNull String separator) throws Exception {
         assertReadAll(
             rows(
                 row("a", "b", "c"),
@@ -121,123 +125,148 @@ class CSVReaderTest {
     }
 
 
-    @ParameterizedTest
-    @MethodSource("provideSeparators")
-    void testReadAllQuotesInMiddleOfLine(@NotNull String separator, @NotNull String quote, @NotNull String escape) throws Exception {
-        assertReadAll(
-            rows(
-                row("a", "bc\"d\"ef", "g")
-            ),
-            "a,bc\"d\"ef,g",
-            separator,
-            quote,
-            escape
-        );
+    @Nested
+    class QuotesTests {
+
+        @ParameterizedTest
+        @ArgumentsSource(SeparatorsProvider.class)
+        void testQuotesInMiddleOfLine(@NotNull String separator, @NotNull String quote, @NotNull String escape) throws Exception {
+            assertReadAll(
+                rows(
+                    row("1", "23\"4\"56", "7")
+                ),
+                "1,23\"4\"56,7",
+                separator,
+                quote,
+                escape
+            );
+        }
+
+        @ParameterizedTest
+        @ArgumentsSource(SeparatorsProvider.class)
+        void testReadAllQuotesInMiddleOfLineWithSeparator(@NotNull String separator, @NotNull String quote, @NotNull String escape)
+        throws Exception {
+            assertReadAll(
+                rows(
+                    row("1", "23\"4,5\"6", "7")
+                ),
+                "1,23\"4,5\"6,7",
+                separator,
+                quote,
+                escape
+            );
+        }
+
+        @ParameterizedTest
+        @ArgumentsSource(SeparatorsProvider.class)
+        void testReadAllQuotesInMiddleOfLineWithNewLine(@NotNull String separator, @NotNull String quote, @NotNull String escape)
+        throws Exception {
+            assertReadAll(
+                rows(
+                    row("1", "23\"4\n5\"6", "7")
+                ),
+                "1,23\"4\n5\"6,7",
+                separator,
+                quote,
+                escape
+            );
+        }
+
+        @ParameterizedTest
+        @ArgumentsSource(SeparatorsProvider.class)
+        void testReadAllMultilineInsideQuotes(@NotNull String separator, @NotNull String quote, @NotNull String escape) throws Exception {
+            assertReadAll(
+                rows(
+                    row("a", "hello\nworld", "c"),
+                    row("1", "2", "3")
+                ),
+                "a,\"hello\nworld\",c\n1,2,3",
+                separator,
+                quote,
+                escape
+            );
+        }
+
+        @ParameterizedTest
+        @ArgumentsSource(SeparatorsProvider.class)
+            // see: https://www.rfc-editor.org/rfc/rfc4180.txt
+        void testDoubleQuotesInsideQuotesAreTreatedEscaped(@NotNull String separator, @NotNull String quote, @NotNull String escape)
+        throws Exception {
+            assertReadAll(
+                rows(
+                    row("a", "b\"c", "d")
+                ),
+                "a,\"b\"\"c\",d",
+                separator,
+                quote,
+                escape
+            );
+
+            assertReadAll(
+                rows(
+                    row("a", "b\"word\"c", "d")
+                ),
+                "a,\"b\"\"word\"\"c\",d",
+                separator,
+                quote,
+                escape
+            );
+        }
+
+        @ParameterizedTest
+        @ArgumentsSource(SeparatorsProvider.class)
+        void testReadSeparatorInsideQuotes(@NotNull String separator, @NotNull String quote, @NotNull String escape) throws Exception {
+            assertReadAll(
+                rows(
+                    row("a", "hello,world", "c"),
+                    row("1", "2", "3")
+                ),
+                "a,\"hello,world\",c\n1,2,3",
+                separator,
+                quote,
+                escape
+            );
+
+            assertReadAll(
+                rows(
+                    row("1", "2,\n3", "4")
+                ),
+                "1,\"2,\n3\",4",
+                separator,
+                quote,
+                escape
+            );
+
+            assertReadAll(
+                rows(
+                    row("a", "b\n,c", "d")
+                ),
+                "a,\"b\n,c\",d",
+                separator,
+                quote,
+                escape
+            );
+        }
+
     }
 
     @ParameterizedTest
-    @MethodSource("provideSeparators")
-    void testReadAllQuotesInMiddleOfLineWithSeparator(@NotNull String separator, @NotNull String quote, @NotNull String escape)
-    throws Exception {
-        assertReadAll(
-            rows(
-                row("a", "bc\"d,e\"f", "g")
-            ),
-            "a,bc\"d,e\"f,g",
-            separator,
-            quote,
-            escape
-        );
-    }
-
-    @ParameterizedTest
-    @MethodSource("provideSeparators")
-    void testReadAllQuotesInMiddleOfLineWithNewLine(@NotNull String separator, @NotNull String quote, @NotNull String escape)
-    throws Exception {
-        assertReadAll(
-            rows(
-                row("a", "bc\"d\ne\"f", "g")
-            ),
-            "a,bc\"d\ne\"f,g",
-            separator,
-            quote,
-            escape
-        );
-    }
-
-    @ParameterizedTest
-    @MethodSource("provideSeparators")
-    void testReadAllMultilineInsideQuotes(@NotNull String separator, @NotNull String quote, @NotNull String escape) throws Exception {
-        assertReadAll(
-            rows(
-                row("a", "hello\nworld", "c"),
-                row("1", "2", "3")
-            ),
-            "a,\"hello\nworld\",c\n1,2,3",
-            separator,
-            quote,
-            escape
-        );
-    }
-
-    @ParameterizedTest
-    @MethodSource("provideSeparators")
-        // see: https://www.rfc-editor.org/rfc/rfc4180.txt
-    void testDoubleQuotesInsideQuotesAreTreatedEscaped(@NotNull String separator, @NotNull String quote, @NotNull String escape)
-    throws Exception {
-        assertReadAll(
-            rows(
-                row("a", "b\"c", "d")
-            ),
-            "a,\"b\"\"c\",d",
-            separator,
-            quote,
-            escape
-        );
-
-        assertReadAll(
-            rows(
-                row("a", "b\"word\"c", "d")
-            ),
-            "a,\"b\"\"word\"\"c\",d",
-            separator,
-            quote,
-            escape
-        );
-    }
-
-    @ParameterizedTest
-    @MethodSource("provideSeparators")
-    void testReadSeparatorInsideQuotes(@NotNull String separator, @NotNull String quote, @NotNull String escape) throws Exception {
-        assertReadAll(
-            rows(
-                row("a", "hello,world", "c"),
-                row("1", "2", "3")
-            ),
-            "a,\"hello,world\",c\n1,2,3",
-            separator,
-            quote,
-            escape
-        );
-    }
-
-    @ParameterizedTest
-    @MethodSource("provideSeparators")
+    @ArgumentsSource(SeparatorsProvider.class)
     void testReadAllEscapedQuotes(@NotNull String separator, @NotNull String quote, @NotNull String escape) throws Exception {
         assertReadAll(
             rows(
-                row("hello " + quote + "world" + quote),
-                row(escape + quote)
+                row("1", "2\"3\"", "4")
             ),
-            "\"hello " + "\\" + "\"world" + "\\" + "\"" + "\"" + "\n\\\"",
+            "1,\"2\\\"3\\\"\",4",
             separator,
             quote,
             escape
         );
     }
 
+
     @ParameterizedTest
-    @MethodSource("provideSeparators")
+    @ArgumentsSource(SeparatorsProvider.class)
     void testReadAllEscapedSimpleCharIsAppendedWithEscape(@NotNull String separator, @NotNull String quote, @NotNull String escape)
     throws Exception {
         assertReadAll(
@@ -252,7 +281,7 @@ class CSVReaderTest {
     }
 
     @ParameterizedTest
-    @MethodSource("provideSeparators")
+    @ArgumentsSource(SeparatorsProvider.class)
     void testReadAllEscapeInTheEndOfTheLine(@NotNull String separator, @NotNull String quote, @NotNull String escape)
     throws Exception {
         assertReadAll(
@@ -268,7 +297,7 @@ class CSVReaderTest {
     }
 
     @ParameterizedTest
-    @MethodSource("provideSeparators")
+    @ArgumentsSource(SeparatorsProvider.class)
     void testEscapeInQuotesBeforeUnescapableCharAppended(@NotNull String separator, @NotNull String quote, @NotNull String escape)
     throws Exception {
         assertReadAll(
@@ -283,7 +312,7 @@ class CSVReaderTest {
     }
 
     @ParameterizedTest
-    @MethodSource("provideSeparators")
+    @ArgumentsSource(SeparatorsProvider.class)
     void testReadAllEscapedEscape(@NotNull String separator, @NotNull String quote, @NotNull String escape) throws Exception {
         assertReadAll(
             rows(
@@ -297,7 +326,7 @@ class CSVReaderTest {
     }
 
     @ParameterizedTest
-    @MethodSource("provideSeparators")
+    @ArgumentsSource(SeparatorsProvider.class)
     void testReadAllEscapedEscapeBeforeQuotes(@NotNull String separator, @NotNull String quote, @NotNull String escape) throws Exception {
         assertReadAll(
             rows(
@@ -311,7 +340,7 @@ class CSVReaderTest {
     }
 
     @ParameterizedTest
-    @MethodSource("provideSeparators")
+    @ArgumentsSource(SeparatorsProvider.class)
     void testReadAllIgnoresLeadingWhitespaceBeforeQuote(
         @NotNull String separator,
         @NotNull String quote,
@@ -332,7 +361,7 @@ class CSVReaderTest {
     }
 
     @ParameterizedTest
-    @MethodSource("provideSeparators")
+    @ArgumentsSource(SeparatorsProvider.class)
     void testReadAllDoesNotIgnoreLeadingWhitespaceBeforeQuote(
         @NotNull String separator,
         @NotNull String quote,
@@ -488,19 +517,35 @@ class CSVReaderTest {
 
     }
 
-    private static List<Arguments> provideSeparators() {
-        return List.of(
-            //defaults
-            Arguments.of(DEFAULT_SEPARATOR, DEFAULT_QUOTE, DEFAULT_ESCAPE),
-            // alternative one char
-            Arguments.of(ALTERNATIVE_SEPARATOR, ALTERNATIVE_QUOTE, ALTERNATIVE_ESCAPE),
-            // default + alt 2 chars
-            Arguments.of(DEFAULT_SEPARATOR + ALTERNATIVE_SEPARATOR, DEFAULT_QUOTE + ALTERNATIVE_QUOTE, DEFAULT_ESCAPE + ALTERNATIVE_ESCAPE),
-            // all special chars but starts same all cases
-            Arguments.of(DEFAULT_SEPARATOR, DEFAULT_SEPARATOR + DEFAULT_QUOTE, DEFAULT_SEPARATOR + DEFAULT_ESCAPE),
-            Arguments.of(DEFAULT_QUOTE + DEFAULT_SEPARATOR, DEFAULT_QUOTE, DEFAULT_QUOTE + DEFAULT_ESCAPE),
-            Arguments.of(DEFAULT_ESCAPE + DEFAULT_QUOTE + DEFAULT_SEPARATOR, DEFAULT_ESCAPE + DEFAULT_QUOTE, DEFAULT_ESCAPE)
-        );
+    private static class SeparatorsProvider implements ArgumentsProvider {
+
+        @Override
+        public Stream<? extends Arguments> provideArguments(ParameterDeclarations parameters, ExtensionContext context) throws Exception {
+            return provideSeparators();
+        }
+
+        private static Stream<Arguments> provideSeparators() {
+            return Stream.of(
+                // defaults
+                Arguments.of(DEFAULT_SEPARATOR, DEFAULT_QUOTE, DEFAULT_ESCAPE),
+                // alternative one char
+                Arguments.of(ALTERNATIVE_SEPARATOR, ALTERNATIVE_QUOTE, ALTERNATIVE_ESCAPE),
+                // default + alt 2 chars
+                Arguments.of(
+                    DEFAULT_SEPARATOR + ALTERNATIVE_SEPARATOR,
+                    DEFAULT_QUOTE + ALTERNATIVE_QUOTE,
+                    DEFAULT_ESCAPE + ALTERNATIVE_ESCAPE
+                ),
+                // all special chars but starts same all cases. alternative for better visibility
+                Arguments.of(ALTERNATIVE_SEPARATOR, ALTERNATIVE_SEPARATOR + ALTERNATIVE_QUOTE, ALTERNATIVE_SEPARATOR + ALTERNATIVE_ESCAPE),
+                Arguments.of(ALTERNATIVE_QUOTE + ALTERNATIVE_SEPARATOR, ALTERNATIVE_QUOTE, ALTERNATIVE_QUOTE + ALTERNATIVE_ESCAPE),
+                Arguments.of(
+                    ALTERNATIVE_ESCAPE + ALTERNATIVE_QUOTE + ALTERNATIVE_SEPARATOR,
+                    ALTERNATIVE_ESCAPE + ALTERNATIVE_QUOTE,
+                    ALTERNATIVE_ESCAPE
+                )
+            );
+        }
     }
 
 }
