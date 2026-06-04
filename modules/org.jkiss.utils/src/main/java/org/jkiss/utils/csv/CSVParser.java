@@ -122,6 +122,7 @@ public class CSVParser {
     private int index;
     private StringBuilder currentToken;
     private boolean inQuotes;
+    // the tricky case of an embedded quote in the middle: a,b"c"d,e
     private boolean quotesInField;
     private boolean lastTokenFromQuotedField;
 
@@ -212,7 +213,7 @@ public class CSVParser {
      * @return The default separator for this parser.
      */
     @NotNull
-    public CharSequence getSeparator() {
+    public String getSeparator() {
         return separator;
     }
 
@@ -220,7 +221,7 @@ public class CSVParser {
      * @return The default quotation character for this parser.
      */
     @NotNull
-    public CharSequence getQuotechar() {
+    public String getQuotechar() {
         return quotechar;
     }
 
@@ -228,7 +229,7 @@ public class CSVParser {
      * @return The default escape character for this parser.
      */
     @NotNull
-    public CharSequence getEscape() {
+    public String getEscape() {
         return escape;
     }
 
@@ -505,7 +506,6 @@ public class CSVParser {
             if (ignoreLeadingWhiteSpace && currentToken.length() > 0 && isAllWhiteSpace(currentToken)) {
                 currentToken.setLength(0);
             }
-            // the tricky case of an embedded quote in the middle: a,b"c"d,e
             if (currentToken.length() > 0) {
                 currentToken.append(quotechar);
                 quotesInField = true;
