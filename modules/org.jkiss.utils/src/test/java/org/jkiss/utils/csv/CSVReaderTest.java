@@ -651,7 +651,7 @@ class CSVReaderTest {
         if (escape != null && !escape.equals(DEFAULT_QUOTE)) {
             orderedSeparators.put(escape, DEFAULT_ESCAPE);
         }
-        
+
         String csv = csvTemplate;
         for (Map.Entry<String, String> replacement : orderedSeparators.entrySet()) {
             csv = csv.replace(replacement.getValue(), replacement.getKey());
@@ -721,10 +721,12 @@ class CSVReaderTest {
     private static class SeparatorsProvider implements ArgumentsProvider {
 
         @Override
+        @NotNull
         public Stream<? extends Arguments> provideArguments(ParameterDeclarations parameters, ExtensionContext context) throws Exception {
             return provideSeparators();
         }
 
+        @NotNull
         private static Stream<Arguments> provideSeparators() {
             return Stream.of(
                 // defaults
