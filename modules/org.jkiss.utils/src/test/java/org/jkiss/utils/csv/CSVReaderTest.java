@@ -80,15 +80,7 @@ class CSVReaderTest {
                 () -> new CSVReader(new StringReader(csv), DEFAULT_SEPARATOR, DEFAULT_ESCAPE, DEFAULT_SEPARATOR)
             );
         }
-
-        @Test
-        public void testUnfinishedQuotationShouldThrow() {
-            String csv = "a," + DEFAULT_QUOTE + "b";
-            CSVReader reader = new CSVReader(new StringReader(csv), DEFAULT_SEPARATOR, DEFAULT_QUOTE, DEFAULT_ESCAPE);
-            assertThrows(IOException.class, reader::readAll);
-        }
     }
-
 
     @ParameterizedTest
     @ArgumentsSource(SeparatorsProvider.class)
@@ -123,7 +115,6 @@ class CSVReaderTest {
             null
         );
     }
-
 
     @Nested
     class QuotesTests {
@@ -257,6 +248,13 @@ class CSVReaderTest {
                 quote,
                 escape
             );
+        }
+
+        @Test
+        public void testUnfinishedQuotationShouldThrow() {
+            String csv = "a," + DEFAULT_QUOTE + "b";
+            CSVReader reader = new CSVReader(new StringReader(csv), DEFAULT_SEPARATOR, DEFAULT_QUOTE, DEFAULT_ESCAPE);
+            assertThrows(IOException.class, reader::readAll);
         }
 
     }
