@@ -297,6 +297,7 @@ public class CSVParser {
      * @return the comma-tokenized list of elements, or null if nextLine is null
      * @throws IOException if bad things happen during the read
      */
+    @Nullable
     public String[] parseLineMulti(String nextLine) throws IOException {
         return parseLine(nextLine, true);
     }
@@ -309,6 +310,7 @@ public class CSVParser {
      * @return the comma-tokenized list of elements, or null if nextLine is null
      * @throws IOException if bad things happen during the read
      */
+    @Nullable
     public String[] parseLine(String nextLine) throws IOException {
         return parseLine(nextLine, false);
     }

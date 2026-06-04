@@ -648,7 +648,7 @@ class CSVReaderTest {
         if (quoteChar != null && !quoteChar.equals(DEFAULT_QUOTE)) {
             orderedSeparators.put(quoteChar, DEFAULT_QUOTE);
         }
-        if (escape != null && !escape.equals(DEFAULT_QUOTE)) {
+        if (escape != null && !escape.equals(DEFAULT_ESCAPE)) {
             orderedSeparators.put(escape, DEFAULT_ESCAPE);
         }
 
