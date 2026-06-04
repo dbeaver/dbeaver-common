@@ -41,9 +41,9 @@ class CSVReaderTest {
     private static final String DEFAULT_QUOTE = "\"";
     private static final String DEFAULT_ESCAPE = "\\";
 
-    private static final String ALTERNATIVE_SEPARATOR = "s";
-    private static final String ALTERNATIVE_QUOTE = "q";
-    private static final String ALTERNATIVE_ESCAPE = "e";
+    private static final String ALTERNATIVE_SEPARATOR = ".";
+    private static final String ALTERNATIVE_QUOTE = "'";
+    private static final String ALTERNATIVE_ESCAPE = "|";
 
     @Nested
     class ReaderConstructorTest {
@@ -506,6 +506,80 @@ class CSVReaderTest {
                 CSVReader.DEFAULT_SKIP_LINES,
                 false,
                 false
+            );
+        }
+    }
+
+    @Nested
+    class StrictQuotationTests {
+
+        @ParameterizedTest
+        @ArgumentsSource(SeparatorsProvider.class)
+        void testIgnoresCharactersOutsideQuotes(
+            @NotNull String separator,
+            @NotNull String quote,
+            @NotNull String escape
+        ) throws Exception {
+
+            assertReadAll(
+                rows(
+                    row("2")
+                ),
+                "123\"2\"456",
+                separator,
+                quote,
+                escape,
+                CSVReader.DEFAULT_SKIP_LINES,
+                true,
+                CSVParser.DEFAULT_IGNORE_LEADING_WHITESPACE
+            );
+
+            assertReadAll(
+                rows(
+                    row("", "2", "")
+                ),
+                "1,\"2\",3",
+                separator,
+                quote,
+                escape,
+                CSVReader.DEFAULT_SKIP_LINES,
+                true,
+                CSVParser.DEFAULT_IGNORE_LEADING_WHITESPACE
+            );
+        }
+
+        @ParameterizedTest
+        @ArgumentsSource(SeparatorsProvider.class)
+        void testKeepsCharactersOutsideQuotesWhenStrictQuotesDisabled(
+            @NotNull String separator,
+            @NotNull String quote,
+            @NotNull String escape
+        ) throws Exception {
+
+            assertReadAll(
+                rows(
+                    row("1", "2", "3")
+                ),
+                "1,2,3",
+                separator,
+                quote,
+                escape,
+                CSVReader.DEFAULT_SKIP_LINES,
+                false,
+                CSVParser.DEFAULT_IGNORE_LEADING_WHITESPACE
+            );
+
+            assertReadAll(
+                rows(
+                    row("123\"4\"56")
+                ),
+                "123\"4\"56",
+                separator,
+                quote,
+                escape,
+                CSVReader.DEFAULT_SKIP_LINES,
+                false,
+                CSVParser.DEFAULT_IGNORE_LEADING_WHITESPACE
             );
         }
     }
