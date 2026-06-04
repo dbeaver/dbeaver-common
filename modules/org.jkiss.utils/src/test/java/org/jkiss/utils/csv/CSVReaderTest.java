@@ -201,10 +201,10 @@ class CSVReaderTest {
     void testReadSeparatorInsideQuotes(@NotNull String separator, @NotNull String quote, @NotNull String escape) throws Exception {
         assertReadAll(
             rows(
-                row("a", "hello" + separator + "world", "c"),
+                row("a", "hello,world", "c"),
                 row("1", "2", "3")
             ),
-            "a,\"hello" + separator + "world\",c\n1,2,3",
+            "a,\"hello,world\",c\n1,2,3",
             separator,
             quote,
             escape
@@ -381,7 +381,7 @@ class CSVReaderTest {
             assertEquals(
                 expected.size(),
                 actual.size(),
-                "Differed rows length\nExpected:" + expected.stream().map(Arrays::toString).collect(Collectors.joining())
+                "Differed rows length\nCSV: " + csv + "\nExpected:" + expected.stream().map(Arrays::toString).collect(Collectors.joining())
                     + "\nActual  :" + actual.stream().map(Arrays::toString).collect(Collectors.joining())
             );
             for (int i = 0; i < expected.size(); i++) {
