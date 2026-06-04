@@ -26,6 +26,7 @@ package org.jkiss.utils.csv;
 
 import org.jkiss.code.NotNull;
 import org.jkiss.code.Nullable;
+import org.jkiss.utils.CommonUtils;
 
 import java.io.IOException;
 import java.util.*;
@@ -189,6 +190,9 @@ public class CSVParser {
         boolean ignoreLeadingWhiteSpace,
         boolean ignoreQuotations, CSVReaderNullFieldIndicator nullFieldIndicator
     ) {
+        if (CommonUtils.isEmpty(separator) || CommonUtils.isEmpty(quotechar) || CommonUtils.isEmpty(escape)) {
+            throw new UnsupportedOperationException("Non of separator, quote, and escape characters can be empty");
+        }
         if (anyCharactersAreTheSame(separator, quotechar, escape)) {
             throw new UnsupportedOperationException("The separator, quote, and escape characters must be different!");
         }

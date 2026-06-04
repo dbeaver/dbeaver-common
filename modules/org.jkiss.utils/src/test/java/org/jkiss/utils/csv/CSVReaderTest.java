@@ -80,6 +80,37 @@ class CSVReaderTest {
                 () -> new CSVReader(new StringReader(csv), DEFAULT_SEPARATOR, DEFAULT_ESCAPE, DEFAULT_SEPARATOR)
             );
         }
+
+        @Test
+        public void testEmptyAndNullMainSeparatorsThrows() {
+            String csv = "test";
+            assertThrows(
+                UnsupportedOperationException.class,
+                () -> new CSVReader(new StringReader(csv), "", DEFAULT_SEPARATOR, DEFAULT_ESCAPE)
+            );
+            assertThrows(
+                UnsupportedOperationException.class,
+                () -> new CSVReader(new StringReader(csv), DEFAULT_SEPARATOR, "", DEFAULT_ESCAPE)
+            );
+            assertThrows(
+                UnsupportedOperationException.class,
+                () -> new CSVReader(new StringReader(csv), DEFAULT_SEPARATOR, DEFAULT_ESCAPE, "")
+            );
+
+            // null
+            assertThrows(
+                Throwable.class,
+                () -> new CSVReader(new StringReader(csv), null, DEFAULT_SEPARATOR, DEFAULT_ESCAPE)
+            );
+            assertThrows(
+                Throwable.class,
+                () -> new CSVReader(new StringReader(csv), DEFAULT_SEPARATOR, null, DEFAULT_ESCAPE)
+            );
+            assertThrows(
+                Throwable.class,
+                () -> new CSVReader(new StringReader(csv), DEFAULT_SEPARATOR, DEFAULT_ESCAPE, null)
+            );
+        }
     }
 
     @ParameterizedTest
