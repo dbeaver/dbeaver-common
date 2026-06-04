@@ -197,7 +197,7 @@ class CSVReaderTest {
                 rows(
                     row("1", "\"", "2")
                 ),
-                "1,\"\"\",2",
+                "1,\"\"\"\",2",
                 separator,
                 quote,
                 escape
