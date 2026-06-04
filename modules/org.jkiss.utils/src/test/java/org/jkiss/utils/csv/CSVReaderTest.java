@@ -582,8 +582,6 @@ class CSVReaderTest {
         }
     }
 
-    // todo add empty stuff tests and ignore quotation
-
     private void assertReadAll(
         @NotNull List<List<String>> expectedTemplate,
         @NotNull String csvTemplate,
@@ -653,11 +651,12 @@ class CSVReaderTest {
         if (escape != null && !escape.equals(DEFAULT_QUOTE)) {
             orderedSeparators.put(escape, DEFAULT_ESCAPE);
         }
-
+        
+        String csv = csvTemplate;
         for (Map.Entry<String, String> replacement : orderedSeparators.entrySet()) {
-            csvTemplate = csvTemplate.replace(replacement.getValue(), replacement.getKey());
+            csv = csv.replace(replacement.getValue(), replacement.getKey());
         }
-        return csvTemplate;
+        return csv;
     }
 
     @NotNull
