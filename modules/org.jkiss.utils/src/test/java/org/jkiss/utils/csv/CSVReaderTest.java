@@ -681,12 +681,12 @@ class CSVReaderTest {
     }
 
     @NotNull
-    private List<List<String>> rows(List<String>... rows) {
+    private List<List<String>> rows(@NotNull List<String>... rows) {
         return Arrays.asList(rows);
     }
 
     @NotNull
-    private List<String> row(String... values) {
+    private List<String> row(@NotNull String... values) {
         return Arrays.asList(values);
     }
 
