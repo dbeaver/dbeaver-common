@@ -426,48 +426,91 @@ class CSVReaderTest {
         }
     }
 
-    @ParameterizedTest
-    @ArgumentsSource(SeparatorsProvider.class)
-    void testReadAllIgnoresLeadingWhitespaceBeforeQuote(
-        @NotNull String separator,
-        @NotNull String quote,
-        @NotNull String escape
-    ) throws Exception {
-        assertReadAll(
-            rows(
-                row("a", "b", "c")
-            ),
-            "a,   \"b\",c",
-            separator,
-            quote,
-            escape,
-            CSVReader.DEFAULT_SKIP_LINES,
-            false,
-            true
-        );
+    @Nested
+    class IgnoreLeadingWhiteSpaceTests {
+
+        public static final String LEADING_SPACE = "   ";
+
+        @ParameterizedTest
+        @ArgumentsSource(SeparatorsProvider.class)
+        void testIgnoresLeadingWhitespaceBeforeQuote(
+            @NotNull String separator,
+            @NotNull String quote,
+            @NotNull String escape
+        ) throws Exception {
+            assertReadAll(
+                rows(
+                    row("1", "2", "3")
+                ),
+                "1," + LEADING_SPACE + "\"2\",3",
+                separator,
+                quote,
+                escape,
+                CSVReader.DEFAULT_SKIP_LINES,
+                false,
+                true
+            );
+
+            // not ignored inside quote
+            assertReadAll(
+                rows(
+                    row("1", LEADING_SPACE + "2", "3")
+                ),
+                "1,\"" + LEADING_SPACE + "2\",3",
+                separator,
+                quote,
+                escape,
+                CSVReader.DEFAULT_SKIP_LINES,
+                false,
+                true
+            );
+        }
+
+        @ParameterizedTest
+        @ArgumentsSource(SeparatorsProvider.class)
+        void testDoesNotIgnoreLeadingWhitespaceNotBeforeQuote(
+            @NotNull String separator,
+            @NotNull String quote,
+            @NotNull String escape
+        ) throws Exception {
+
+            assertReadAll(
+                rows(
+                    row("1", LEADING_SPACE + "2", "3")
+                ),
+                "1," + LEADING_SPACE + "2,3",
+                separator,
+                quote,
+                escape,
+                CSVReader.DEFAULT_SKIP_LINES,
+                false,
+                true
+            );
+        }
+
+        @ParameterizedTest
+        @ArgumentsSource(SeparatorsProvider.class)
+        void testReadAllDoesNotIgnoreLeadingWhitespaceBeforeQuote(
+            @NotNull String separator,
+            @NotNull String quote,
+            @NotNull String escape
+        ) throws Exception {
+            assertReadAll(
+                rows(
+                    row("1", LEADING_SPACE + "\"2\"", "3")
+                ),
+                "1," + LEADING_SPACE + "\"2\",3",
+                separator,
+                quote,
+                escape,
+                CSVReader.DEFAULT_SKIP_LINES,
+                false,
+                false
+            );
+        }
     }
 
-    @ParameterizedTest
-    @ArgumentsSource(SeparatorsProvider.class)
-    void testReadAllDoesNotIgnoreLeadingWhitespaceBeforeQuote(
-        @NotNull String separator,
-        @NotNull String quote,
-        @NotNull String escape
-    ) throws Exception {
-        assertReadAll(
-            rows(
-                row("a", "   " + quote + "b" + quote, "c")
-            ),
-            "a,   \"b,c",
-            separator,
-            quote,
-            escape,
-            CSVReader.DEFAULT_SKIP_LINES,
-            false,
-            true
-        );
-    }
-    // todo add empty stuff tests
+    // todo add empty stuff tests and ignore quotation
 
     private void assertReadAll(
         @NotNull List<List<String>> expectedTemplate,
