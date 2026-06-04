@@ -144,7 +144,7 @@ class CSVReaderTest {
 
         @ParameterizedTest
         @ArgumentsSource(SeparatorsProvider.class)
-        void testReadAllQuotesInMiddleOfLineWithSeparator(@NotNull String separator, @NotNull String quote, @NotNull String escape)
+        void testQuotesInMiddleOfLineWithSeparator(@NotNull String separator, @NotNull String quote, @NotNull String escape)
         throws Exception {
             assertReadAll(
                 rows(
@@ -159,7 +159,7 @@ class CSVReaderTest {
 
         @ParameterizedTest
         @ArgumentsSource(SeparatorsProvider.class)
-        void testReadAllQuotesInMiddleOfLineWithNewLine(@NotNull String separator, @NotNull String quote, @NotNull String escape)
+        void testQuotesInMiddleOfLineWithNewLine(@NotNull String separator, @NotNull String quote, @NotNull String escape)
         throws Exception {
             assertReadAll(
                 rows(
@@ -174,7 +174,7 @@ class CSVReaderTest {
 
         @ParameterizedTest
         @ArgumentsSource(SeparatorsProvider.class)
-        void testReadAllMultilineInsideQuotes(@NotNull String separator, @NotNull String quote, @NotNull String escape) throws Exception {
+        void testMultilineInsideQuotes(@NotNull String separator, @NotNull String quote, @NotNull String escape) throws Exception {
             assertReadAll(
                 rows(
                     row("a", "hello\nworld", "c"),
@@ -192,11 +192,12 @@ class CSVReaderTest {
             // see: https://www.rfc-editor.org/rfc/rfc4180.txt
         void testDoubleQuotesInsideQuotesAreTreatedEscaped(@NotNull String separator, @NotNull String quote, @NotNull String escape)
         throws Exception {
+
             assertReadAll(
                 rows(
-                    row("a", "b\"c", "d")
+                    row("1", "\"", "2")
                 ),
-                "a,\"b\"\"c\",d",
+                "1,\"\"\",2",
                 separator,
                 quote,
                 escape
@@ -204,9 +205,19 @@ class CSVReaderTest {
 
             assertReadAll(
                 rows(
-                    row("a", "b\"word\"c", "d")
+                    row("1", "2\"3", "4")
                 ),
-                "a,\"b\"\"word\"\"c\",d",
+                "1,\"2\"\"3\",4",
+                separator,
+                quote,
+                escape
+            );
+
+            assertReadAll(
+                rows(
+                    row("1", "2\"word\"3", "4")
+                ),
+                "1,\"2\"\"word\"\"3\",4",
                 separator,
                 quote,
                 escape
@@ -250,93 +261,169 @@ class CSVReaderTest {
 
     }
 
-    @ParameterizedTest
-    @ArgumentsSource(SeparatorsProvider.class)
-    void testReadAllEscapedQuotes(@NotNull String separator, @NotNull String quote, @NotNull String escape) throws Exception {
-        assertReadAll(
-            rows(
-                row("1", "2\"3\"", "4")
-            ),
-            "1,\"2\\\"3\\\"\",4",
-            separator,
-            quote,
-            escape
-        );
-    }
+    @Nested
+    class EscapeTests {
 
+        @ParameterizedTest
+        @ArgumentsSource(SeparatorsProvider.class)
+        void testEscapeNotInQuotesIsRegularChar(@NotNull String separator, @NotNull String quote, @NotNull String escape) throws Exception {
+            assertReadAll(
+                rows(
+                    row("1", "\\2", "3")
+                ),
+                "1,\\2,3",
+                separator,
+                quote,
+                escape
+            );
 
-    @ParameterizedTest
-    @ArgumentsSource(SeparatorsProvider.class)
-    void testReadAllEscapedSimpleCharIsAppendedWithEscape(@NotNull String separator, @NotNull String quote, @NotNull String escape)
-    throws Exception {
-        assertReadAll(
-            rows(
-                row("a", escape + "b", escape + "c")
-            ),
-            "a,\\b,\\c",
-            separator,
-            quote,
-            escape
-        );
-    }
+            assertReadAll(
+                rows(
+                    row("1", "2\\", "3")
+                ),
+                "1,2\\,3",
+                separator,
+                quote,
+                escape
+            );
 
-    @ParameterizedTest
-    @ArgumentsSource(SeparatorsProvider.class)
-    void testReadAllEscapeInTheEndOfTheLine(@NotNull String separator, @NotNull String quote, @NotNull String escape)
-    throws Exception {
-        assertReadAll(
-            rows(
-                row("a", "b", "c" + escape),
-                row(escape + "1", "2", "3")
-            ),
-            "a,b,c\\\n\\1,2,3",
-            separator,
-            quote,
-            escape
-        );
-    }
+            // not started quotes are not escaped
+            assertReadAll(
+                rows(
+                    row("1", "2\\\"3,4\"", "5")
+                ),
+                "1,2\\\"3,4\",5",
+                separator,
+                quote,
+                escape
+            );
 
-    @ParameterizedTest
-    @ArgumentsSource(SeparatorsProvider.class)
-    void testEscapeInQuotesBeforeUnescapableCharAppended(@NotNull String separator, @NotNull String quote, @NotNull String escape)
-    throws Exception {
-        assertReadAll(
-            rows(
-                row("a", "\b", "c", "d")
-            ),
-            "a,\"\b" + escape + "\",c,d",
-            separator,
-            quote,
-            escape
-        );
-    }
+            assertReadAll(
+                rows(
+                    row("1", "\\", "2")
+                ),
+                "1,\\,2",
+                separator,
+                quote,
+                escape
+            );
 
-    @ParameterizedTest
-    @ArgumentsSource(SeparatorsProvider.class)
-    void testReadAllEscapedEscape(@NotNull String separator, @NotNull String quote, @NotNull String escape) throws Exception {
-        assertReadAll(
-            rows(
-                row("a", "b" + escape + "c", "d")
-            ),
-            "a,b\\" + escape + "c,d",
-            separator,
-            quote,
-            escape
-        );
-    }
+            assertReadAll(
+                rows(
+                    row("\\", "\\", "1")
+                ),
+                "\\,\\,1",
+                separator,
+                quote,
+                escape
+            );
+            assertReadAll(
+                rows(
+                    row("\\", "\\", "\\")
+                ),
+                "\\,\\,\\",
+                separator,
+                quote,
+                escape
+            );
 
-    @ParameterizedTest
-    @ArgumentsSource(SeparatorsProvider.class)
-    void testReadAllEscapedEscapeBeforeQuotes(@NotNull String separator, @NotNull String quote, @NotNull String escape) throws Exception {
-        assertReadAll(
-            rows(
-                row("a", "b" + escape, "c", "d")
-            ),
-            "a,b" + escape.repeat(2) + "\",c,d",
-            separator,
-            quote,
-            escape
-        );
+            // double escape also just chars
+            assertReadAll(
+                rows(
+                    row("\\\\", "\\\\", "\\\\")
+                ),
+                "\\\\,\\\\,\\\\",
+                separator,
+                quote,
+                escape
+            );
+        }
+
+        @ParameterizedTest
+        @ArgumentsSource(SeparatorsProvider.class)
+        void testEscapedQuotes(@NotNull String separator, @NotNull String quote, @NotNull String escape) throws Exception {
+            assertReadAll(
+                rows(
+                    row("1", "2\"3\"", "4")
+                ),
+                "1,\"2\\\"3\\\"\",4",
+                separator,
+                quote,
+                escape
+            );
+
+            assertReadAll(
+                rows(
+                    row("1", "2\"\"", "3")
+                ),
+                "1,\"2\\\"\\\"\",3",
+                separator,
+                quote,
+                escape
+            );
+
+            // next line treated correctly
+            assertReadAll(
+                rows(
+                    row("1", "2\"\n\"3", "4")
+                ),
+                "1,\"2\\\"\n\\\"3\",4",
+                separator,
+                quote,
+                escape
+            );
+
+            // separator line treated correctly
+            assertReadAll(
+                rows(
+                    row("1", "2\"4,5\"6", "7")
+                ),
+                "1,\"2\\\"4,5\\\"6\",7",
+                separator,
+                quote,
+                escape
+            );
+        }
+
+        @ParameterizedTest
+        @ArgumentsSource(SeparatorsProvider.class)
+        void testEscapeInQuotesBeforeUnescapableCharIsNormalChar(@NotNull String separator, @NotNull String quote, @NotNull String escape)
+        throws Exception {
+            assertReadAll(
+                rows(
+                    row("1", "\\2", "3")
+                ),
+                "1,\"\\\\2\",3",
+                separator,
+                quote,
+                escape
+            );
+        }
+
+        @ParameterizedTest
+        @ArgumentsSource(SeparatorsProvider.class)
+        void testEscapedEscapeBeforeQuotes(@NotNull String separator, @NotNull String quote, @NotNull String escape)
+        throws Exception {
+            assertReadAll(
+                rows(
+                    row("1", "2\\", "3")
+                ),
+                "1,\"2\\\\\",\"3\"",
+                separator,
+                quote,
+                escape
+            );
+
+            assertReadAll(
+                rows(
+                    row("1", "2\\\\", "3")
+                ),
+                "1,\"2\\\\\\\\\",\"3\"",
+                separator,
+                quote,
+                escape
+            );
+        }
     }
 
     @ParameterizedTest
