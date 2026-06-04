@@ -158,7 +158,7 @@ class CSVReaderTest {
             rows(
                 row("a", "bc\"d\ne\"f", "g")
             ),
-            "a,bcd\nef,g",
+            "a,bc\"d\ne\"f,g",
             separator,
             quote,
             escape
@@ -183,13 +183,23 @@ class CSVReaderTest {
     @ParameterizedTest
     @MethodSource("provideSeparators")
         // see: https://www.rfc-editor.org/rfc/rfc4180.txt
-    void testQuotesInsideQuotesAreTreatedEscaped(@NotNull String separator, @NotNull String quote, @NotNull String escape)
+    void testDoubleQuotesInsideQuotesAreTreatedEscaped(@NotNull String separator, @NotNull String quote, @NotNull String escape)
     throws Exception {
         assertReadAll(
             rows(
-                row("\"\"a", "hello\"\"world", "\"\"c", "\"\"d\"\"")
+                row("a", "b\"c", "d")
             ),
-            "\"a, hello\"world,c\",\"d\"",
+            "a,\"b\"\"c\",d",
+            separator,
+            quote,
+            escape
+        );
+
+        assertReadAll(
+            rows(
+                row("a", "b\"word\"c", "d")
+            ),
+            "a,\"b\"\"word\"\"c\",d",
             separator,
             quote,
             escape
@@ -386,7 +396,7 @@ class CSVReaderTest {
             );
             for (int i = 0; i < expected.size(); i++) {
                 assertArrayEquals(
-                    expected.get(i), actual.get(i), "CSV: " + csv + "\nExpected: "
+                    expected.get(i), actual.get(i), "\nCSV: " + csv + "\nExpected: "
                         + Arrays.toString(expected.get(i)) + "\nActual  : " + Arrays.toString(actual.get(i))
                 );
             }

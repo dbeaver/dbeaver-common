@@ -364,7 +364,6 @@ public class CSVParser {
         currentToken = new StringBuilder();
         currentLine = null;
         inQuotes = false;
-        quotesInField = false;
         lastTokenFromQuotedField = false;
         if (pending != null) {
             currentToken.append(pending);
