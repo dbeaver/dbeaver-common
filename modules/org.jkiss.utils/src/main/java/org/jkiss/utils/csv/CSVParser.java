@@ -191,7 +191,7 @@ public class CSVParser {
         boolean ignoreQuotations, CSVReaderNullFieldIndicator nullFieldIndicator
     ) {
         if (CommonUtils.isEmpty(separator) || CommonUtils.isEmpty(quotechar) || CommonUtils.isEmpty(escape)) {
-            throw new UnsupportedOperationException("Non of separator, quote, and escape characters can be empty");
+            throw new UnsupportedOperationException("None of separator, quote, and escape characters can be empty");
         }
         if (anyCharactersAreTheSame(separator, quotechar, escape)) {
             throw new UnsupportedOperationException("The separator, quote, and escape characters must be different!");
