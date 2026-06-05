@@ -91,7 +91,7 @@ public class CSVReader implements Closeable {
      * @param strictQuotes sets if characters outside the quotes are ignored
      */
     public CSVReader(
-        Reader reader,
+        @NotNull Reader reader,
         @NotNull String separator,
         @NotNull String quotechar,
         @NotNull String escape,
