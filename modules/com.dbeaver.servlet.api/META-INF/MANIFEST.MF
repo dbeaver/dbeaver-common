@@ -3,7 +3,7 @@ Bundle-ManifestVersion: 2
 Bundle-Name: DBeaver Servlet API Extensions
 Bundle-Vendor: DBeaver Corp
 Bundle-SymbolicName: com.dbeaver.servlet.api
-Bundle-Version: 2.7.0.qualifier
+Bundle-Version: 2.7.0
 Bundle-Release-Date: 20250521
 Bundle-RequiredExecutionEnvironment: JavaSE-17
 Bundle-ActivationPolicy: lazy
