@@ -155,6 +155,16 @@ public class SecurityUtils {
         }
     }
 
+    @NotNull
+    public static String sha256Hex(@NotNull String input) {
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            return CommonUtils.toHexString(digest.digest(input.getBytes(StandardCharsets.UTF_8)));
+        } catch (NoSuchAlgorithmException e) {
+            throw new IllegalStateException("SHA-256 algorithm not available", e);
+        }
+    }
+
     /**
      * Generate a random password of the given length.
      */
