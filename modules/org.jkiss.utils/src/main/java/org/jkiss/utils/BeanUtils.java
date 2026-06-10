@@ -522,4 +522,35 @@ public class BeanUtils {
             return supplier.get();
         }
     }
+
+    /**
+     * Checks whether the given object is an instance of the target class name. It checks all superclasses and interfaces.
+     *
+     * @param object the object to check
+     * @param target the target class name
+     * @return {@code true} if the given object is an instance of the target class name, {@code false} otherwise
+     */
+    public static boolean isInstanceOf(@Nullable Object object, @NotNull String target) {
+        return object != null && isAssignableTo(object.getClass(), target);
+    }
+
+    /**
+     * Checks whether the given class is assignable to the target class name. It checks all superclasses and interfaces.
+     *
+     * @param cls    the class to check
+     * @param target the target class name
+     * @return {@code true} if the given class is assignable to the target class name, {@code false} otherwise
+     */
+    public static boolean isAssignableTo(@NotNull Class<?> cls, @NotNull String target) {
+        if (cls.getName().equals(target)) {
+            return true;
+        }
+        for (Class<?> iface : cls.getInterfaces()) {
+            if (isAssignableTo(iface, target)) {
+                return true;
+            }
+        }
+        Class<?> superclass = cls.getSuperclass();
+        return superclass != null && isAssignableTo(superclass, target);
+    }
 }
