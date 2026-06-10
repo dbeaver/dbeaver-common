@@ -63,7 +63,7 @@
         <junit-jupiter-version>6.0.3</junit-jupiter-version>
 
         <dbeaver.common.version>2.8.0-SNAPSHOT</dbeaver.common.version>
-        <lm.version>3.0.35-SNAPSHOT</lm.version>
+        <lm.version>3.0.36-SNAPSHOT</lm.version>
         <dm.version>0.0.15-SNAPSHOT</dm.version>
         <commons-cli.version>1.3.1</commons-cli.version>
     </properties>
