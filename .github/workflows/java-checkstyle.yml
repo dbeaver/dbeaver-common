@@ -11,6 +11,7 @@ jobs:
     timeout-minutes: 5
     permissions:
       contents: read
+      pull-requests: read
 
     steps:
       - name: 'checkstyle: checkout target repository'
