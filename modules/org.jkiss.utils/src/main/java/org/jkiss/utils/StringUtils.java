@@ -21,6 +21,13 @@ import org.jkiss.code.Nullable;
 
 public final class StringUtils {
 
+    /**
+     * The default maximum length for tooltips. Longer tooltips should be wrapped to multiple lines.
+     *
+     * @see #wrap(String, int)
+     */
+    public static final int TOOLTIP_WRAP_LENGTH = 80;
+
     private StringUtils() {}
 
     /**
