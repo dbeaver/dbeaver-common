@@ -70,7 +70,7 @@ public class OAuthCodeResponseHandler implements IOAuthCodeResponseHandler {
         try {
             httpServer = HttpServer.create(new InetSocketAddress(port), 1);
         } catch (IOException e) {
-            throw new IOException("Can't create callback server");
+            throw new IOException("Can't create callback server", e);
         }
         httpServer.setExecutor(new ThreadPoolExecutor(1, 10, 60, TimeUnit.SECONDS, new LinkedBlockingQueue<>()));
         httpServer.start();
