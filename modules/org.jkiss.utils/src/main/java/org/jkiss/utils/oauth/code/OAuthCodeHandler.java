@@ -321,6 +321,8 @@ public class OAuthCodeHandler implements IOAuthHandler {
     }
 
     public static class OAuthCodeHandlerBuilder<T extends OAuthCodeHandler> {
+        protected static final String ENDPOINT_SLASH = "/";
+
         protected String clientId;
         protected String secretId;
         protected String authUrl;
@@ -331,7 +333,7 @@ public class OAuthCodeHandler implements IOAuthHandler {
         protected String scope;
 
         protected int timeout = OAuthConstants.AUTH_DEFAULT_SSO_TIMEOUT;
-        protected String callbackEndpoint = OAuthConstants.DEFAULT_CALLBACK_ENDPOINT;
+        protected String callbackEndpoint;
         protected String state;
 
 
@@ -365,8 +367,10 @@ public class OAuthCodeHandler implements IOAuthHandler {
             return this;
         }
 
-        public OAuthCodeHandlerBuilder<T> withCallbackEndpoint(@NotNull String endpoint) {
-            this.callbackEndpoint = endpoint;
+        public OAuthCodeHandlerBuilder<T> withCallbackEndpoint(@Nullable String endpoint) {
+            if (endpoint != null) {
+                this.callbackEndpoint = endpoint.startsWith(ENDPOINT_SLASH) ? endpoint : ENDPOINT_SLASH + endpoint;
+            }
             return this;
         }
 
@@ -392,6 +396,9 @@ public class OAuthCodeHandler implements IOAuthHandler {
             if (CommonUtils.isEmpty(tokenURL)) {
                 throw new IllegalStateException("tokenURL is required");
             }
+            if (CommonUtils.isEmpty(callbackEndpoint)) {
+                callbackEndpoint = getDefaultEndpoint();
+            }
             if (CommonUtils.isEmpty(redirectUri)) {
                 this.redirectUri = String.format(OAuthConstants.AUTH_SSO_CALLBACK_TEMPLATE, callbackPort, callbackEndpoint);
             }
@@ -403,6 +410,11 @@ public class OAuthCodeHandler implements IOAuthHandler {
             }
 
             return handler;
+        }
+
+        @NotNull
+        protected String getDefaultEndpoint() {
+            return OAuthConstants.DEFAULT_CALLBACK_ENDPOINT;
         }
 
         @NotNull
