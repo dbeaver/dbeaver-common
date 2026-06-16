@@ -24,9 +24,13 @@
  */
 package org.jkiss.utils.csv;
 
+import org.jkiss.code.NotNull;
+import org.jkiss.code.Nullable;
+import org.jkiss.utils.CommonUtils;
+
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
+import java.util.function.Consumer;
 
 /**
  * A very simple CSV parser released under a commercial-friendly license.
@@ -41,7 +45,7 @@ public class CSVParser {
     /**
      * The default separator to use if none is supplied to the constructor.
      */
-    public static final char DEFAULT_SEPARATOR = ',';
+    public static final String DEFAULT_SEPARATOR = ",";
     /**
      * The average size of a line read by openCSV (used for setting the size of StringBuilders).
      */
@@ -50,12 +54,12 @@ public class CSVParser {
      * The default quote character to use if none is supplied to the
      * constructor.
      */
-    public static final char DEFAULT_QUOTE_CHARACTER = '"';
+    public static final String DEFAULT_QUOTE_CHARACTER = "\"";
     /**
      * The default escape character to use if none is supplied to the
      * constructor.
      */
-    public static final char DEFAULT_ESCAPE_CHARACTER = '\\';
+    public static final String DEFAULT_ESCAPE_CHARACTER = "\\";
     /**
      * The default strict quote behavior to use if none is supplied to the
      * constructor.
@@ -73,7 +77,7 @@ public class CSVParser {
     /**
      * This is the "null" character - if a value is set to this then it is ignored.
      */
-    public static final char NULL_CHARACTER = '\0';
+    public static final String NULL_CHARACTER = "\0";
     /**
      * Denotes what field contents will cause the parser to return null:  EMPTY_SEPARATORS, EMPTY_QUOTES, BOTH, NEITHER (default)
      */
@@ -82,15 +86,15 @@ public class CSVParser {
     /**
      * This is the character that the CSVParser will treat as the separator.
      */
-    private final char separator;
+    private final String separator;
     /**
      * This is the character that the CSVParser will treat as the quotation character.
      */
-    private final char quotechar;
+    private final String quotechar;
     /**
      * This is the character that the CSVParser will treat as the escape character.
      */
-    private final char escape;
+    private final String escape;
     /**
      * Determines if the field is between quotes (true) or between separators (false).
      */
@@ -104,59 +108,24 @@ public class CSVParser {
      */
     private final boolean ignoreQuotations;
     private final CSVReaderNullFieldIndicator nullFieldIndicator;
+    // special chars must be parsed from the longest one
+    private final Map<String, CharacterStrategy> orderedSpecialChars = new TreeMap<>(
+        Comparator.comparingInt(String::length)
+            .reversed()
+            .thenComparing(Comparator.naturalOrder())
+    );
+
+    @Nullable
     private String pending;
-    private boolean inField = false;
 
-    /**
-     * Constructs CSVParser using a comma for the separator.
-     */
-    public CSVParser() {
-        this(DEFAULT_SEPARATOR, DEFAULT_QUOTE_CHARACTER, DEFAULT_ESCAPE_CHARACTER);
-    }
-
-    /**
-     * Constructs CSVParser with supplied separator.
-     *
-     * @param separator the delimiter to use for separating entries.
-     */
-    public CSVParser(char separator) {
-        this(separator, DEFAULT_QUOTE_CHARACTER, DEFAULT_ESCAPE_CHARACTER);
-    }
-
-
-    /**
-     * Constructs CSVParser with supplied separator and quote char.
-     *
-     * @param separator the delimiter to use for separating entries
-     * @param quotechar the character to use for quoted elements
-     */
-    public CSVParser(char separator, char quotechar) {
-        this(separator, quotechar, DEFAULT_ESCAPE_CHARACTER);
-    }
-
-    /**
-     * Constructs CSVReader with supplied separator and quote char.
-     *
-     * @param separator the delimiter to use for separating entries
-     * @param quotechar the character to use for quoted elements
-     * @param escape    the character to use for escaping a separator or quote
-     */
-    public CSVParser(char separator, char quotechar, char escape) {
-        this(separator, quotechar, escape, DEFAULT_STRICT_QUOTES);
-    }
-
-    /**
-     * Constructs CSVParser with supplied separator and quote char.
-     * Allows setting the "strict quotes" flag
-     *
-     * @param separator    the delimiter to use for separating entries
-     * @param quotechar    the character to use for quoted elements
-     * @param escape       the character to use for escaping a separator or quote
-     * @param strictQuotes if true, characters outside the quotes are ignored
-     */
-    public CSVParser(char separator, char quotechar, char escape, boolean strictQuotes) {
-        this(separator, quotechar, escape, strictQuotes, DEFAULT_IGNORE_LEADING_WHITESPACE);
-    }
+    private List<String> tokensOnThisLine = new ArrayList<>(INITIAL_READ_SIZE);
+    private String currentLine;
+    private int index;
+    private StringBuilder currentToken;
+    private boolean inQuotes;
+    // the tricky case of an embedded quote in the middle: a,b"c"d,e
+    private boolean quotesInField;
+    private boolean lastTokenFromQuotedField;
 
     /**
      * Constructs CSVParser with supplied separator and quote char.
@@ -168,7 +137,13 @@ public class CSVParser {
      * @param strictQuotes            if true, characters outside the quotes are ignored
      * @param ignoreLeadingWhiteSpace if true, white space in front of a quote in a field is ignored
      */
-    public CSVParser(char separator, char quotechar, char escape, boolean strictQuotes, boolean ignoreLeadingWhiteSpace) {
+    public CSVParser(
+        @NotNull String separator,
+        @NotNull String quotechar,
+        @NotNull String escape,
+        boolean strictQuotes,
+        boolean ignoreLeadingWhiteSpace
+    ) {
         this(separator, quotechar, escape, strictQuotes, ignoreLeadingWhiteSpace, DEFAULT_IGNORE_QUOTATIONS);
     }
 
@@ -184,7 +159,11 @@ public class CSVParser {
      * @param ignoreQuotations        if true, treat quotations like any other character.
      */
     public CSVParser(
-        char separator, char quotechar, char escape, boolean strictQuotes, boolean ignoreLeadingWhiteSpace,
+        @NotNull String separator,
+        @NotNull String quotechar,
+        @NotNull String escape,
+        boolean strictQuotes,
+        boolean ignoreLeadingWhiteSpace,
         boolean ignoreQuotations
     ) {
         this(separator, quotechar, escape, strictQuotes, ignoreLeadingWhiteSpace, ignoreQuotations, DEFAULT_NULL_FIELD_INDICATOR);
@@ -204,13 +183,20 @@ public class CSVParser {
      *                                BOTH, NEITHER (default)
      */
     CSVParser(
-        char separator, char quotechar, char escape, boolean strictQuotes, boolean ignoreLeadingWhiteSpace,
+        @NotNull String separator,
+        @NotNull String quotechar,
+        @NotNull String escape,
+        boolean strictQuotes,
+        boolean ignoreLeadingWhiteSpace,
         boolean ignoreQuotations, CSVReaderNullFieldIndicator nullFieldIndicator
     ) {
+        if (CommonUtils.isEmpty(separator) || CommonUtils.isEmpty(quotechar) || CommonUtils.isEmpty(escape)) {
+            throw new UnsupportedOperationException("None of separator, quote, and escape characters can be empty");
+        }
         if (anyCharactersAreTheSame(separator, quotechar, escape)) {
             throw new UnsupportedOperationException("The separator, quote, and escape characters must be different!");
         }
-        if (separator == NULL_CHARACTER) {
+        if (NULL_CHARACTER.equals(separator)) {
             throw new UnsupportedOperationException("The separator character must be defined!");
         }
         this.separator = separator;
@@ -220,27 +206,34 @@ public class CSVParser {
         this.ignoreLeadingWhiteSpace = ignoreLeadingWhiteSpace;
         this.ignoreQuotations = ignoreQuotations;
         this.nullFieldIndicator = nullFieldIndicator;
+
+        orderedSpecialChars.put(separator, CharacterStrategy.SEPARATOR);
+        orderedSpecialChars.put(quotechar, CharacterStrategy.QUOTES);
+        orderedSpecialChars.put(escape, CharacterStrategy.ESCAPE);
     }
 
 
     /**
      * @return The default separator for this parser.
      */
-    public char getSeparator() {
+    @NotNull
+    public String getSeparator() {
         return separator;
     }
 
     /**
      * @return The default quotation character for this parser.
      */
-    public char getQuotechar() {
+    @NotNull
+    public String getQuotechar() {
         return quotechar;
     }
 
     /**
      * @return The default escape character for this parser.
      */
-    public char getEscape() {
+    @NotNull
+    public String getEscape() {
         return escape;
     }
 
@@ -274,7 +267,11 @@ public class CSVParser {
      * @param escape    the defined escape character
      * @return true if any two of the three are the same.
      */
-    private boolean anyCharactersAreTheSame(char separator, char quotechar, char escape) {
+    private boolean anyCharactersAreTheSame(
+        @NotNull String separator,
+        @NotNull String quotechar,
+        @NotNull String escape
+    ) {
         return isSameCharacter(separator, quotechar) || isSameCharacter(separator, escape) || isSameCharacter(quotechar, escape);
     }
 
@@ -285,8 +282,8 @@ public class CSVParser {
      * @param c2 second character
      * @return true if both characters are the same and are not the defined NULL_CHARACTER
      */
-    private boolean isSameCharacter(char c1, char c2) {
-        return c1 != NULL_CHARACTER && c1 == c2;
+    private boolean isSameCharacter(@NotNull String c1, @NotNull String c2) {
+        return !NULL_CHARACTER.equals(c1) && c1.equals(c2);
     }
 
     /**
@@ -304,6 +301,7 @@ public class CSVParser {
      * @return the comma-tokenized list of elements, or null if nextLine is null
      * @throws IOException if bad things happen during the read
      */
+    @Nullable
     public String[] parseLineMulti(String nextLine) throws IOException {
         return parseLine(nextLine, true);
     }
@@ -316,6 +314,7 @@ public class CSVParser {
      * @return the comma-tokenized list of elements, or null if nextLine is null
      * @throws IOException if bad things happen during the read
      */
+    @Nullable
     public String[] parseLine(String nextLine) throws IOException {
         return parseLine(nextLine, false);
     }
@@ -328,7 +327,8 @@ public class CSVParser {
      * @return the comma-tokenized list of elements, or null if nextLine is null
      * @throws IOException if bad things happen during the read
      */
-    private String[] parseLine(String nextLine, boolean multi) throws IOException {
+    @Nullable
+    private String[] parseLine(@Nullable String nextLine, boolean multi) throws IOException {
 
         if (!multi && pending != null) {
             pending = null;
@@ -343,201 +343,91 @@ public class CSVParser {
                 return null;
             }
         }
-
-        List<String> tokensOnThisLine = new ArrayList<>();
-        StringBuilder sb = new StringBuilder(INITIAL_READ_SIZE);
-        boolean inQuotes = false;
-        boolean fromQuotedField = false;
-        if (pending != null) {
-            sb.append(pending);
-            pending = null;
-            inQuotes = !this.ignoreQuotations;//true;
-        }
-        for (int i = 0; i < nextLine.length(); i++) {
-
-            char c = nextLine.charAt(i);
-            if (c == this.escape) {
-                if (isNextCharacterEscapable(nextLine, inQuotes(inQuotes), i)) {
-                    i = appendNextCharacterAndAdvanceLoop(nextLine, sb, i);
-                }
-            } else if (c == quotechar) {
-                if (isNextCharacterEscapedQuote(nextLine, inQuotes(inQuotes), i)) {
-                    i = appendNextCharacterAndAdvanceLoop(nextLine, sb, i);
-                } else {
-
-                    inQuotes = !inQuotes;
-                    if (atStartOfField(sb)) {
-                        fromQuotedField = true;
-                    }
-
-                    // the tricky case of an embedded quote in the middle: a,bc"d"ef,g
-                    if (!strictQuotes) {
-                        if (i > 2 //not on the beginning of the line
-                            && nextLine.charAt(i - 1) != this.separator //not at the beginning of an escape sequence
-                            && nextLine.length() > (i + 1) &&
-                            nextLine.charAt(i + 1) != this.separator //not at the	end of an escape sequence
-                        ) {
-
-                            if (ignoreLeadingWhiteSpace && sb.length() > 0 && isAllWhiteSpace(sb)) {
-                                sb.setLength(0);
-                            } else {
-                                sb.append(c);
-                            }
-
-                        }
-                    }
-                }
-                inField = !inField;
-            } else if (c == separator && !(inQuotes && !ignoreQuotations)) {
-                tokensOnThisLine.add(convertEmptyToNullIfNeeded(sb.toString(), fromQuotedField));
-                fromQuotedField = false;
-                sb.setLength(0);
-                inField = false;
-            } else {
-                if (!strictQuotes || (inQuotes && !ignoreQuotations)) {
-                    sb.append(c);
-                    inField = true;
-                    fromQuotedField = true;
-                }
-            }
-
+        resetLineTokens();
+        currentLine = nextLine;
+        while (index < nextLine.length()) {
+            defineStrategy().process(this);
         }
         // line is done - check status
-        if ((inQuotes && !ignoreQuotations)) {
+        if (inQuotes()) {
             if (multi) {
                 // continuing a quoted section, re-append newline
-                sb.append('\n');
-                pending = sb.toString();
-                sb = null; // this partial content is not to be added to field list yet
+                currentToken.append('\n');
+                pending = currentToken.toString();
+                currentToken = null; // this partial content is not to be added to field list yet
             } else {
                 throw new IOException("Un-terminated quoted field at end of CSV line");
             }
-            if (inField) {
-                fromQuotedField = true;
-            }
-        } else {
-            inField = false;
         }
-
-        if (sb != null) {
-            tokensOnThisLine.add(convertEmptyToNullIfNeeded(sb.toString(), fromQuotedField));
-            fromQuotedField = false;
+        if (currentToken != null) {
+            tokensOnThisLine.add(convertEmptyToNullIfNeeded(currentToken.toString()));
         }
         return tokensOnThisLine.toArray(new String[tokensOnThisLine.size()]);
 
     }
 
-    private boolean atStartOfField(StringBuilder sb) {
-        return sb.length() == 0;
+    private void resetLineTokens() {
+        tokensOnThisLine = new ArrayList<>(INITIAL_READ_SIZE);
+        currentToken = new StringBuilder();
+        currentLine = null;
+        inQuotes = false;
+        lastTokenFromQuotedField = false;
+        if (pending != null) {
+            currentToken.append(pending);
+            pending = null;
+            // pending could only left after quotes on prev line, if there are not ignored completely
+            inQuotes = !ignoreQuotations;
+        }
+        index = 0;
     }
 
-    private String convertEmptyToNullIfNeeded(String s, boolean fromQuotedField) {
-        if (s.isEmpty() && shouldConvertEmptyToNull(fromQuotedField)) {
+    @NotNull
+    private CharacterStrategy defineStrategy() {
+        for (Map.Entry<String, CSVParser.CharacterStrategy> specialCharEntry : orderedSpecialChars.entrySet()) {
+            if (isSpecialChar(specialCharEntry.getKey())) {
+                return specialCharEntry.getValue();
+            }
+        }
+        return CharacterStrategy.SIMPLE_CHAR;
+    }
+
+    @Nullable
+    private String convertEmptyToNullIfNeeded(@NotNull String s) {
+        if (s.isEmpty() && shouldConvertEmptyToNull()) {
             return null;
         }
         return s;
     }
 
-    private boolean shouldConvertEmptyToNull(boolean fromQuotedField) {
+    private boolean shouldConvertEmptyToNull() {
         switch (nullFieldIndicator) {
             case BOTH:
                 return true;
             case EMPTY_SEPARATORS:
-                return !fromQuotedField;
+                return !lastTokenFromQuotedField;
             case EMPTY_QUOTES:
-                return fromQuotedField;
+                return lastTokenFromQuotedField;
             default:
                 return false;
         }
     }
 
-    /**
-     * Appends the next character in the line to the stringbuffer.
-     *
-     * @param line - line to process
-     * @param sb   - contains the processed character
-     * @param i    - current position in the line.
-     * @return new position in the line.
-     */
-    private int appendNextCharacterAndAdvanceLoop(String line, StringBuilder sb, int i) {
-        sb.append(line.charAt(i + 1));
-        i++;
-        return i;
+    private boolean inQuotes() {
+        return (inQuotes && !ignoreQuotations);
     }
 
-    /**
-     * Determines if we can process as if we were in quotes.
-     *
-     * @param inQuotes - are we currently in quotes.
-     * @return - true if we should process as if we are inside quotes.
-     */
-    private boolean inQuotes(boolean inQuotes) {
-        return (inQuotes && !ignoreQuotations) || inField;
-    }
-
-    /**
-     * Checks to see if the character after the index is a quotation character.
-     * <p>
-     * precondition: the current character is a quote or an escape
-     *
-     * @param nextLine the current line
-     * @param inQuotes true if the current context is quoted
-     * @param i        current index in line
-     * @return true if the following character is a quote
-     */
-    private boolean isNextCharacterEscapedQuote(String nextLine, boolean inQuotes, int i) {
-        return inQuotes  // we are in quotes, therefore there can be escaped quotes in here.
-            && nextLine.length() > (i + 1)  // there is indeed another character to check.
-            && isCharacterQuoteCharacter(nextLine.charAt(i + 1));
-    }
-
-    /**
-     * Checks to see if the passed in character is the defined quotation character.
-     *
-     * @param c source character
-     * @return true if c is the defined quotation character
-     */
-    private boolean isCharacterQuoteCharacter(char c) {
-        return c == quotechar;
-    }
-
-    /**
-     * checks to see if the character is the defined escape character.
-     *
-     * @param c source character
-     * @return true if the character is the defined escape character
-     */
-    private boolean isCharacterEscapeCharacter(char c) {
-        return c == escape;
-    }
-
-    /**
-     * Checks to see if the character passed in could be escapable.  Escapable characters for openCSV are the
-     * quotation character or the escape character.
-     *
-     * @param c source character
-     * @return true if the character could be escapable.
-     */
-    private boolean isCharacterEscapable(char c) {
-        return isCharacterQuoteCharacter(c) || isCharacterEscapeCharacter(c);
-    }
-
-    /**
-     * Checks to see if the character after the current index in a String is an escapable character.
-     * Meaning the next character is either a quotation character or the escape char and you are inside
-     * quotes.
-     * <p>
-     * precondition: the current character is an escape
-     *
-     * @param nextLine the current line
-     * @param inQuotes true if the current context is quoted
-     * @param i        current index in line
-     * @return true if the following character is a quote
-     */
-    protected boolean isNextCharacterEscapable(String nextLine, boolean inQuotes, int i) {
-        return inQuotes  // we are in quotes, therefore there can be escaped quotes in here.
-            && nextLine.length() > (i + 1)  // there is indeed another character to check.
-            && isCharacterEscapable(nextLine.charAt(i + 1));
+    private boolean isSpecialChar(@NotNull String specialChar) {
+        int localIndex = index;
+        int matchingChars = 0;
+        for (int i = 0; i < specialChar.length() && localIndex < currentLine.length(); i++, localIndex++) {
+            if (specialChar.charAt(i) != currentLine.charAt(localIndex)) {
+                return false;
+            } else {
+                matchingChars++;
+            }
+        }
+        // reached line end of the line, sequence not fully found Ex: separator -> sepa\n -> false
+        return matchingChars == specialChar.length();
     }
 
     /**
@@ -562,5 +452,89 @@ public class CSVParser {
      */
     public CSVReaderNullFieldIndicator nullFieldIndicator() {
         return nullFieldIndicator;
+    }
+
+    private enum CharacterStrategy {
+        ESCAPE(CSVParser::processEscape),
+        QUOTES(CSVParser::processQuotes),
+        SEPARATOR(CSVParser::processSeparator),
+        SIMPLE_CHAR(CSVParser::processSimpleChar);
+
+        private final Consumer<CSVParser> strategy;
+
+        CharacterStrategy(@NotNull Consumer<CSVParser> strategy) {
+            this.strategy = strategy;
+        }
+
+        void process(@NotNull CSVParser parser) {
+            strategy.accept(parser);
+        }
+    }
+
+    private void processEscape() {
+        index += escape.length();
+        // escape not in quote is literal char
+        if (inQuotes()) {
+            CharacterStrategy specialChar = defineStrategy();
+            if (specialChar.equals(CharacterStrategy.QUOTES)) {
+                currentToken.append(quotechar);
+                index += quotechar.length();
+            } else if (specialChar.equals(CharacterStrategy.ESCAPE)) {
+                currentToken.append(escape);
+                index += escape.length();
+            } else {
+                currentToken.append(escape);
+            }
+        } else {
+            currentToken.append(escape);
+        }
+    }
+
+    private void processQuotes() {
+        index += quotechar.length();
+        if (inQuotes()) {
+            // double quotes "" inside quotes "a""bc" must be escaped -> a"b according to: https://www.rfc-editor.org/rfc/rfc4180.txt
+            CharacterStrategy specialChar = defineStrategy();
+            if (specialChar.equals(CharacterStrategy.QUOTES)) {
+                currentToken.append(quotechar);
+                index += quotechar.length();
+            } else {
+                inQuotes = false;
+                lastTokenFromQuotedField = true;
+                if (quotesInField) {
+                    currentToken.append(quotechar);
+                    quotesInField = false;
+                }
+            }
+            // if ignore quotations - just skip quotation completely
+        } else if (!ignoreQuotations) {
+            inQuotes = true;
+            if (ignoreLeadingWhiteSpace && currentToken.length() > 0 && isAllWhiteSpace(currentToken)) {
+                currentToken.setLength(0);
+            }
+            if (currentToken.length() > 0) {
+                currentToken.append(quotechar);
+                quotesInField = true;
+            }
+        }
+    }
+
+    private void processSeparator() {
+        index += separator.length();
+        if (inQuotes()) {
+            currentToken.append(separator);
+        } else {
+            tokensOnThisLine.add(convertEmptyToNullIfNeeded(currentToken.toString()));
+            lastTokenFromQuotedField = false;
+            currentToken.setLength(0);
+        }
+    }
+
+    private void processSimpleChar() {
+        char currentChar = currentLine.charAt(index++);
+        if (!strictQuotes || inQuotes()) {
+            currentToken.append(currentChar);
+            lastTokenFromQuotedField = false;
+        }
     }
 }
