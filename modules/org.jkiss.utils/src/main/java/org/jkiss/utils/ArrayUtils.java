@@ -297,4 +297,11 @@ public class ArrayUtils {
             array[i] = tmp;
         }
     }
+
+    public static void swap(@NotNull Object[] x, int a, int b) {
+        Object t = x[a];
+        x[a] = x[b];
+        x[b] = t;
+    }
+
 }
