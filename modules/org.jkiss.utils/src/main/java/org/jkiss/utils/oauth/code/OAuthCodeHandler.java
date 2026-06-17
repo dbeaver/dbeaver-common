@@ -370,6 +370,8 @@ public class OAuthCodeHandler implements IOAuthHandler {
         public OAuthCodeHandlerBuilder<T> withCallbackEndpoint(@Nullable String endpoint) {
             if (endpoint != null) {
                 this.callbackEndpoint = endpoint.startsWith(ENDPOINT_SLASH) ? endpoint : ENDPOINT_SLASH + endpoint;
+            } else {
+                this.callbackEndpoint = null;
             }
             return this;
         }
