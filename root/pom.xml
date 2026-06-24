@@ -22,7 +22,7 @@
         <tycho-version>5.0.3</tycho-version>
         <eclipse-version>2026-06</eclipse-version>
 
-        <maven>3.9.9</maven>
+        <maven>3.9.16</maven>
         <maven-version>${maven}</maven-version>
 
         <build-timestamp>${maven.build.timestamp}</build-timestamp>
