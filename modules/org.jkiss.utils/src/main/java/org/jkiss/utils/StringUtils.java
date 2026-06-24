@@ -21,6 +21,8 @@ import org.jkiss.code.Nullable;
 
 public final class StringUtils {
 
+    private static final char[] HEX_DIGITS = "0123456789ABCDEF".toCharArray();
+
     private StringUtils() {}
 
     /**
@@ -147,6 +149,90 @@ public final class StringUtils {
         }
 
         return false;
+    }
+
+    /**
+     * Escapes non-ASCII characters and the backslash as {@code \\uXXXX}.
+     */
+    @NotNull
+    public static String escapeUnicode(@NotNull String str) {
+        int length = str.length();
+        int start = -1;
+        for (int i = 0; i < length; i++) {
+            char ch = str.charAt(i);
+            if (ch < 0x20 || ch > 0x7E || ch == '\\') {
+                start = i;
+                break;
+            }
+        }
+        if (start < 0) {
+            return str;
+        }
+
+        StringBuilder sb = new StringBuilder(length + 16);
+        sb.append(str, 0, start);
+        for (int i = start; i < length; i++) {
+            char ch = str.charAt(i);
+            if (ch >= 0x20 && ch <= 0x7E && ch != '\\') {
+                sb.append(ch);
+            } else if (ch == '\\') {
+                sb.append("\\\\");
+            } else {
+                sb.append('\\').append('u')
+                    .append(HEX_DIGITS[(ch >> 12) & 0xF])
+                    .append(HEX_DIGITS[(ch >> 8) & 0xF])
+                    .append(HEX_DIGITS[(ch >> 4) & 0xF])
+                    .append(HEX_DIGITS[ch & 0xF]);
+            }
+        }
+
+        return sb.toString();
+    }
+
+    /**
+     * Reverses {@link #escapeUnicode(String)}.
+     */
+    @NotNull
+    public static String unescapeUnicode(@NotNull String str) {
+        int start = str.indexOf('\\');
+        if (start < 0) {
+            return str;
+        }
+
+        int length = str.length();
+        StringBuilder sb = new StringBuilder(length);
+        sb.append(str, 0, start);
+        for (int i = start; i < length; ) {
+            char ch = str.charAt(i);
+
+            if (ch != '\\') {
+                sb.append(ch);
+                i++;
+                continue;
+            }
+
+            if (i + 1 >= length) {
+                throw new IllegalArgumentException("Trailing '\\'");
+            }
+
+            char next = str.charAt(i + 1);
+
+            if (next == '\\') {
+                sb.append('\\');
+                i += 2;
+            } else if (next == 'u') {
+                if (i + 6 > length) {
+                    throw new IllegalArgumentException("Incomplete unicode escape");
+                }
+
+                sb.append((char) Integer.parseInt(str, i + 2, i + 6, 16));
+                i += 6;
+            } else {
+                throw new IllegalArgumentException("Unknown escape: \\" + next);
+            }
+        }
+
+        return sb.toString();
     }
 
 }
