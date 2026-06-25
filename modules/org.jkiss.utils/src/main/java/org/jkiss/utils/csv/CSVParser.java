@@ -119,9 +119,9 @@ public class CSVParser {
     private String pending;
 
     private final List<String> tokensOnThisLine = new ArrayList<>(INITIAL_READ_SIZE);
-    private final StringBuilder currentToken = new StringBuilder();
     private String currentLine;
     private int index;
+    private StringBuilder currentToken;
     private boolean inQuotes;
     // the tricky case of an embedded quote in the middle: a,b"c"d,e
     private boolean quotesInField;
@@ -354,12 +354,12 @@ public class CSVParser {
                 // continuing a quoted section, re-append newline
                 currentToken.append('\n');
                 pending = currentToken.toString();
-                currentToken.setLength(0); // this partial content is not to be added to field list yet
+                currentToken = null; // this partial content is not to be added to field list yet
             } else {
                 throw new IOException("Un-terminated quoted field at end of CSV line");
             }
         }
-        if (!currentToken.isEmpty()) {
+        if (currentToken != null) {
             tokensOnThisLine.add(convertEmptyToNullIfNeeded(currentToken.toString()));
         }
         return tokensOnThisLine.toArray(new String[tokensOnThisLine.size()]);
@@ -368,7 +368,7 @@ public class CSVParser {
 
     private void resetLineTokens() {
         tokensOnThisLine.clear();
-        currentToken.setLength(0);
+        currentToken = new StringBuilder(); // nullifying to make difference between null and empty string added
         currentLine = null;
         inQuotes = false;
         lastTokenFromQuotedField = false;
