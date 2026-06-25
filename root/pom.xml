@@ -102,6 +102,11 @@
                 <artifactId>com.dbeaver.jdbc.api</artifactId>
                 <version>${dbeaver.common.version}</version>
             </dependency>
+            <dependency>
+                <groupId>com.dbeaver.common</groupId>
+                <artifactId>com.dbeaver.spring.utils</artifactId>
+                <version>${dbeaver.common.version}</version>
+            </dependency>
             <!-- Jetty Server -->
             <!-- It must be before spring-boot-dependencies due to priority -->
             <dependency>
