@@ -118,10 +118,10 @@ public class CSVParser {
     @Nullable
     private String pending;
 
-    private List<String> tokensOnThisLine = new ArrayList<>(INITIAL_READ_SIZE);
+    private final List<String> tokensOnThisLine = new ArrayList<>(INITIAL_READ_SIZE);
+    private final StringBuilder currentToken = new StringBuilder();
     private String currentLine;
     private int index;
-    private StringBuilder currentToken;
     private boolean inQuotes;
     // the tricky case of an embedded quote in the middle: a,b"c"d,e
     private boolean quotesInField;
@@ -354,12 +354,12 @@ public class CSVParser {
                 // continuing a quoted section, re-append newline
                 currentToken.append('\n');
                 pending = currentToken.toString();
-                currentToken = null; // this partial content is not to be added to field list yet
+                currentToken.setLength(0); // this partial content is not to be added to field list yet
             } else {
                 throw new IOException("Un-terminated quoted field at end of CSV line");
             }
         }
-        if (currentToken != null) {
+        if (!currentToken.isEmpty()) {
             tokensOnThisLine.add(convertEmptyToNullIfNeeded(currentToken.toString()));
         }
         return tokensOnThisLine.toArray(new String[tokensOnThisLine.size()]);
@@ -367,8 +367,8 @@ public class CSVParser {
     }
 
     private void resetLineTokens() {
-        tokensOnThisLine = new ArrayList<>(INITIAL_READ_SIZE);
-        currentToken = new StringBuilder();
+        tokensOnThisLine.clear();
+        currentToken.setLength(0);
         currentLine = null;
         inQuotes = false;
         lastTokenFromQuotedField = false;
@@ -509,10 +509,10 @@ public class CSVParser {
             // if ignore quotations - just skip quotation completely
         } else if (!ignoreQuotations) {
             inQuotes = true;
-            if (ignoreLeadingWhiteSpace && currentToken.length() > 0 && isAllWhiteSpace(currentToken)) {
+            if (ignoreLeadingWhiteSpace && !currentToken.isEmpty() && isAllWhiteSpace(currentToken)) {
                 currentToken.setLength(0);
             }
-            if (currentToken.length() > 0) {
+            if (!currentToken.isEmpty()) {
                 currentToken.append(quotechar);
                 quotesInField = true;
             }
