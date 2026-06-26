@@ -27,10 +27,13 @@ package org.jkiss.utils.csv;
 import org.jkiss.code.NotNull;
 import org.jkiss.code.Nullable;
 import org.jkiss.utils.CommonUtils;
+import org.jkiss.utils.Pair;
 
 import java.io.IOException;
-import java.util.*;
-import java.util.function.Consumer;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.stream.Stream;
 
 /**
  * A very simple CSV parser released under a commercial-friendly license.
@@ -109,11 +112,7 @@ public class CSVParser {
     private final boolean ignoreQuotations;
     private final CSVReaderNullFieldIndicator nullFieldIndicator;
     // special chars must be parsed from the longest one
-    private final Map<String, CharacterStrategy> orderedSpecialChars = new TreeMap<>(
-        Comparator.comparingInt(String::length)
-            .reversed()
-            .thenComparing(Comparator.naturalOrder())
-    );
+    private final List<Pair<String, CharacterStrategy>> orderedSpecialChars;
 
     @Nullable
     private String pending;
@@ -207,9 +206,15 @@ public class CSVParser {
         this.ignoreQuotations = ignoreQuotations;
         this.nullFieldIndicator = nullFieldIndicator;
 
-        orderedSpecialChars.put(separator, CharacterStrategy.SEPARATOR);
-        orderedSpecialChars.put(quotechar, CharacterStrategy.QUOTES);
-        orderedSpecialChars.put(escape, CharacterStrategy.ESCAPE);
+        this.orderedSpecialChars =
+            Stream.of(
+                Pair.of(separator, CharacterStrategy.SEPARATOR),
+                Pair.of(quotechar, CharacterStrategy.QUOTES),
+                Pair.of(escape, CharacterStrategy.ESCAPE)
+            ).sorted(Comparator.comparingInt((Pair<String, CharacterStrategy> p) -> p.getFirst().length())
+                .reversed()
+                .thenComparing(Pair::getFirst)
+            ).toList();
     }
 
 
@@ -346,7 +351,12 @@ public class CSVParser {
         resetLineTokens();
         currentLine = nextLine;
         while (index < nextLine.length()) {
-            defineStrategy().process(this);
+            switch (readNextCharStrategy()) {
+                case QUOTES -> writeQuotes();
+                case ESCAPE -> writeEscape();
+                case SEPARATOR -> writeSeparator();
+                case SIMPLE_CHAR -> writeSimpleChar();
+            }
         }
         // line is done - check status
         if (inQuotes()) {
@@ -382,14 +392,15 @@ public class CSVParser {
     }
 
     @NotNull
-    private CharacterStrategy defineStrategy() {
-        for (Map.Entry<String, CSVParser.CharacterStrategy> specialCharEntry : orderedSpecialChars.entrySet()) {
-            if (isSpecialChar(specialCharEntry.getKey())) {
-                return specialCharEntry.getValue();
-            }
-        }
-        return CharacterStrategy.SIMPLE_CHAR;
+    private CharacterStrategy readNextCharStrategy() {
+        return orderedSpecialChars
+            .stream()
+            .filter(specialChar -> currentLine.startsWith(specialChar.getFirst(), index))
+            .findFirst()
+            .map(Pair::getSecond)
+            .orElse(CharacterStrategy.SIMPLE_CHAR);
     }
+
 
     @Nullable
     private String convertEmptyToNullIfNeeded(@NotNull String s) {
@@ -400,34 +411,16 @@ public class CSVParser {
     }
 
     private boolean shouldConvertEmptyToNull() {
-        switch (nullFieldIndicator) {
-            case BOTH:
-                return true;
-            case EMPTY_SEPARATORS:
-                return !lastTokenFromQuotedField;
-            case EMPTY_QUOTES:
-                return lastTokenFromQuotedField;
-            default:
-                return false;
-        }
+        return switch (nullFieldIndicator) {
+            case BOTH -> true;
+            case EMPTY_SEPARATORS -> !lastTokenFromQuotedField;
+            case EMPTY_QUOTES -> lastTokenFromQuotedField;
+            default -> false;
+        };
     }
 
     private boolean inQuotes() {
         return (inQuotes && !ignoreQuotations);
-    }
-
-    private boolean isSpecialChar(@NotNull String specialChar) {
-        int localIndex = index;
-        int matchingChars = 0;
-        for (int i = 0; i < specialChar.length() && localIndex < currentLine.length(); i++, localIndex++) {
-            if (specialChar.charAt(i) != currentLine.charAt(localIndex)) {
-                return false;
-            } else {
-                matchingChars++;
-            }
-        }
-        // reached line end of the line, sequence not fully found Ex: separator -> sepa\n -> false
-        return matchingChars == specialChar.length();
     }
 
     /**
@@ -455,27 +448,17 @@ public class CSVParser {
     }
 
     private enum CharacterStrategy {
-        ESCAPE(CSVParser::processEscape),
-        QUOTES(CSVParser::processQuotes),
-        SEPARATOR(CSVParser::processSeparator),
-        SIMPLE_CHAR(CSVParser::processSimpleChar);
-
-        private final Consumer<CSVParser> strategy;
-
-        CharacterStrategy(@NotNull Consumer<CSVParser> strategy) {
-            this.strategy = strategy;
-        }
-
-        void process(@NotNull CSVParser parser) {
-            strategy.accept(parser);
-        }
+        ESCAPE,
+        QUOTES,
+        SEPARATOR,
+        SIMPLE_CHAR;
     }
 
-    private void processEscape() {
+    private void writeEscape() {
         index += escape.length();
         // escape not in quote is literal char
         if (inQuotes()) {
-            CharacterStrategy specialChar = defineStrategy();
+            CharacterStrategy specialChar = readNextCharStrategy();
             if (specialChar.equals(CharacterStrategy.QUOTES)) {
                 currentToken.append(quotechar);
                 index += quotechar.length();
@@ -490,11 +473,11 @@ public class CSVParser {
         }
     }
 
-    private void processQuotes() {
+    private void writeQuotes() {
         index += quotechar.length();
         if (inQuotes()) {
             // double quotes "" inside quotes "a""bc" must be escaped -> a"b according to: https://www.rfc-editor.org/rfc/rfc4180.txt
-            CharacterStrategy specialChar = defineStrategy();
+            CharacterStrategy specialChar = readNextCharStrategy();
             if (specialChar.equals(CharacterStrategy.QUOTES)) {
                 currentToken.append(quotechar);
                 index += quotechar.length();
@@ -519,7 +502,7 @@ public class CSVParser {
         }
     }
 
-    private void processSeparator() {
+    private void writeSeparator() {
         index += separator.length();
         if (inQuotes()) {
             currentToken.append(separator);
@@ -530,7 +513,7 @@ public class CSVParser {
         }
     }
 
-    private void processSimpleChar() {
+    private void writeSimpleChar() {
         char currentChar = currentLine.charAt(index++);
         if (!strictQuotes || inQuotes()) {
             currentToken.append(currentChar);
