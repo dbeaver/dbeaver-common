@@ -392,12 +392,12 @@ public class CSVParser {
 
     @NotNull
     private CharacterStrategy readNextCharStrategy(int lineIndex) {
-        return orderedSpecialChars
-            .stream()
-            .filter(specialChar -> currentLine.startsWith(specialChar.getFirst(), lineIndex))
-            .findFirst()
-            .map(Pair::getSecond)
-            .orElse(CharacterStrategy.SIMPLE_CHAR);
+        for (Pair<String, CharacterStrategy> strategyPair : orderedSpecialChars) {
+            if (currentLine.startsWith(strategyPair.getFirst(), lineIndex)) {
+                return strategyPair.getSecond();
+            }
+        }
+        return CharacterStrategy.SIMPLE_CHAR;
     }
 
 
