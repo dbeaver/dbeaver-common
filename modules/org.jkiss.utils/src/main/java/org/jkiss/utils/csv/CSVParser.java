@@ -119,7 +119,6 @@ public class CSVParser {
 
     private final List<String> tokensOnThisLine = new ArrayList<>(INITIAL_READ_SIZE);
     private String currentLine;
-    private int index;
     private StringBuilder currentToken;
     private boolean inQuotes;
     // the tricky case of an embedded quote in the middle: a,b"c"d,e
@@ -350,13 +349,14 @@ public class CSVParser {
         }
         resetLineTokens();
         currentLine = nextLine;
-        while (index < nextLine.length()) {
-            switch (readNextCharStrategy()) {
-                case QUOTES -> writeQuotes();
-                case ESCAPE -> writeEscape();
+        int lineIndex = 0;
+        while (lineIndex < nextLine.length()) {
+            lineIndex += switch (readNextCharStrategy(lineIndex)) {
+                case QUOTES -> writeQuotes(lineIndex);
+                case ESCAPE -> writeEscape(lineIndex);
                 case SEPARATOR -> writeSeparator();
-                case SIMPLE_CHAR -> writeSimpleChar();
-            }
+                case SIMPLE_CHAR -> writeSimpleChar(lineIndex);
+            };
         }
         // line is done - check status
         if (inQuotes()) {
@@ -388,14 +388,13 @@ public class CSVParser {
             // pending could only left after quotes on prev line, if there are not ignored completely
             inQuotes = !ignoreQuotations;
         }
-        index = 0;
     }
 
     @NotNull
-    private CharacterStrategy readNextCharStrategy() {
+    private CharacterStrategy readNextCharStrategy(int lineIndex) {
         return orderedSpecialChars
             .stream()
-            .filter(specialChar -> currentLine.startsWith(specialChar.getFirst(), index))
+            .filter(specialChar -> currentLine.startsWith(specialChar.getFirst(), lineIndex))
             .findFirst()
             .map(Pair::getSecond)
             .orElse(CharacterStrategy.SIMPLE_CHAR);
@@ -454,33 +453,34 @@ public class CSVParser {
         SIMPLE_CHAR;
     }
 
-    private void writeEscape() {
-        index += escape.length();
+    private int writeEscape(int lineIndex) {
+        int totalAppendedLength = escape.length();
         // escape not in quote is literal char
         if (inQuotes()) {
-            CharacterStrategy specialChar = readNextCharStrategy();
+            CharacterStrategy specialChar = readNextCharStrategy(lineIndex + totalAppendedLength);
             if (specialChar.equals(CharacterStrategy.QUOTES)) {
                 currentToken.append(quotechar);
-                index += quotechar.length();
+                totalAppendedLength += quotechar.length();
             } else if (specialChar.equals(CharacterStrategy.ESCAPE)) {
                 currentToken.append(escape);
-                index += escape.length();
+                totalAppendedLength += escape.length();
             } else {
                 currentToken.append(escape);
             }
         } else {
             currentToken.append(escape);
         }
+        return totalAppendedLength;
     }
 
-    private void writeQuotes() {
-        index += quotechar.length();
+    private int writeQuotes(int lineIndex) {
+        int totalAppendedLength = quotechar.length();
         if (inQuotes()) {
             // double quotes "" inside quotes "a""bc" must be escaped -> a"b according to: https://www.rfc-editor.org/rfc/rfc4180.txt
-            CharacterStrategy specialChar = readNextCharStrategy();
+            CharacterStrategy specialChar = readNextCharStrategy(lineIndex + totalAppendedLength);
             if (specialChar.equals(CharacterStrategy.QUOTES)) {
                 currentToken.append(quotechar);
-                index += quotechar.length();
+                totalAppendedLength += quotechar.length();
             } else {
                 inQuotes = false;
                 lastTokenFromQuotedField = true;
@@ -500,10 +500,10 @@ public class CSVParser {
                 quotesInField = true;
             }
         }
+        return totalAppendedLength;
     }
 
-    private void writeSeparator() {
-        index += separator.length();
+    private int writeSeparator() {
         if (inQuotes()) {
             currentToken.append(separator);
         } else {
@@ -511,13 +511,15 @@ public class CSVParser {
             lastTokenFromQuotedField = false;
             currentToken.setLength(0);
         }
+        return separator.length();
     }
 
-    private void writeSimpleChar() {
-        char currentChar = currentLine.charAt(index++);
+    private int writeSimpleChar(int lineIndex) {
+        char currentChar = currentLine.charAt(lineIndex);
         if (!strictQuotes || inQuotes()) {
             currentToken.append(currentChar);
             lastTokenFromQuotedField = false;
         }
+        return 1;
     }
 }
