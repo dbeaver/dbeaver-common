@@ -19,6 +19,7 @@ package com.dbeaver.spring.utils;
 import org.jkiss.code.NotNull;
 import org.jkiss.code.Nullable;
 import org.jkiss.dbeaver.DBException;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcOperations;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.datasource.SingleConnectionDataSource;
 
@@ -39,7 +40,7 @@ public class DBeaverJdbcOperations {
     @FunctionalInterface
     public interface DBeaverJdbcTransactionCallback<T> {
         T execute(
-            @NotNull NamedParameterJdbcTemplate jdbc
+            @NotNull NamedParameterJdbcOperations jdbc
         ) throws Exception;
     }
 
@@ -52,7 +53,7 @@ public class DBeaverJdbcOperations {
 
             Exception failure = null;
             try {
-                NamedParameterJdbcTemplate jdbc = new NamedParameterJdbcTemplate(
+                NamedParameterJdbcOperations jdbc = new NamedParameterJdbcTemplate(
                     new SingleConnectionDataSource(connection, true)
                 );
                 T result = callback.execute(jdbc);
