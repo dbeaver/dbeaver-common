@@ -1,0 +1,14 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: DBeaver REST Client
+Bundle-Vendor: DBeaver Corp
+Bundle-SymbolicName: com.dbeaver.rest.client
+Bundle-Version: 2.8.0.qualifier
+Bundle-Release-Date: 20260703
+Bundle-RequiredExecutionEnvironment: JavaSE-17
+Bundle-ActivationPolicy: lazy
+Require-Bundle: org.jkiss.utils,
+ com.google.gson
+Export-Package: com.dbeaver.rest.client,
+ com.dbeaver.rest.client.interceptor
+Automatic-Module-Name: com.dbeaver.rest.client
