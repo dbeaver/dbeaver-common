@@ -33,6 +33,7 @@ import java.util.List;
 import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 
 /**
  * Common XML utils
@@ -42,6 +43,20 @@ public class XMLUtils {
     public static final String FEATURE_EXTERNAL_GENERAL_ENTITIES = "http://xml.org/sax/features/external-general-entities";
     public static final String FEATURE_EXTERNAL_PARAMETER_ENTITIES = "http://xml.org/sax/features/external-parameter-entities";
     public static final String FEATURE_DISALLOW_DOCTYPE_DECL = "http://apache.org/xml/features/disallow-doctype-decl";
+
+    @NotNull
+    public static DocumentBuilderFactory newSecureDocumentBuilderFactory() throws XMLException {
+        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+        try {
+            factory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
+            factory.setFeature(XMLUtils.FEATURE_EXTERNAL_GENERAL_ENTITIES, false);
+            factory.setFeature(XMLUtils.FEATURE_EXTERNAL_PARAMETER_ENTITIES, false);
+            factory.setFeature(XMLUtils.FEATURE_DISALLOW_DOCTYPE_DECL, true);
+            return factory;
+        } catch (ParserConfigurationException e) {
+            throw new XMLException("Exception while setting security feature for DocumentBuilderFactory", e);
+        }
+    }
 
     @NotNull
     public static Document parseDocument(@NotNull String fileName) throws XMLException {
