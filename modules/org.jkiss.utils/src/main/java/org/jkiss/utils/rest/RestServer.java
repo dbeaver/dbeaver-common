@@ -40,6 +40,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -89,7 +90,8 @@ public class RestServer {
             port,
             backlog,
             null,
-            handlerFactory
+            handlerFactory,
+            null
         );
     }
 
@@ -100,7 +102,8 @@ public class RestServer {
         int port,
         int backlog,
         @Nullable String landingPage,
-        @NotNull RequestHandlerFactory handlerFactory
+        @NotNull RequestHandlerFactory handlerFactory,
+        @Nullable Supplier<Executor> executorSupplier
     ) throws IOException {
         InetSocketAddress listenAddr = new InetSocketAddress(InetAddress.getLoopbackAddress(), port);
         server = HttpServer.create(listenAddr, backlog);
@@ -124,7 +127,7 @@ public class RestServer {
                 createEmptyRootContext(gson, filter, landingPage, handlerFactory);
             }
         }
-        server.setExecutor(createExecutor());
+        server.setExecutor(executorSupplier != null ? executorSupplier.get() : createExecutor());
         server.start();
     }
 
@@ -397,6 +400,7 @@ public class RestServer {
         private String landingPage;
         private final List<ControllerDef<?>> controllers = new ArrayList<>();
         private RequestHandlerFactory handlerFactory = DEFAULT_HANDLER_FACTORY;
+        private Supplier<Executor> executorSupplier;
 
         private Builder() {
             this.gson = RpcConstants.DEFAULT_GSON;
@@ -451,9 +455,15 @@ public class RestServer {
         }
 
         @NotNull
+        public Builder setExecutor(@NotNull Supplier<Executor> executorSupplier) {
+            this.executorSupplier = executorSupplier;
+            return this;
+        }
+
+        @NotNull
         public RestServer create() {
             try {
-                return new RestServer(controllers, gson, filter, port, backlog, landingPage, handlerFactory);
+                return new RestServer(controllers, gson, filter, port, backlog, landingPage, handlerFactory, executorSupplier);
             } catch (IOException e) {
                 throw new UncheckedIOException(e);
             }
