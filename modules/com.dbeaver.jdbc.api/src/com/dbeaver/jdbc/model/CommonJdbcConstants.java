@@ -1,6 +1,6 @@
 /*
  * DBeaver - Universal Database Manager
- * Copyright (C) 2010-2025 DBeaver Corp
+ * Copyright (C) 2010-2026 DBeaver Corp
  *
  * All Rights Reserved.
  *
@@ -56,4 +56,5 @@ public abstract class CommonJdbcConstants {
     public static final String CN_META_IS_GENERATEDCOLUMN = "IS_GENERATEDCOLUMN";
     public static final String CN_META_KEY_SEQ = "KEY_SEQ";
     public static final String CN_META_PK_NAME = "PK_NAME";
+    public static final String CN_META_KEY_KIND = "KEY_KIND";
 }
