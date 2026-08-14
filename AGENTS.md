@@ -20,7 +20,7 @@ Keep product-specific UI, branding, deployment, and business logic out of this r
 `org.jkiss.utils` is the lowest layer and must not depend on JDBC, servlet, Spring, Eclipse UI, or product code. Avoid
 cycles and keep framework-specific code in its module.
 
-## Compatibility and build
+## Compatibility, build, and OSGi
 
 - OSGi modules target Java 17; `com.dbeaver.spring.utils` and inheriting products use Java 21.
 - Do not use Java 18+ APIs in Java 17 modules or preview features.
@@ -32,52 +32,40 @@ cycles and keep framework-specific code in its module.
 ./mvnw -pl :com.dbeaver.rest.client -am verify
 ```
 
-CI also runs shared Checkstyle.
-
-## Maven and OSGi
-
-For `eclipse-plugin` modules:
-
-- Keep `pom.xml`, `META-INF/MANIFEST.MF`, and `build.properties` synchronized.
-- Keep Maven dependencies and OSGi `Require-Bundle` entries aligned.
+- For `eclipse-plugin` modules, keep `pom.xml`, `MANIFEST.MF`, `build.properties`, Maven dependencies, OSGi requirements,
+  exports, versions, execution environments, and module names aligned.
 - Export only intentional public API packages.
-- Preserve symbolic names, versions, execution environments, and module names.
 
 Source layouts differ: utils, REST, and Spring use `src/main/java`; JDBC and servlet use `src/`. Do not create a second
 source tree or add OSGi packaging to the Spring module.
 
-## Dependencies and public API
+## Dependencies, API, and utilities
 
 - Shared dependency and plugin versions belong in `root/pom.xml`; use managed versions in modules.
-- Prefer the JDK and existing utilities before adding a dependency.
-- Review license, security, transitives, size, Java 17, OSGi, BOM ordering, and downstream impact.
-- Avoid unrelated upgrades, especially in the parent POM.
+- Before adding a dependency, prefer the JDK and existing utilities; review license, security, Java 17, OSGi, and
+  downstream impact.
 - Assume exported packages and public/protected members have external consumers.
 - Preserve source/binary compatibility, null behavior, exceptions, ordering, equality, mutability, encoding, and thread
   safety. New overloads must not make existing calls ambiguous.
 - Keep implementation helpers package-private and framework types out of low-level APIs.
-
-## Utilities and code style
-
-- Search the JDK and this repository before adding a helper.
-- Reuse `CommonUtils`, `ArrayUtils`, `MapUtils`, `IOUtils`, `StringUtils`, and `XMLUtils`.
-- Add generic helpers to the narrowest class with defined null/error behavior and focused tests.
-- Keep product- or domain-specific helpers in the consuming repository.
-- Follow `.github/dbeaver-checkstyle-config.xml` and keep changes minimal.
+- Search the JDK and reuse `CommonUtils`, `ArrayUtils`, `MapUtils`, `IOUtils`, `StringUtils`, and `XMLUtils` before adding
+  a helper.
+- Add generic, tested helpers to the narrowest class; keep product-specific helpers in the consuming repository.
+- Keep changes minimal and follow the repository's Checkstyle, nullability, exception, and Apache header conventions.
 - Use `@NotNull`, `@Nullable`, and `@NotNullWhen` from `org.jkiss.code` where applicable.
-- Follow existing exception contracts and preserve original causes.
-- Low-level modules use `java.util.logging`; do not add SLF4J, Log4j, product logging, or `System.out/err`.
-- New Java files use the repository's Apache 2.0 header.
+- Preserve exception causes. Low-level modules use `java.util.logging`, not SLF4J, Log4j, product logging, or
+  `System.out/err`.
 
-## Testing and security
+## Testing, security, and validation
 
 - Keep tests in the owning module and add regression coverage for shared behavior.
-- Cover nulls, empty or malformed input, boundaries, encoding, platform differences, and concurrency when relevant.
-- Keep tests deterministic and independent of network services and user files.
+- Cover relevant edge cases and keep tests independent of network services and user files.
 - Validate untrusted URLs, paths, headers, XML, serialized data, and process arguments.
 - Preserve TLS and certificate validation; avoid unsafe deserialization, XXE, command injection, and path traversal.
-- Never commit credentials, keys, signing material, private URLs, local configuration, or generated artifacts.
+- Never commit secrets or private data; do not publish or release without an explicit request.
 - Report vulnerabilities through `SECURITY.md`, not a public issue.
+- Run targeted tests and the full build for parent POM, packaging, manifest, or multi-module changes.
+- Verify dependencies, OSGi metadata, exports, source layout, and Java 17 compatibility; run `git diff --check`.
 
 ## Git workflow
 
@@ -90,19 +78,3 @@ source tree or add OSGi packaging to the Spring module.
 - Create PRs Ready for review unless a draft is explicitly requested.
 - Describe compatibility, consumers, tests, dependency/manifest changes, and follow-up work.
 - Disclose materially AI-generated code or documentation.
-
-## Validation
-
-- Run targeted tests while iterating and the full build for parent POM, packaging, manifest, or multi-module changes.
-- Check dependencies, OSGi requirements, exports, source layout, and Java 17 compatibility.
-- Run `git diff --check` and review the complete diff for secrets, generated files, and unrelated changes.
-- Report checks that were not run.
-
-## Pitfalls
-
-- Java targets and source layouts differ by module.
-- OSGi modules have both Maven and manifest dependency metadata.
-- Exported packages and parent POM changes have a broad compatibility impact.
-- Tests are currently concentrated in `org.jkiss.utils`.
-- README examples are partly stale; trust the reactor and POMs.
-- Publishing profiles have external effects and require an explicit request.
