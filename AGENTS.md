@@ -69,12 +69,10 @@ source tree or add OSGi packaging to the Spring module.
 
 ## Git workflow
 
-- Target `devel`; use release branches only for requested backports.
-- Commits and PR titles use `dbeaver/<issue-repository>#<issue-number> <description>`, for example
-  `dbeaver/dbeaver#999999 Add new function` with a deliberately fictitious issue number.
-- Branches use `dbeaver/<issue-repository>#<issue-number>-<short-description>`, for example
-  `dbeaver/dbeaver#999999-add-new-function`.
-- Start the PR description with `Closes dbeaver/<issue-repository>#<issue-number>` or the full issue URL.
-- Create PRs Ready for review unless a draft is explicitly requested.
-- Describe compatibility, consumers, tests, dependency/manifest changes, and follow-up work.
-- Disclose materially AI-generated code or documentation.
+- **Main branch** - `devel`, this is the main development branch in all repos. All other branches must use it as upstream.
+- **Naming convention**: issues, commit messages, and PR titles should follow the format `dbeaver/<repo>#<issueNumber> title` (e.g., `dbeaver/dbeaver#999999 Add new function`). Repo is the repository name where issue is created.
+- **Branch naming**: branches should follow the format `dbeaver/<repo>#<issueNumber>-issueTitle` (e.g., `dbeaver/dbeaver#999999-add-new-function`).
+- **Linking PRs to issues**: start the PR description with `Closes dbeaver/<repo>#<issueNumber>` for the original ticket.
+- **Review state** — create pull requests directly in the **Ready for review** state. Create a draft only when the user or ticket owner explicitly requests one.
+- **AI-generated PRs**: large pull requests that are entirely AI-generated are strongly discouraged. Keep AI-assisted contributions focused and small, and ensure each change is understood and reviewed by a human contributor.
+- **AI tools disclosure**: if AI tools were used to generate code, mention it in the PR description. Example: *This PR was generated with AI (GitHub Copilot)*.
