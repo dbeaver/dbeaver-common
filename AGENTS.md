@@ -50,29 +50,15 @@ source tree or add OSGi packaging to the Spring module.
 - Keep implementation helpers package-private and framework types out of low-level APIs.
 - Search the JDK and reuse `CommonUtils`, `ArrayUtils`, `MapUtils`, `IOUtils`, `StringUtils`, and `XMLUtils` before adding
   a helper.
-- Add generic, tested helpers to the narrowest class; keep product-specific helpers in the consuming repository.
-- Keep changes minimal and follow the repository's Checkstyle, nullability, exception, and Apache header conventions.
+- Add generic, tested helpers to the narrowest appropriate class.
 - Use `@NotNull`, `@Nullable`, and `@NotNullWhen` from `org.jkiss.code` where applicable.
 - Preserve exception causes. Low-level modules use `java.util.logging`, not SLF4J, Log4j, product logging, or
   `System.out/err`.
 
-## Testing, security, and validation
+## Security and validation
 
-- Keep tests in the owning module and add regression coverage for shared behavior.
-- Cover relevant edge cases and keep tests independent of network services and user files.
 - Validate untrusted URLs, paths, headers, XML, serialized data, and process arguments.
 - Preserve TLS and certificate validation; avoid unsafe deserialization, XXE, command injection, and path traversal.
-- Never commit secrets or private data; do not publish or release without an explicit request.
 - Report vulnerabilities through `SECURITY.md`, not a public issue.
 - Run targeted tests and the full build for parent POM, packaging, manifest, or multi-module changes.
-- Verify dependencies, OSGi metadata, exports, source layout, and Java 17 compatibility; run `git diff --check`.
-
-## Git workflow
-
-- **Main branch** - `devel`, this is the main development branch in all repos. All other branches must use it as upstream.
-- **Naming convention**: issues, commit messages, and PR titles should follow the format `dbeaver/<repo>#<issueNumber> title` (e.g., `dbeaver/dbeaver#999999 Add new function`). Repo is the repository name where issue is created.
-- **Branch naming**: branches should follow the format `dbeaver/<repo>#<issueNumber>-issueTitle` (e.g., `dbeaver/dbeaver#999999-add-new-function`).
-- **Linking PRs to issues**: start the PR description with `Closes dbeaver/<repo>#<issueNumber>` for the original ticket.
-- **Review state** — create pull requests directly in the **Ready for review** state. Create a draft only when the user or ticket owner explicitly requests one.
-- **AI-generated PRs**: large pull requests that are entirely AI-generated are strongly discouraged. Keep AI-assisted contributions focused and small, and ensure each change is understood and reviewed by a human contributor.
-- **AI tools disclosure**: if AI tools were used to generate code, mention it in the PR description. Example: *This PR was generated with AI (GitHub Copilot)*.
+- Verify dependencies, OSGi metadata, exports, source layout, and Java 17 compatibility.
