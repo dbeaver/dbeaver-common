@@ -22,6 +22,7 @@ import org.jkiss.code.Nullable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
@@ -50,6 +51,12 @@ public class BOMInputStream extends InputStream {
     private int markFbIndex;
     private boolean markedAtStart;
 
+    /**
+     * Creates a new {@code BOMInputStream} that detects the specified BOMs.
+     *
+     * @param delegate the input stream to wrap
+     * @param boms     the BOMs to detect
+     */
     public BOMInputStream(@NotNull InputStream delegate, @NotNull ByteOrderMark... boms) {
         if (boms.length == 0) {
             throw new IllegalArgumentException("No BOMs specified");
@@ -60,12 +67,24 @@ public class BOMInputStream extends InputStream {
         this.boms.sort(BOM_LENGTH_COMPARATOR);
     }
 
+    /**
+     * Creates a new {@code BOMInputStream} that detects the BOM for the specified charset.
+     *
+     * @param delegate the input stream to wrap
+     * @param charset  the charset for which to detect the BOM
+     */
     public BOMInputStream(@NotNull InputStream delegate, @NotNull Charset charset) {
         this(delegate, ByteOrderMark.fromCharset(charset));
     }
 
+    /**
+     * Creates a new {@code BOMInputStream} that detects all known BOMs.
+     *
+     * @param delegate the input stream to wrap
+     * @see ByteOrderMark#values()
+     */
     public BOMInputStream(@NotNull InputStream delegate) {
-        this(delegate, ByteOrderMark.UTF_8);
+        this(delegate, ByteOrderMark.values());
     }
 
     @Override
@@ -88,6 +107,21 @@ public class BOMInputStream extends InputStream {
             firstBytes = null;
         }
         in.reset();
+    }
+
+    /**
+     * Reads the entire stream as a string, using the detected BOM to determine the character encoding.
+     * <p>
+     * If no BOM is detected, the default encoding ({@link java.nio.charset.StandardCharsets#UTF_8}) will be used.
+     *
+     * @return the string representation of the stream
+     * @throws IOException on read error
+     */
+    @NotNull
+    public String readString() throws IOException {
+        var bom = getBOM();
+        var charset = bom != null ? bom.getCharset() : StandardCharsets.UTF_8;
+        return new String(readAllBytes(), charset);
     }
 
     @Nullable
