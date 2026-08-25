@@ -24,7 +24,9 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.xml.sax.InputSource;
 
-import java.io.*;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.Reader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -60,16 +62,7 @@ public class XMLUtils {
 
     @NotNull
     public static Document parseDocument(@NotNull String fileName) throws XMLException {
-        return parseDocument(new File(fileName));
-    }
-
-    @NotNull
-    public static Document parseDocument(@NotNull File file) throws XMLException {
-        try (InputStream is = new FileInputStream(file)) {
-            return parseDocument(new InputSource(is));
-        } catch (IOException e) {
-            throw new XMLException("Error opening file '" + file + "'", e);
-        }
+        return parseDocument(Path.of(fileName));
     }
 
     @NotNull
@@ -105,8 +98,7 @@ public class XMLUtils {
     }
 
     @NotNull
-    public static Document createDocument()
-        throws XMLException {
+    public static Document createDocument() throws XMLException {
         try {
             DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
             DocumentBuilder xmlBuilder = dbf.newDocumentBuilder();
@@ -153,7 +145,8 @@ public class XMLUtils {
     @NotNull
     public static List<Element> getChildElementList(
         Element parent,
-        String nodeName) {
+        String nodeName
+    ) {
         List<Element> list = new ArrayList<>();
         if (parent != null) {
             for (Node node = parent.getFirstChild(); node != null; node = node.getNextSibling()) {
@@ -161,37 +154,6 @@ public class XMLUtils {
                     nodeName.equals(node.getNodeName())) {
                     list.add((Element) node);
                 }
-            }
-        }
-        return list;
-    }
-
-    // Get list of all child elements of specified node
-    @NotNull
-    public static Collection<Element> getChildElementListNS(
-        Element parent,
-        String nsURI) {
-        List<Element> list = new ArrayList<>();
-        if (parent != null) {
-            for (Node node = parent.getFirstChild(); node != null; node = node.getNextSibling()) {
-                if (node.getNodeType() == Node.ELEMENT_NODE &&
-                    node.getNamespaceURI().equals(nsURI)) {
-                    list.add((Element) node);
-                }
-            }
-        }
-        return list;
-    }
-
-    // Get list of all child elements of specified node
-    @NotNull
-    public static Collection<Element> getChildElementListNS(Element parent, String nodeName, String nsURI) {
-        List<Element> list = new ArrayList<>();
-        for (Node node = parent.getFirstChild(); node != null; node = node.getNextSibling()) {
-            if (node.getNodeType() == Node.ELEMENT_NODE &&
-                node.getLocalName().equals(nodeName) &&
-                node.getNamespaceURI().equals(nsURI)) {
-                list.add((Element) node);
             }
         }
         return list;
@@ -212,29 +174,6 @@ public class XMLUtils {
         }
         return list;
     }
-
-    // Find one child element with specified name
-    @Nullable
-    public static Element findChildElement(@NotNull Element parent) {
-        for (Node node = parent.getFirstChild(); node != null; node = node.getNextSibling()) {
-            if (node.getNodeType() == Node.ELEMENT_NODE) {
-                return (Element) node;
-            }
-        }
-        return null;
-    }
-
-    @Nullable
-    public static Object escapeXml(@Nullable Object obj) {
-        if (obj == null) {
-            return null;
-        } else if (obj instanceof CharSequence) {
-            return escapeXml((CharSequence) obj);
-        } else {
-            return obj;
-        }
-    }
-
     @Nullable
     public static String escapeXml(@Nullable CharSequence str) {
         if (str == null) {
@@ -262,10 +201,6 @@ public class XMLUtils {
         return res == null ? str.toString() : res.toString();
     }
 
-    public static boolean isValidXMLChar(char c) {
-        return (c >= 32 || c == '\n' || c == '\r' || c == '\t');
-    }
-
     /**
      * Encodes a char to XML-valid form replacing &amp;,',",&lt;,&gt; with special XML encoding.
      *
@@ -274,20 +209,14 @@ public class XMLUtils {
      */
     @Nullable
     public static String encodeXMLChar(char ch) {
-        switch (ch) {
-            case '&':
-                return "&amp;";
-            case '\"':
-                return "&quot;";
-            case '\'':
-                return "&#39;";
-            case '<':
-                return "&lt;";
-            case '>':
-                return "&gt;";
-            default:
-                return null;
-        }
+        return switch (ch) {
+            case '&' -> "&amp;";
+            case '\"' -> "&quot;";
+            case '\'' -> "&#39;";
+            case '<' -> "&lt;";
+            case '>' -> "&gt;";
+            default -> null;
+        };
     }
 
     @NotNull
