@@ -69,6 +69,18 @@ public final class IOUtils {
         }
     }
 
+    /**
+     * Closes object if it  is AutoClosable or Closable.
+     * It was added to support runtime before Java 21 then HttpClient become closable.
+     */
+    public static void tryClose(@NotNull Object object) {
+        if (object instanceof Closeable c) {
+            close(c);
+        } else if (object instanceof AutoCloseable ac) {
+            close(ac);
+        }
+    }
+
     public static void closeQuietly(@NotNull AutoCloseable... closeable) {
         for (AutoCloseable c : closeable) {
             close(c);

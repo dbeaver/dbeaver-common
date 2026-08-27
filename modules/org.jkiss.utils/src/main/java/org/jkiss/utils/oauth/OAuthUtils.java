@@ -16,9 +16,11 @@
  */
 package org.jkiss.utils.oauth;
 
-import com.google.gson.*;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import org.jkiss.code.NotNull;
 import org.jkiss.utils.HttpConstants;
+import org.jkiss.utils.IOUtils;
 import org.jkiss.utils.oauth.code.OAuthRequestURLBuilder;
 
 import java.io.IOException;
@@ -32,10 +34,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class OAuthUtils {
-    private static final Gson gson = new GsonBuilder()
-        .setStrictness(Strictness.LENIENT)
-        .setPrettyPrinting()
-        .create();
 
     public static OAuthTokens refreshAccessToken(
         @NotNull String tokenEndpoint,
@@ -89,13 +87,7 @@ public class OAuthUtils {
                 throw new IOException("Interrupted while requesting token", e);
             }
         } finally {
-            if (client instanceof AutoCloseable) {
-                try {
-                    ((AutoCloseable) client).close();
-                } catch (Exception e) {
-                    // Ignore
-                }
-            }
+            IOUtils.tryClose(client);
         }
     }
 }

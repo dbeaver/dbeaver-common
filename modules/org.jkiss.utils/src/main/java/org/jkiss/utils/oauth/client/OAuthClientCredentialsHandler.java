@@ -19,6 +19,7 @@ package org.jkiss.utils.oauth.client;
 import com.google.gson.*;
 import org.jkiss.code.NotNull;
 import org.jkiss.code.Nullable;
+import org.jkiss.utils.IOUtils;
 import org.jkiss.utils.oauth.IOAuthHandler;
 import org.jkiss.utils.oauth.OAuthConstants;
 
@@ -67,29 +68,32 @@ public class OAuthClientCredentialsHandler implements IOAuthHandler {
         this.authUrl = authUrl;
     }
 
-
+    @NotNull
     @Override
     public Map<String, String> authorize() throws IOException {
         HttpClient client = HttpClient.newBuilder()
             .version(HttpClient.Version.HTTP_2)
             .connectTimeout(Duration.ofSeconds(OAuthConstants.AUTH_DEFAULT_SSO_TIMEOUT))
             .build();
-        OAuthRequestPostBuilder requestBuilder = new OAuthRequestPostBuilder(authUrl)
-            .withClientId(clientId)
-            .withClientSecret(secretId)
-            .withGrantType(OAuthConstants.GRANT_TYPE_CLIENT_CREDENTIALS);
-        // Send POST
-        HttpResponse<String> response = null;
         try {
-            response = client.send(requestBuilder.build(), HttpResponse.BodyHandlers.ofString());
-        } catch (InterruptedException e) {
-            throw new IOException("Authorization request interrupted", e);
+            OAuthRequestPostBuilder requestBuilder = new OAuthRequestPostBuilder(authUrl)
+                .withClientId(clientId)
+                .withClientSecret(secretId)
+                .withGrantType(OAuthConstants.GRANT_TYPE_CLIENT_CREDENTIALS);
+            // Send POST
+            try {
+                HttpResponse<String> response = client.send(requestBuilder.build(), HttpResponse.BodyHandlers.ofString());
+                return extractResponse(response);
+            } catch (InterruptedException e) {
+                throw new IOException("Authorization request interrupted", e);
+            }
+        } finally {
+            IOUtils.tryClose(client);
         }
-        return extractResponse(response);
-
     }
 
-    protected Map<String, String> extractResponse(HttpResponse<String> response) throws IOException {
+    @NotNull
+    protected Map<String, String> extractResponse(@NotNull HttpResponse<String> response) throws IOException {
         JsonObject jsonObject = JsonParser.parseString(response.body()).getAsJsonObject();
         String idToken = jsonObject.get(OAuthConstants.RESULT_PROP_TOKEN_ID).getAsString();
         if (idToken != null) {
@@ -100,6 +104,5 @@ public class OAuthClientCredentialsHandler implements IOAuthHandler {
             throw new IOException("Error extracting token");
         }
     }
-
 
 }

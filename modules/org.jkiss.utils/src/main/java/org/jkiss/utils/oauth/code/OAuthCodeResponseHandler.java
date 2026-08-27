@@ -19,6 +19,8 @@ package org.jkiss.utils.oauth.code;
 import com.sun.net.httpserver.HttpServer;
 import org.jkiss.code.NotNull;
 import org.jkiss.utils.CommonUtils;
+import org.jkiss.utils.HttpConstants;
+import org.jkiss.utils.HttpUtils;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -26,8 +28,6 @@ import java.util.Map;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * Handles the temporary HTTP server that listens for OAuth callback requests.
@@ -37,8 +37,6 @@ public class OAuthCodeResponseHandler implements IOAuthCodeResponseHandler {
 
     private static final String PARAM_CODE = "code";
     private static final String PARAM_ERROR = "error";
-    private static HttpServer httpServer;
-    private final ExecutorService executor = Executors.newSingleThreadExecutor();
     private static final String SUCCESSFUL_ANSWER_FOR_AUTH = "Auth has been completed";
     private static final String FAILED_ANSWER_FOR_AUTH = "Errors encountered during authorization";
 
@@ -47,6 +45,9 @@ public class OAuthCodeResponseHandler implements IOAuthCodeResponseHandler {
     private final String callbackEndpoint;
 
     private volatile boolean notShutDown;
+    private HttpServer httpServer;
+    private final ExecutorService clientExecutor = Executors.newSingleThreadExecutor();
+    private final ThreadPoolExecutor serverExecutor;
 
     /**
      * Creates a new instance of the response handler.
@@ -57,6 +58,13 @@ public class OAuthCodeResponseHandler implements IOAuthCodeResponseHandler {
     public OAuthCodeResponseHandler(int port, @NotNull String callbackEndpoint) {
         this.port = port;
         this.callbackEndpoint = callbackEndpoint;
+        this.serverExecutor = new ThreadPoolExecutor(
+            1,
+            10,
+            60,
+            TimeUnit.SECONDS,
+            new LinkedBlockingQueue<>()
+        );
     }
 
     /**
@@ -72,7 +80,7 @@ public class OAuthCodeResponseHandler implements IOAuthCodeResponseHandler {
         } catch (IOException e) {
             throw new IOException("Can't create callback server", e);
         }
-        httpServer.setExecutor(new ThreadPoolExecutor(1, 10, 60, TimeUnit.SECONDS, new LinkedBlockingQueue<>()));
+        httpServer.setExecutor(serverExecutor);
         httpServer.start();
     }
 
@@ -83,17 +91,18 @@ public class OAuthCodeResponseHandler implements IOAuthCodeResponseHandler {
      *
      * @return a {@link Future} containing the received authorization code, or throws an exception if an error occurred.
      */
+    @NotNull
     @Override
     public Future<String> requestCode() {
         notShutDown = true;
-        return executor.submit(() -> {
+        return clientExecutor.submit(() -> {
             AtomicReference<String> result = new AtomicReference<>();
             AtomicBoolean hasErrors = new AtomicBoolean(false);
             httpServer.createContext(
                 callbackEndpoint, exchange -> {
                     String query = exchange.getRequestURI().getQuery();
                     String answer;
-                    Map<String, String> params = getResponseParams(query);
+                    Map<String, String> params = HttpUtils.parseQuery(query);
                     String code = params.get(PARAM_CODE);
                     if (CommonUtils.isNotEmpty(code)) {
                         result.set(code);
@@ -107,7 +116,7 @@ public class OAuthCodeResponseHandler implements IOAuthCodeResponseHandler {
                         answer = FAILED_ANSWER_FOR_AUTH;
                     }
 
-                    exchange.sendResponseHeaders(200, answer.getBytes().length);
+                    exchange.sendResponseHeaders(HttpConstants.CODE_OK, answer.getBytes().length);
                     exchange.getResponseBody().write(answer.getBytes());
                     exchange.close();
                 }
@@ -131,7 +140,7 @@ public class OAuthCodeResponseHandler implements IOAuthCodeResponseHandler {
     public void addStabContext() {
         httpServer.createContext(
             callbackEndpoint, exchange -> {
-                exchange.sendResponseHeaders(200, 0);
+                exchange.sendResponseHeaders(HttpConstants.CODE_OK, 0);
                 httpServer.removeContext(callbackEndpoint);
                 exchange.close();
             }
@@ -148,14 +157,9 @@ public class OAuthCodeResponseHandler implements IOAuthCodeResponseHandler {
         if (httpServer != null) {
             httpServer.stop(0);
         }
-        executor.shutdown();
+        clientExecutor.shutdown();
+        serverExecutor.shutdown();
         notShutDown = false;
     }
 
-    @NotNull
-    public static Map<String, String> getResponseParams(@NotNull String query) {
-        return Stream.of(query.split("&"))
-            .map(kv -> kv.split("=", 2))
-            .collect(Collectors.toMap(kv -> kv[0], kv -> kv[kv.length - 1]));
-    }
 }
