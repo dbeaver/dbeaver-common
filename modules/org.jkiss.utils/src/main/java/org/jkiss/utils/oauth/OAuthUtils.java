@@ -16,7 +16,8 @@
  */
 package org.jkiss.utils.oauth;
 
-import com.google.gson.*;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import org.jkiss.code.NotNull;
 import org.jkiss.utils.HttpConstants;
 import org.jkiss.utils.oauth.code.OAuthRequestURLBuilder;
@@ -32,10 +33,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class OAuthUtils {
-    private static final Gson gson = new GsonBuilder()
-        .setStrictness(Strictness.LENIENT)
-        .setPrettyPrinting()
-        .create();
 
     public static OAuthTokens refreshAccessToken(
         @NotNull String tokenEndpoint,
@@ -70,11 +67,12 @@ public class OAuthUtils {
         @NotNull String body,
         int timeoutSec
     ) throws IOException {
-        HttpClient client = HttpClient.newBuilder()
-            .cookieHandler(new CookieManager())
-            .version(HttpClient.Version.HTTP_1_1)
-            .build();
-        try {
+        try (
+            HttpClient client = HttpClient.newBuilder()
+                .cookieHandler(new CookieManager())
+                .version(HttpClient.Version.HTTP_1_1)
+                .build()
+        ) {
             HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(endpoint))
                 .timeout(Duration.ofSeconds(timeoutSec))
@@ -87,14 +85,6 @@ public class OAuthUtils {
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
                 throw new IOException("Interrupted while requesting token", e);
-            }
-        } finally {
-            if (client instanceof AutoCloseable) {
-                try {
-                    ((AutoCloseable) client).close();
-                } catch (Exception e) {
-                    // Ignore
-                }
             }
         }
     }
