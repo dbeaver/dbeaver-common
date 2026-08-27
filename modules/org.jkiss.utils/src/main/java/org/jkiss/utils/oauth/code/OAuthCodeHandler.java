@@ -21,6 +21,7 @@ import org.jkiss.code.NotNull;
 import org.jkiss.code.Nullable;
 import org.jkiss.utils.CommonUtils;
 import org.jkiss.utils.HttpConstants;
+import org.jkiss.utils.IOUtils;
 import org.jkiss.utils.oauth.IOAuthHandler;
 import org.jkiss.utils.oauth.OAuthConstants;
 
@@ -166,15 +167,17 @@ public class OAuthCodeHandler implements IOAuthHandler {
 
             HttpRequest postRequest = postBuilder.build();
             handler.addStabContext();
-            try (HttpClient client = HttpClient.newBuilder()
+            HttpClient client = HttpClient.newBuilder()
                 .cookieHandler(new CookieManager())
-                .version(HttpClient.Version.HTTP_2).build()
-            ) {
+                .version(HttpClient.Version.HTTP_2).build();
+            try {
                 HttpResponse<String> response = client.send(postRequest, HttpResponse.BodyHandlers.ofString());
                 if (response.statusCode() != HttpConstants.CODE_OK) {
                     throw new IOException("Error getting token info " + response.body());
                 }
                 return extractResponse(response);
+            } finally {
+                IOUtils.tryClose(client);
             }
         } catch (InterruptedException | ExecutionException | TimeoutException e) {
             throw new IOException(e);

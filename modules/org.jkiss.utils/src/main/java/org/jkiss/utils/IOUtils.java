@@ -46,7 +46,7 @@ public final class IOUtils {
 
     private static final boolean USE_NIO_STREAMS = false;
 
-    public static void close(Closeable closeable) {
+    public static void close(@NotNull Closeable closeable) {
         try {
             closeable.close();
         } catch (IOException e) {
@@ -58,7 +58,7 @@ public final class IOUtils {
         }
     }
 
-    public static void close(AutoCloseable closeable) {
+    public static void close(@NotNull AutoCloseable closeable) {
         try {
             closeable.close();
         } catch (Exception e) {
@@ -67,6 +67,18 @@ public final class IOUtils {
                 "Failed to close closeable: " + closeable.getClass().getName(),
                 e
             );
+        }
+    }
+
+    /**
+     * Closes object if it  is AutoClosable or Closable.
+     * It was added to support runtime before Java 21 then HttpClient become closable.
+     */
+    public static void tryClose(@NotNull Object object) {
+        if (object instanceof Closeable c) {
+            close(c);
+        } else if (object instanceof AutoCloseable ac) {
+            close(ac);
         }
     }
 

@@ -19,6 +19,7 @@ package org.jkiss.utils.oauth.client;
 import com.google.gson.*;
 import org.jkiss.code.NotNull;
 import org.jkiss.code.Nullable;
+import org.jkiss.utils.IOUtils;
 import org.jkiss.utils.oauth.IOAuthHandler;
 import org.jkiss.utils.oauth.OAuthConstants;
 
@@ -70,11 +71,11 @@ public class OAuthClientCredentialsHandler implements IOAuthHandler {
     @NotNull
     @Override
     public Map<String, String> authorize() throws IOException {
-        try (HttpClient client = HttpClient.newBuilder()
+        HttpClient client = HttpClient.newBuilder()
             .version(HttpClient.Version.HTTP_2)
             .connectTimeout(Duration.ofSeconds(OAuthConstants.AUTH_DEFAULT_SSO_TIMEOUT))
-            .build()
-        ) {
+            .build();
+        try {
             OAuthRequestPostBuilder requestBuilder = new OAuthRequestPostBuilder(authUrl)
                 .withClientId(clientId)
                 .withClientSecret(secretId)
@@ -86,6 +87,8 @@ public class OAuthClientCredentialsHandler implements IOAuthHandler {
             } catch (InterruptedException e) {
                 throw new IOException("Authorization request interrupted", e);
             }
+        } finally {
+            IOUtils.tryClose(client);
         }
     }
 

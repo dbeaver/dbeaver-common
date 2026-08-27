@@ -20,6 +20,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import org.jkiss.code.NotNull;
 import org.jkiss.utils.HttpConstants;
+import org.jkiss.utils.IOUtils;
 import org.jkiss.utils.oauth.code.OAuthRequestURLBuilder;
 
 import java.io.IOException;
@@ -67,12 +68,11 @@ public class OAuthUtils {
         @NotNull String body,
         int timeoutSec
     ) throws IOException {
-        try (
-            HttpClient client = HttpClient.newBuilder()
-                .cookieHandler(new CookieManager())
-                .version(HttpClient.Version.HTTP_1_1)
-                .build()
-        ) {
+        HttpClient client = HttpClient.newBuilder()
+            .cookieHandler(new CookieManager())
+            .version(HttpClient.Version.HTTP_1_1)
+            .build();
+        try {
             HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(endpoint))
                 .timeout(Duration.ofSeconds(timeoutSec))
@@ -86,6 +86,8 @@ public class OAuthUtils {
                 Thread.currentThread().interrupt();
                 throw new IOException("Interrupted while requesting token", e);
             }
+        } finally {
+            IOUtils.tryClose(client);
         }
     }
 }
