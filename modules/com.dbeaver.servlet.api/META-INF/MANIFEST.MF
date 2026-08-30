@@ -7,8 +7,7 @@ Bundle-Version: 2.8.0.qualifier
 Bundle-Release-Date: 20250521
 Bundle-RequiredExecutionEnvironment: JavaSE-17
 Bundle-ActivationPolicy: lazy
-Require-Bundle: org.jkiss.utils,
- jakarta.servlet-api;bundle-version="6.1.0",
- com.google.gson
+Require-Bundle: org.jkiss.utils;visibility:=reexport,
+ jakarta.servlet-api;visibility:=reexport
 Export-Package: com.dbeaver.servlet.model
 Automatic-Module-Name: com.dbeaver.servlet.api
