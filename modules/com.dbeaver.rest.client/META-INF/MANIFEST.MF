@@ -7,8 +7,7 @@ Bundle-Version: 2.8.0.qualifier
 Bundle-Release-Date: 20260703
 Bundle-RequiredExecutionEnvironment: JavaSE-17
 Bundle-ActivationPolicy: lazy
-Require-Bundle: org.jkiss.utils,
- com.google.gson;visibility:=reexport
+Require-Bundle: org.jkiss.utils;visibility:=reexport
 Export-Package: com.dbeaver.rest.client,
  com.dbeaver.rest.client.interceptor
 Automatic-Module-Name: com.dbeaver.rest.client
