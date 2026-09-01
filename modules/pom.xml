@@ -18,6 +18,7 @@
 
     <modules>
         <module>org.jkiss.utils</module>
+        <module>com.dbeaver.datadam.gateway.api</module>
         <module>com.dbeaver.jdbc.api</module>
         <module>com.dbeaver.rest.client</module>
         <module>com.dbeaver.servlet.api</module>

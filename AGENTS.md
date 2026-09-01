@@ -12,6 +12,7 @@ Keep product-specific UI, branding, deployment, and business logic out of this r
 | Module | Packaging | Purpose |
 |---|---|---|
 | `org.jkiss.utils` | `eclipse-plugin` | Core utilities and annotations |
+| `com.dbeaver.datadam.gateway.api` | `eclipse-plugin` | Shared DataDam gateway configuration sync protocol model |
 | `com.dbeaver.jdbc.api` | `eclipse-plugin` | Reusable JDBC interfaces and base classes |
 | `com.dbeaver.rest.client` | `eclipse-plugin` | JDK HTTP client helpers |
 | `com.dbeaver.servlet.api` | `eclipse-plugin` | Shared servlet health/status API |

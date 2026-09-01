@@ -94,6 +94,11 @@
             </dependency>
             <dependency>
                 <groupId>com.dbeaver.common</groupId>
+                <artifactId>com.dbeaver.datadam.gateway.api</artifactId>
+                <version>${dbeaver.common.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.dbeaver.common</groupId>
                 <artifactId>com.dbeaver.servlet.api</artifactId>
                 <version>${dbeaver.common.version}</version>
             </dependency>

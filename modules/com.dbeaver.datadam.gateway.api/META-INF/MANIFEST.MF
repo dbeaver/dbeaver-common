@@ -1,0 +1,12 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: DataDam Gateway Protocol Model
+Bundle-Vendor: DBeaver Corp
+Bundle-SymbolicName: com.dbeaver.datadam.gateway.api
+Bundle-Version: 2.8.0.qualifier
+Bundle-Release-Date: 20260901
+Bundle-RequiredExecutionEnvironment: JavaSE-17
+Bundle-ActivationPolicy: lazy
+Require-Bundle: org.jkiss.utils;visibility:=reexport
+Export-Package: com.dbeaver.datadam.gateway.model
+Automatic-Module-Name: com.dbeaver.datadam.gateway.api
