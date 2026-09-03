@@ -128,7 +128,7 @@ public final class SAXReader implements ContentHandler, EntityResolver, DTDHandl
         try {
             if (saxParserFactory == null) {
                 try {
-                    saxParserFactory = javax.xml.parsers.SAXParserFactory.newInstance();
+                    saxParserFactory = XMLUtils.newSecureSAXParserFactory();
                     saxParserFactory.setNamespaceAware(true);
                     saxParserFactory.setValidating(false);
                 } catch (FactoryConfigurationError toCatch) {

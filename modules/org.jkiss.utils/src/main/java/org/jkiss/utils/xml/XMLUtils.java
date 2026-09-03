@@ -23,6 +23,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -36,6 +37,9 @@ import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.parsers.SAXParserFactory;
+import javax.xml.transform.TransformerConfigurationException;
+import javax.xml.transform.TransformerFactory;
 
 /**
  * Common XML utils
@@ -57,6 +61,33 @@ public class XMLUtils {
             return factory;
         } catch (ParserConfigurationException e) {
             throw new XMLException("Exception while setting security feature for DocumentBuilderFactory", e);
+        }
+    }
+
+    @NotNull
+    public static SAXParserFactory newSecureSAXParserFactory() throws XMLException {
+        SAXParserFactory factory = SAXParserFactory.newInstance();
+        try {
+            factory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
+            factory.setFeature(XMLUtils.FEATURE_EXTERNAL_GENERAL_ENTITIES, false);
+            factory.setFeature(XMLUtils.FEATURE_EXTERNAL_PARAMETER_ENTITIES, false);
+            factory.setFeature(XMLUtils.FEATURE_DISALLOW_DOCTYPE_DECL, true);
+            return factory;
+        } catch (ParserConfigurationException | SAXException e) {
+            throw new XMLException("Exception while setting security feature for SAXParserFactory", e);
+        }
+    }
+
+    @NotNull
+    public static TransformerFactory newSecureTransformerFactory() throws XMLException {
+        TransformerFactory factory = TransformerFactory.newInstance();
+        try {
+            factory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
+            factory.setAttribute(XMLConstants.ACCESS_EXTERNAL_DTD, "");
+            factory.setAttribute(XMLConstants.ACCESS_EXTERNAL_STYLESHEET, "");
+            return factory;
+        } catch (TransformerConfigurationException | IllegalArgumentException e) {
+            throw new XMLException("Exception while setting security feature for TransformerFactory", e);
         }
     }
 
@@ -87,9 +118,7 @@ public class XMLUtils {
     @NotNull
     public static Document parseDocument(@NotNull InputSource source) throws XMLException {
         try {
-            DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-            dbf.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
-            dbf.setFeature(FEATURE_DISALLOW_DOCTYPE_DECL, true);
+            DocumentBuilderFactory dbf = newSecureDocumentBuilderFactory();
             DocumentBuilder xmlBuilder = dbf.newDocumentBuilder();
             return xmlBuilder.parse(source);
         } catch (Exception er) {
