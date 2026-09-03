@@ -117,8 +117,8 @@ public class XMLUtils {
 
     @NotNull
     public static Document parseDocument(@NotNull InputSource source) throws XMLException {
+        DocumentBuilderFactory dbf = newSecureDocumentBuilderFactory();
         try {
-            DocumentBuilderFactory dbf = newSecureDocumentBuilderFactory();
             DocumentBuilder xmlBuilder = dbf.newDocumentBuilder();
             return xmlBuilder.parse(source);
         } catch (Exception er) {
