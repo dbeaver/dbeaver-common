@@ -21,6 +21,7 @@ import org.jkiss.code.NotNull;
 import org.jkiss.code.Nullable;
 import org.jkiss.utils.CommonUtils;
 import org.jkiss.utils.HttpConstants;
+import org.jkiss.utils.IOUtils;
 import org.jkiss.utils.oauth.IOAuthHandler;
 import org.jkiss.utils.oauth.OAuthConstants;
 
@@ -151,6 +152,7 @@ public class OAuthCodeHandler implements IOAuthHandler {
      * @return a map containing the token information (e.g. id_token)
      * @throws IOException in case of HTTP failure, timeout, or invalid responses
      */
+    @NotNull
     @Override
     public Map<String, String> authorize() throws IOException {
         try (IOAuthCodeResponseHandler handler = createCodeResponseHandler()) {
@@ -165,13 +167,18 @@ public class OAuthCodeHandler implements IOAuthHandler {
 
             HttpRequest postRequest = postBuilder.build();
             handler.addStabContext();
-            HttpClient client = HttpClient.newBuilder().cookieHandler(new CookieManager())
+            HttpClient client = HttpClient.newBuilder()
+                .cookieHandler(new CookieManager())
                 .version(HttpClient.Version.HTTP_2).build();
-            HttpResponse<String> response = client.send(postRequest, HttpResponse.BodyHandlers.ofString());
-            if (response.statusCode() != 200) {
-                throw new IOException("Error getting token info " + response.body());
+            try {
+                HttpResponse<String> response = client.send(postRequest, HttpResponse.BodyHandlers.ofString());
+                if (response.statusCode() != HttpConstants.CODE_OK) {
+                    throw new IOException("Error getting token info " + response.body());
+                }
+                return extractResponse(response);
+            } finally {
+                IOUtils.tryClose(client);
             }
-            return extractResponse(response);
         } catch (InterruptedException | ExecutionException | TimeoutException e) {
             throw new IOException(e);
         }
@@ -336,37 +343,43 @@ public class OAuthCodeHandler implements IOAuthHandler {
         protected String callbackEndpoint;
         protected String state;
 
-
+        @NotNull
         public OAuthCodeHandlerBuilder<T> withClientId(@NotNull String clientId) {
             this.clientId = clientId;
             return this;
         }
 
+        @NotNull
         public OAuthCodeHandlerBuilder<T> withSecretId(@Nullable String secretId) {
             this.secretId = secretId;
             return this;
         }
 
+        @NotNull
         public OAuthCodeHandlerBuilder<T> withAuthUrl(@NotNull String authUrl) {
             this.authUrl = authUrl;
             return this;
         }
 
+        @NotNull
         public OAuthCodeHandlerBuilder<T> withTokenUrl(@NotNull String tokenURL) {
             this.tokenURL = tokenURL;
             return this;
         }
 
+        @NotNull
         public OAuthCodeHandlerBuilder<T> withCallbackPort(int port) {
             this.callbackPort = port;
             return this;
         }
 
+        @NotNull
         public OAuthCodeHandlerBuilder<T> withTimeout(int seconds) {
             this.timeout = seconds;
             return this;
         }
 
+        @NotNull
         public OAuthCodeHandlerBuilder<T> withCallbackEndpoint(@Nullable String endpoint) {
             if (endpoint != null) {
                 this.callbackEndpoint = endpoint.startsWith(ENDPOINT_SLASH) ? endpoint : ENDPOINT_SLASH + endpoint;
@@ -376,6 +389,7 @@ public class OAuthCodeHandler implements IOAuthHandler {
             return this;
         }
 
+        @NotNull
         public OAuthCodeHandlerBuilder<T> withRedirectUri(@NotNull String redirectUri) {
             this.redirectUri = redirectUri;
             return this;

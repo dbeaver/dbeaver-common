@@ -7,7 +7,7 @@ Bundle-Version: 2.8.0.qualifier
 Bundle-Release-Date: 20240205
 Bundle-RequiredExecutionEnvironment: JavaSE-17
 Bundle-ActivationPolicy: lazy
-Require-Bundle: com.google.gson
+Require-Bundle: com.google.gson;visibility:=reexport
 Export-Package: org.jkiss.api,
  org.jkiss.api.verification,
  org.jkiss.code,

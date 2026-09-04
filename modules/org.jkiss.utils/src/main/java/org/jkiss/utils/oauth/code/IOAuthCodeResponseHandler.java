@@ -16,6 +16,8 @@
  */
 package org.jkiss.utils.oauth.code;
 
+import org.jkiss.code.NotNull;
+
 import java.io.Closeable;
 import java.io.IOException;
 import java.util.concurrent.Future;
@@ -24,6 +26,7 @@ public interface IOAuthCodeResponseHandler extends Closeable {
 
     void initServer() throws IOException;
 
+    @NotNull
     Future<String> requestCode();
 
     void addStabContext();
