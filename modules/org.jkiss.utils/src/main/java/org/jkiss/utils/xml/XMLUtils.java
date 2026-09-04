@@ -83,8 +83,6 @@ public class XMLUtils {
         TransformerFactory factory = TransformerFactory.newInstance();
         try {
             factory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
-            factory.setAttribute(XMLConstants.ACCESS_EXTERNAL_DTD, "");
-            factory.setAttribute(XMLConstants.ACCESS_EXTERNAL_STYLESHEET, "");
             return factory;
         } catch (TransformerConfigurationException | IllegalArgumentException e) {
             throw new XMLException("Exception while setting security feature for TransformerFactory", e);
