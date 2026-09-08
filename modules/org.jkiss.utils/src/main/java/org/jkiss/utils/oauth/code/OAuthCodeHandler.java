@@ -21,6 +21,7 @@ import org.jkiss.code.NotNull;
 import org.jkiss.code.Nullable;
 import org.jkiss.utils.CommonUtils;
 import org.jkiss.utils.HttpConstants;
+import org.jkiss.utils.HttpUtils;
 import org.jkiss.utils.IOUtils;
 import org.jkiss.utils.oauth.IOAuthHandler;
 import org.jkiss.utils.oauth.OAuthConstants;
@@ -196,8 +197,7 @@ public class OAuthCodeHandler implements IOAuthHandler {
 
     @NotNull
     protected IOAuthCodeResponseHandler createCodeResponseHandler() {
-        // Keep state validation opt-in for subclasses that build their own authorization URL.
-        return new OAuthCodeResponseHandler(callbackPort, callbackEndpoint);
+        return new OAuthCodeResponseHandler(callbackPort, callbackEndpoint, state);
     }
 
     /**
@@ -228,7 +228,13 @@ public class OAuthCodeHandler implements IOAuthHandler {
      */
     protected void startSSO(@NotNull IOAuthCodeResponseHandler handler) throws IOException {
         handler.initServer();
-        createBrowser(buildAuthUrl());
+        String authorizationUrl = buildAuthUrl();
+        URI uri = URI.create(authorizationUrl);
+        if (!HttpUtils.parseQuery(uri.getRawQuery()).containsKey(OAuthConstants.PARAM_STATE)) {
+            authorizationUrl += (uri.getRawQuery() == null ? "?" : "&")
+                + OAuthRequestURLBuilder.buildURLParameters(Map.of(OAuthConstants.PARAM_STATE, state));
+        }
+        createBrowser(authorizationUrl);
     }
 
     /**

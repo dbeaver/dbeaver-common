@@ -41,6 +41,7 @@ import java.util.Map;
 public class OAuthUtils {
 
     public static final int TOKEN_VERIFIER_BYTE_LENGTH = 64;
+    private static final SecureRandom SECURE_RANDOM = new SecureRandom();
 
     @NotNull
     public static String generateCodeVerifier() {
@@ -53,7 +54,7 @@ public class OAuthUtils {
             throw new IllegalArgumentException("Byte length must be positive");
         }
         byte[] bytes = new byte[byteLength];
-        new SecureRandom().nextBytes(bytes);
+        SECURE_RANDOM.nextBytes(bytes);
         return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
     }
 
