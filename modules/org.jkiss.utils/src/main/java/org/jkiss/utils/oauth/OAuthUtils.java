@@ -29,11 +29,43 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
 import java.time.Duration;
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
 
 public class OAuthUtils {
+
+    public static final int TOKEN_VERIFIER_BYTE_LENGTH = 64;
+
+    @NotNull
+    public static String generateCodeVerifier() {
+        return generateRandomUrlSafeValue(TOKEN_VERIFIER_BYTE_LENGTH);
+    }
+
+    @NotNull
+    public static String generateRandomUrlSafeValue(int byteLength) {
+        if (byteLength <= 0) {
+            throw new IllegalArgumentException("Byte length must be positive");
+        }
+        byte[] bytes = new byte[byteLength];
+        new SecureRandom().nextBytes(bytes);
+        return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
+    }
+
+    @NotNull
+    public static String generateCodeChallenge(@NotNull String verifier) throws IOException {
+        try {
+            byte[] digest = MessageDigest.getInstance("SHA-256").digest(verifier.getBytes(StandardCharsets.US_ASCII));
+            return Base64.getUrlEncoder().withoutPadding().encodeToString(digest);
+        } catch (NoSuchAlgorithmException e) {
+            throw new IOException("Missing SHA-256 algorithm", e);
+        }
+    }
 
     public static OAuthTokens refreshAccessToken(
         @NotNull String tokenEndpoint,
@@ -44,14 +76,14 @@ public class OAuthUtils {
     ) throws IOException {
 
         Map<String, String> tokenParams = new HashMap<>();
-        tokenParams.put("grant_type", "refresh_token");
-        tokenParams.put("client_id", clientId);
-        tokenParams.put("refresh_token", refreshToken);
-        tokenParams.put("scope", scope);
+        tokenParams.put(OAuthConstants.PARAM_GRANT_TYPE, OAuthConstants.GRANT_TYPE_REFRESH_TOKEN);
+        tokenParams.put(OAuthConstants.AUTH_PROP_CLIENT_ID, clientId);
+        tokenParams.put(OAuthConstants.RESPONSE_PARAM_REFRESH_TOKEN, refreshToken);
+        tokenParams.put(OAuthConstants.PARAM_SCOPE, scope);
 
         String tokenBody = OAuthRequestURLBuilder.buildURLParameters(tokenParams);
         HttpResponse<String> response = executePostRequest(tokenEndpoint, tokenBody, timeoutSec);
-        if (response.statusCode() == 200) {
+        if (response.statusCode() == HttpConstants.CODE_OK) {
             JsonObject jsonObject = JsonParser.parseString(response.body()).getAsJsonObject();
             if (jsonObject.has(OAuthConstants.RESPONSE_PARAM_ACCESS_TOKEN)) {
                 String accessToken = jsonObject.get(OAuthConstants.RESPONSE_PARAM_ACCESS_TOKEN).getAsString();

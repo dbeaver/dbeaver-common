@@ -79,12 +79,19 @@ public class OAuthClientCredentialsHandler implements IOAuthHandler {
             OAuthRequestPostBuilder requestBuilder = new OAuthRequestPostBuilder(authUrl)
                 .withClientId(clientId)
                 .withClientSecret(secretId)
-                .withGrantType(OAuthConstants.GRANT_TYPE_CLIENT_CREDENTIALS);
+                .withGrantType(OAuthConstants.GRANT_TYPE_CLIENT_CREDENTIALS)
+                .withTimeout(timeout);
             // Send POST
             try {
                 HttpResponse<String> response = client.send(requestBuilder.build(), HttpResponse.BodyHandlers.ofString());
+                if (response.statusCode() / 100 != 2) {
+                    throw new IOException(
+                        "Authorization request failed. HTTP status: " + response.statusCode() + ", body: " + response.body()
+                    );
+                }
                 return extractResponse(response);
             } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
                 throw new IOException("Authorization request interrupted", e);
             }
         } finally {

@@ -24,6 +24,7 @@ import org.jkiss.utils.HttpConstants;
 import org.jkiss.utils.IOUtils;
 import org.jkiss.utils.oauth.IOAuthHandler;
 import org.jkiss.utils.oauth.OAuthConstants;
+import org.jkiss.utils.oauth.OAuthUtils;
 
 import java.awt.*;
 import java.io.IOException;
@@ -32,11 +33,7 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
 import java.time.Duration;
-import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
@@ -54,8 +51,7 @@ public class OAuthCodeHandler implements IOAuthHandler {
         .setStrictness(Strictness.LENIENT)
         .setPrettyPrinting()
         .create();
-    public static final int TOKEN_VERIFIER_BYTE_LENGTH = 64;
-    private static final String GRANT_TYPE = "grant_type";
+    public static final int TOKEN_VERIFIER_BYTE_LENGTH = OAuthUtils.TOKEN_VERIFIER_BYTE_LENGTH;
 
     @NotNull
     protected final String clientId;
@@ -70,9 +66,10 @@ public class OAuthCodeHandler implements IOAuthHandler {
     protected final int callbackPort;
     @NotNull
     protected final String callbackEndpoint;
-    protected int timeout;
+    protected int timeout = OAuthConstants.AUTH_DEFAULT_SSO_TIMEOUT;
     @Nullable
     protected String state;
+    private boolean generatedState;
 
     @Nullable
     protected final String scope;
@@ -155,8 +152,13 @@ public class OAuthCodeHandler implements IOAuthHandler {
     @NotNull
     @Override
     public Map<String, String> authorize() throws IOException {
+        if (state == null || generatedState) {
+            state = OAuthUtils.generateRandomUrlSafeValue(32);
+            generatedState = true;
+        }
         try (IOAuthCodeResponseHandler handler = createCodeResponseHandler()) {
-            String verifier = generateCodeChallengeAndVerifier();
+            String verifier = OAuthUtils.generateCodeVerifier();
+            codeChallenge = OAuthUtils.generateCodeChallenge(verifier);
             startSSO(handler);
             String code = handler.requestCode().get(timeout, TimeUnit.SECONDS);
 
@@ -179,7 +181,10 @@ public class OAuthCodeHandler implements IOAuthHandler {
             } finally {
                 IOUtils.tryClose(client);
             }
-        } catch (InterruptedException | ExecutionException | TimeoutException e) {
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new IOException(e);
+        } catch (ExecutionException | TimeoutException e) {
             throw new IOException(e);
         }
     }
@@ -191,6 +196,7 @@ public class OAuthCodeHandler implements IOAuthHandler {
 
     @NotNull
     protected IOAuthCodeResponseHandler createCodeResponseHandler() {
+        // Keep state validation opt-in for subclasses that build their own authorization URL.
         return new OAuthCodeResponseHandler(callbackPort, callbackEndpoint);
     }
 
@@ -240,38 +246,6 @@ public class OAuthCodeHandler implements IOAuthHandler {
     }
 
     /**
-     * Generates a code verifier and corresponding code challenge using SHA-256.
-     *
-     * @return the code verifier
-     * @throws IOException if SHA-256 algorithm is not available
-     */
-    @NotNull
-    private String generateCodeChallengeAndVerifier() throws IOException {
-        String codeVerifier = generateVerifier();
-        try {
-            MessageDigest digest = MessageDigest.getInstance("SHA-256");
-            byte[] shaEncode = digest.digest(codeVerifier.getBytes());
-            codeChallenge = Base64.getUrlEncoder().withoutPadding().encodeToString(shaEncode);
-        } catch (NoSuchAlgorithmException e) {
-            throw new IOException("Missing SHA-256 algorithm");
-        }
-        return codeVerifier;
-    }
-
-    /**
-     * Generates a random code verifier as a URL-safe Base64 string.
-     *
-     * @return a new code verifier
-     */
-    @NotNull
-    private static String generateVerifier() {
-        SecureRandom secureRandom = new SecureRandom();
-        byte[] secureValue = new byte[TOKEN_VERIFIER_BYTE_LENGTH];
-        secureRandom.nextBytes(secureValue);
-        return Base64.getUrlEncoder().withoutPadding().encodeToString(secureValue);
-    }
-
-    /**
      * Builds the form parameters for the token request including verifier and redirect URI.
      *
      * @param code     the authorization code received from the server
@@ -284,15 +258,15 @@ public class OAuthCodeHandler implements IOAuthHandler {
         @NotNull String verifier
     ) {
         Map<String, String> parameters = new HashMap<>();
-        parameters.put(GRANT_TYPE, OAuthConstants.GRANT_TYPE_AUTH_CODE);
-        parameters.put("code", code);
+        parameters.put(OAuthConstants.PARAM_GRANT_TYPE, OAuthConstants.GRANT_TYPE_AUTH_CODE);
+        parameters.put(OAuthConstants.PARAM_CODE, code);
         parameters.put(OAuthConstants.AUTH_PROP_CLIENT_ID, clientId);
         if (CommonUtils.isNotEmpty(secretId)) {
             parameters.put(OAuthConstants.AUTH_PROP_CLIENT_SECRET, secretId);
         }
-        parameters.put("code_verifier", verifier);
+        parameters.put(OAuthConstants.PARAM_CODE_VERIFIER, verifier);
         parameters.put(
-            "redirect_uri",
+            OAuthConstants.PARAM_REDIRECT_URI,
             getRedirectUri()
         );
         return OAuthRequestURLBuilder.buildURLParameters(parameters);
@@ -313,6 +287,9 @@ public class OAuthCodeHandler implements IOAuthHandler {
         }
         if (CommonUtils.isNotEmpty(scope)) {
             builder.withScope(scope);
+        }
+        if (state != null) {
+            builder.withState(state);
         }
         return builder.build();
     }

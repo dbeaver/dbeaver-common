@@ -37,6 +37,7 @@ public class HttpConstants {
     public static final String CONTENT_TYPE_JSON = "application/json";
     public static final String CONTENT_TYPE_APP_FORM = "application/x-www-form-urlencoded";
     public static final String CONTENT_TYPE_OCTET_STREAM = "application/octet-stream";
+    public static final String CONTENT_TYPE_TEXT_HTML = "text/html";
     public static final String CONTENT_TYPE_TEXT_PLAIN = "text/plain";
     public static final String CONTENT_TYPE_TEXT_XML = "text/xml";
     public static final String CONTENT_TYPE_CSV = "text/csv";
@@ -55,4 +56,5 @@ public class HttpConstants {
     public static final int CODE_SERVICE_UNAVAILABLE = 503;
 
     public static final String BEARER_PREFIX = "Bearer ";
+    public static final String BASIC_PREFIX = "Basic ";
 }
