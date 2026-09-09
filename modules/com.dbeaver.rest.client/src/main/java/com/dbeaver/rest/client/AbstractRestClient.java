@@ -524,7 +524,8 @@ public abstract class AbstractRestClient {
                 handler.handle(e);
             }
 
-            String message = e instanceof DBException && e.getMessage() != null ? e.getMessage() : "Error connecting to " + uri;
+            String message = e instanceof DBException && e.getMessage() != null ?
+                e.getMessage() : "Error connecting to " + getLoggableUri(uri);
             handleRequestException(message, e);
 
             throw new DBException(message, e);
@@ -559,7 +560,7 @@ public abstract class AbstractRestClient {
             String message;
 
             if (code == 404) {
-                message = "Endpoint '" + uri + "' not recognized by remote server";
+                message = "Endpoint '" + getLoggableUri(uri) + "' not recognized by remote server";
             } else {
                 String body = resp.bodyString();
                 message = CommonUtils.isEmpty(body)
@@ -588,8 +589,29 @@ public abstract class AbstractRestClient {
 
     @NotNull
     protected DBException mapErrorResponse(int code, @NotNull String message, @NotNull URI uri) {
-        logError("Failed to execute request " + uri + " - " + message);
+        logError("Failed to execute request " + getLoggableUri(uri) + " - " + message);
         return new DBException(message);
+    }
+
+    /**
+     * Returns a URI suitable for logs and user-facing error messages.
+     * Query parameters and fragments may contain sensitive data.
+     */
+    @NotNull
+    protected static String getLoggableUri(@NotNull URI uri) {
+        String value = uri.toString();
+        int queryIndex = value.indexOf('?');
+        int fragmentIndex = value.indexOf('#');
+
+        int endIndex;
+        if (queryIndex < 0) {
+            endIndex = fragmentIndex;
+        } else if (fragmentIndex < 0) {
+            endIndex = queryIndex;
+        } else {
+            endIndex = Math.min(queryIndex, fragmentIndex);
+        }
+        return endIndex < 0 ? value : value.substring(0, endIndex);
     }
 
     protected void logDebug(@NotNull String message) {

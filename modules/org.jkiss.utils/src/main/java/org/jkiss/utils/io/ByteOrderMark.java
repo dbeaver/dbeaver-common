@@ -19,44 +19,45 @@ package org.jkiss.utils.io;
 import org.jkiss.code.NotNull;
 
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 
 public enum ByteOrderMark implements Comparable<ByteOrderMark> {
     /**
      * UTF-8 BOM
      */
-    UTF_8("UTF-8", new int[] {0xEF, 0xBB, 0xBF}),
+    UTF_8(StandardCharsets.UTF_8, new int[] {0xEF, 0xBB, 0xBF}),
 
     /**
      * UTF-16BE BOM (Big-Endian)
      */
-    UTF_16BE("UTF-16BE", new int[] {0xFE, 0xFF}),
+    UTF_16BE(StandardCharsets.UTF_16BE, new int[] {0xFE, 0xFF}),
 
     /**
      * UTF-16LE BOM (Little-Endian)
      */
-    UTF_16LE("UTF-16LE", new int[] {0xFF, 0xFE}),
+    UTF_16LE(StandardCharsets.UTF_16LE, new int[] {0xFF, 0xFE}),
 
     /**
      * UTF-32BE BOM (Big-Endian)
      */
-    UTF_32BE("UTF-32BE", new int[] {0x00, 0x00, 0xFE, 0xFF}),
+    UTF_32BE(Charset.forName("UTF-32BE"), new int[] {0x00, 0x00, 0xFE, 0xFF}),
 
     /**
      * UTF-32LE BOM (Little-Endian)
      */
-    UTF_32LE("UTF-32LE", new int[] {0xFF, 0xFE, 0x00, 0x00});
+    UTF_32LE(Charset.forName("UTF-32LE"), new int[] {0xFF, 0xFE, 0x00, 0x00});
 
-    private final String charsetName;
+    private final Charset charset;
     private final int[] bytes;
 
-    ByteOrderMark(@NotNull String charsetName, @NotNull int[] bytes) {
-        this.charsetName = charsetName;
+    ByteOrderMark(@NotNull Charset charset, @NotNull int[] bytes) {
+        this.charset = charset;
         this.bytes = bytes;
     }
 
     @NotNull
-    public String getCharsetName() {
-        return charsetName;
+    public Charset getCharset() {
+        return charset;
     }
 
     @NotNull
@@ -77,17 +78,17 @@ public enum ByteOrderMark implements Comparable<ByteOrderMark> {
     }
 
     @NotNull
-    public static ByteOrderMark fromCharset(@NotNull Charset charset) {
-        return fromCharset(charset.name());
+    public static ByteOrderMark fromCharset(@NotNull String charsetName) {
+        return fromCharset(Charset.forName(charsetName));
     }
 
     @NotNull
-    public static ByteOrderMark fromCharset(@NotNull String charsetName) {
+    public static ByteOrderMark fromCharset(@NotNull Charset charset) {
         for (ByteOrderMark bom : values()) {
-            if (bom.charsetName.equalsIgnoreCase(charsetName)) {
+            if (bom.charset.equals(charset)) {
                 return bom;
             }
         }
-        throw new IllegalArgumentException("Can't find BOM for charset " + charsetName);
+        throw new IllegalArgumentException("Can't find BOM for charset " + charset.name());
     }
 }

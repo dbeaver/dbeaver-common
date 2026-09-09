@@ -18,35 +18,40 @@ package org.jkiss.utils.oauth.code;
 
 import com.sun.net.httpserver.HttpServer;
 import org.jkiss.code.NotNull;
+import org.jkiss.code.Nullable;
 import org.jkiss.utils.CommonUtils;
+import org.jkiss.utils.HttpConstants;
+import org.jkiss.utils.HttpUtils;
+import org.jkiss.utils.oauth.OAuthConstants;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.concurrent.*;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicReference;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * Handles the temporary HTTP server that listens for OAuth callback requests.
  * Extracts the authorization code or error from the query string and returns it to the caller.
  */
 public class OAuthCodeResponseHandler implements IOAuthCodeResponseHandler {
-
-    private static final String PARAM_CODE = "code";
-    private static final String PARAM_ERROR = "error";
-    private static HttpServer httpServer;
-    private final ExecutorService executor = Executors.newSingleThreadExecutor();
     private static final String SUCCESSFUL_ANSWER_FOR_AUTH = "Auth has been completed";
     private static final String FAILED_ANSWER_FOR_AUTH = "Errors encountered during authorization";
 
     private final int port;
     @NotNull
     private final String callbackEndpoint;
+    @Nullable
+    private final String expectedState;
+    @Nullable
+    private final String successHtml;
+    @NotNull
+    private final CompletableFuture<String> authorizationCode = new CompletableFuture<>();
+    @NotNull
+    private final ThreadPoolExecutor serverExecutor;
 
-    private volatile boolean notShutDown;
+    @Nullable
+    private HttpServer httpServer;
 
     /**
      * Creates a new instance of the response handler.
@@ -55,107 +60,126 @@ public class OAuthCodeResponseHandler implements IOAuthCodeResponseHandler {
      * @param callbackEndpoint the expected endpoint path (e.g. "/callback")
      */
     public OAuthCodeResponseHandler(int port, @NotNull String callbackEndpoint) {
+        this(port, callbackEndpoint, null);
+    }
+
+    /**
+     * Creates a response handler that validates the state returned by the authorization server.
+     */
+    public OAuthCodeResponseHandler(int port, @NotNull String callbackEndpoint, @Nullable String expectedState) {
+        this(port, callbackEndpoint, expectedState, null);
+    }
+
+    /**
+     * Creates a response handler that returns the supplied HTML after successful authorization.
+     */
+    public OAuthCodeResponseHandler(
+        int port,
+        @NotNull String callbackEndpoint,
+        @Nullable String expectedState,
+        @Nullable String successHtml
+    ) {
         this.port = port;
         this.callbackEndpoint = callbackEndpoint;
-    }
-
-    /**
-     * Initializes the HTTP server on a free port.
-     * The server is configured with a thread pool and started immediately.
-     *
-     * @throws IOException if the server cannot be created or bound to the selected port.
-     */
-    @Override
-    public void initServer() throws IOException {
-        try {
-            httpServer = HttpServer.create(new InetSocketAddress(port), 1);
-        } catch (IOException e) {
-            throw new IOException("Can't create callback server", e);
-        }
-        httpServer.setExecutor(new ThreadPoolExecutor(1, 10, 60, TimeUnit.SECONDS, new LinkedBlockingQueue<>()));
-        httpServer.start();
-    }
-
-    /**
-     * Submits a request to wait for an OAuth authorization code via HTTP callback.
-     * The method creates a temporary HTTP context that listens for a request containing
-     * either an authorization code or an error. The code is extracted from the query string.
-     *
-     * @return a {@link Future} containing the received authorization code, or throws an exception if an error occurred.
-     */
-    @Override
-    public Future<String> requestCode() {
-        notShutDown = true;
-        return executor.submit(() -> {
-            AtomicReference<String> result = new AtomicReference<>();
-            AtomicBoolean hasErrors = new AtomicBoolean(false);
-            httpServer.createContext(
-                callbackEndpoint, exchange -> {
-                    String query = exchange.getRequestURI().getQuery();
-                    String answer;
-                    Map<String, String> params = getResponseParams(query);
-                    String code = params.get(PARAM_CODE);
-                    if (CommonUtils.isNotEmpty(code)) {
-                        result.set(code);
-                        answer = SUCCESSFUL_ANSWER_FOR_AUTH;
-                    } else {
-                        hasErrors.set(true);
-                        String error = params.get(PARAM_ERROR);
-                        if (CommonUtils.isNotEmpty(error)) {
-                            result.set(error);
-                        }
-                        answer = FAILED_ANSWER_FOR_AUTH;
-                    }
-
-                    exchange.sendResponseHeaders(200, answer.getBytes().length);
-                    exchange.getResponseBody().write(answer.getBytes());
-                    exchange.close();
-                }
-            );
-            while (result.get() == null && notShutDown) {
-                Thread.onSpinWait();
-            }
-            httpServer.removeContext(callbackEndpoint);
-            if (hasErrors.get()) {
-                throw new IOException("Error receiving code " + result.get());
-            }
-            return result.get();
-        });
-    }
-
-    /**
-     * Adds a temporary HTTP context at the callback endpoint to respond with a 200 OK
-     * and immediately removes itself. This is typically used as a stub or placeholder context.
-     */
-    @Override
-    public void addStabContext() {
-        httpServer.createContext(
-            callbackEndpoint, exchange -> {
-                exchange.sendResponseHeaders(200, 0);
-                httpServer.removeContext(callbackEndpoint);
-                exchange.close();
-            }
+        this.expectedState = expectedState;
+        this.successHtml = successHtml;
+        this.serverExecutor = new ThreadPoolExecutor(
+            1,
+            10,
+            60,
+            TimeUnit.SECONDS,
+            new LinkedBlockingQueue<>()
         );
     }
 
     /**
-     * Stops the HTTP server and releases resources.
+     * Initializes the callback server on the loopback interface.
      *
-     * @throws IOException if the server fails to stop
+     * @throws IOException if the server cannot be created or bound to the selected port
      */
     @Override
-    public void close() throws IOException {
-        if (httpServer != null) {
-            httpServer.stop(0);
+    public void initServer() throws IOException {
+        try {
+            httpServer = HttpServer.create(new InetSocketAddress("localhost", port), 1);
+        } catch (IOException e) {
+            throw new IOException("Can't create callback server", e);
         }
-        executor.shutdown();
-        notShutDown = false;
+        httpServer.setExecutor(serverExecutor);
+        httpServer.createContext(callbackEndpoint, exchange -> {
+            Map<String, String> params = HttpUtils.parseQuery(exchange.getRequestURI().getRawQuery());
+            String code = params.get(OAuthConstants.PARAM_CODE);
+            String error = params.get(OAuthConstants.PARAM_ERROR);
+            String answer;
+            int statusCode;
+            String receivedCode = null;
+            IOException failure = null;
+            if (expectedState != null && !expectedState.equals(params.get(OAuthConstants.PARAM_STATE))) {
+                answer = FAILED_ANSWER_FOR_AUTH;
+                statusCode = HttpConstants.CODE_BAD_REQUEST;
+            } else if (CommonUtils.isNotEmpty(error)) {
+                httpServer.removeContext(callbackEndpoint);
+                String description = params.get(OAuthConstants.PARAM_ERROR_DESCRIPTION);
+                failure = new IOException(
+                    "Error receiving code " + (CommonUtils.isNotEmpty(description) ? description : error)
+                );
+                answer = FAILED_ANSWER_FOR_AUTH;
+                statusCode = HttpConstants.CODE_OK;
+            } else if (CommonUtils.isNotEmpty(code)) {
+                httpServer.removeContext(callbackEndpoint);
+                receivedCode = code;
+                answer = successHtml == null ? SUCCESSFUL_ANSWER_FOR_AUTH : successHtml;
+                statusCode = HttpConstants.CODE_OK;
+            } else {
+                httpServer.removeContext(callbackEndpoint);
+                failure = new IOException("OAuth callback does not contain authorization code");
+                answer = FAILED_ANSWER_FOR_AUTH;
+                statusCode = HttpConstants.CODE_BAD_REQUEST;
+            }
+
+            byte[] response = answer.getBytes(StandardCharsets.UTF_8);
+            exchange.getResponseHeaders().set(
+                HttpConstants.HEADER_CONTENT_TYPE,
+                successHtml != null && receivedCode != null
+                    ? HttpConstants.CONTENT_TYPE_TEXT_HTML + "; charset=UTF-8"
+                    : HttpConstants.CONTENT_TYPE_TEXT_PLAIN + "; charset=UTF-8"
+            );
+            exchange.sendResponseHeaders(statusCode, response.length);
+            try (var body = exchange.getResponseBody()) {
+                body.write(response);
+            }
+            if (receivedCode != null) {
+                authorizationCode.complete(receivedCode);
+            } else if (failure != null) {
+                authorizationCode.completeExceptionally(failure);
+            }
+        });
+        httpServer.start();
     }
 
     @NotNull
-    public static Map<String, String> getResponseParams(@NotNull String query) {
-        return Stream.of(query.split("&"))
-            .map(kv -> kv.split("=", 2))
-            .collect(Collectors.toMap(kv -> kv[0], kv -> kv[kv.length - 1]));
+    @Override
+    public Future<String> requestCode() {
+        return authorizationCode;
+    }
+
+    @Override
+    public void addStabContext() {
+        if (httpServer == null) {
+            return;
+        }
+        httpServer.createContext(callbackEndpoint, exchange -> {
+            exchange.sendResponseHeaders(HttpConstants.CODE_OK, 0);
+            httpServer.removeContext(callbackEndpoint);
+            exchange.close();
+        });
+    }
+
+    @Override
+    public void close() {
+        authorizationCode.cancel(false);
+        if (httpServer != null) {
+            httpServer.stop(0);
+        }
+        serverExecutor.shutdownNow();
     }
 }

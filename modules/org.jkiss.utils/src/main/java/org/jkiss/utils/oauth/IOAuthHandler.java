@@ -16,10 +16,13 @@
  */
 package org.jkiss.utils.oauth;
 
+import org.jkiss.code.NotNull;
+
 import java.io.IOException;
 import java.util.Map;
 
 
 public interface IOAuthHandler {
-    public Map<String, String> authorize() throws IOException;
+    @NotNull
+    Map<String, String> authorize() throws IOException;
 }

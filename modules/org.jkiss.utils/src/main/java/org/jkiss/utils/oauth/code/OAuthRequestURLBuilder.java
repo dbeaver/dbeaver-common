@@ -203,7 +203,6 @@ public class OAuthRequestURLBuilder {
         }
 
         if (includeState) {
-            // TODO: we must validate state on callback
             params.putIfAbsent("state", state == null ? UUID.randomUUID().toString() : state);
         }
 
@@ -215,7 +214,7 @@ public class OAuthRequestURLBuilder {
             params.put("scope", "openid email profile");
         }
 
-        return baseURL + "?" + buildURLParameters(params);
+        return baseURL + (baseURL.contains("?") ? "&" : "?") + buildURLParameters(params);
     }
 
     public static String buildURLParameters(Map<String, String> params) {

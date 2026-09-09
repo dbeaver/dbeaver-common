@@ -18,17 +18,20 @@ package org.jkiss.utils.oauth.client;
 
 import org.jkiss.utils.CommonUtils;
 import org.jkiss.utils.HttpConstants;
+import org.jkiss.utils.oauth.OAuthConstants;
 
 import java.net.URI;
 import java.net.URLEncoder;
 import java.net.http.HttpRequest;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 
 public class OAuthRequestPostBuilder {
     private URI tokenUri;
     private String clientId;
     private String grantType;
     private String clientSecret;
+    private int timeout;
 
     public OAuthRequestPostBuilder(String authUrl) {
         if (CommonUtils.isNotEmpty(authUrl)) {
@@ -55,13 +58,23 @@ public class OAuthRequestPostBuilder {
         return this;
     }
 
+    public OAuthRequestPostBuilder withTimeout(int timeout) {
+        this.timeout = timeout;
+        return this;
+    }
+
     public HttpRequest build() {
         HttpRequest.Builder builder = tokenUri == null ? HttpRequest.newBuilder() : HttpRequest.newBuilder(tokenUri);
-        return builder.POST(HttpRequest.BodyPublishers.ofString(
-                "&grant_type=" + URLEncoder.encode(grantType, StandardCharsets.UTF_8)
-        )).header(HttpConstants.HEADER_AUTHORIZATION, "Basic " +
-                java.util.Base64.getEncoder().encodeToString((clientId + ":" + clientSecret).getBytes(StandardCharsets.UTF_8)))
-                .header(HttpConstants.HEADER_CONTENT_TYPE, HttpConstants.CONTENT_TYPE_APP_FORM)
-                .build();
+        builder.POST(HttpRequest.BodyPublishers.ofString(
+                OAuthConstants.PARAM_GRANT_TYPE + "=" + URLEncoder.encode(grantType, StandardCharsets.UTF_8)
+        )).header(HttpConstants.HEADER_AUTHORIZATION, HttpConstants.BASIC_PREFIX +
+                java.util.Base64.getEncoder().encodeToString(
+                    (clientId + ":" + CommonUtils.notEmpty(clientSecret)).getBytes(StandardCharsets.UTF_8)
+                ))
+            .header(HttpConstants.HEADER_CONTENT_TYPE, HttpConstants.CONTENT_TYPE_APP_FORM);
+        if (timeout > 0) {
+            builder.timeout(Duration.ofSeconds(timeout));
+        }
+        return builder.build();
     }
 }

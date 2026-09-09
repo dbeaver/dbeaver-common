@@ -34,7 +34,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
-import java.util.zip.ZipOutputStream;
 
 /**
  * Some IO helper functions
@@ -46,7 +45,7 @@ public final class IOUtils {
 
     private static final boolean USE_NIO_STREAMS = false;
 
-    public static void close(Closeable closeable) {
+    public static void close(@NotNull Closeable closeable) {
         try {
             closeable.close();
         } catch (IOException e) {
@@ -58,7 +57,7 @@ public final class IOUtils {
         }
     }
 
-    public static void close(AutoCloseable closeable) {
+    public static void close(@NotNull AutoCloseable closeable) {
         try {
             closeable.close();
         } catch (Exception e) {
@@ -70,17 +69,29 @@ public final class IOUtils {
         }
     }
 
-    public static void closeQuietly(AutoCloseable... closeable) {
+    /**
+     * Closes object if it  is AutoClosable or Closable.
+     * It was added to support runtime before Java 21 then HttpClient become closable.
+     */
+    public static void tryClose(@NotNull Object object) {
+        if (object instanceof Closeable c) {
+            close(c);
+        } else if (object instanceof AutoCloseable ac) {
+            close(ac);
+        }
+    }
+
+    public static void closeQuietly(@NotNull AutoCloseable... closeable) {
         for (AutoCloseable c : closeable) {
             close(c);
         }
     }
 
-    public static void fastCopy(final InputStream src, final OutputStream dest) throws IOException {
+    public static void fastCopy(@NotNull InputStream src, @NotNull OutputStream dest) throws IOException {
         fastCopy(src, dest, DEFAULT_BUFFER_SIZE);
     }
 
-    public static void fastCopy(final InputStream src, final OutputStream dest, int bufferSize) throws IOException {
+    public static void fastCopy(@NotNull InputStream src, @NotNull OutputStream dest, int bufferSize) throws IOException {
         if (USE_NIO_STREAMS) {
             final ReadableByteChannel inputChannel = Channels.newChannel(src);
             final WritableByteChannel outputChannel = Channels.newChannel(dest);
@@ -90,7 +101,7 @@ public final class IOUtils {
         }
     }
 
-    public static void fastCopy(final ReadableByteChannel src, final WritableByteChannel dest, int bufferSize) throws IOException {
+    public static void fastCopy(@NotNull ReadableByteChannel src, @NotNull WritableByteChannel dest, int bufferSize) throws IOException {
         final ByteBuffer buffer = ByteBuffer.allocateDirect(bufferSize);
 
         while (src.read(buffer) != -1) {
@@ -123,59 +134,16 @@ public final class IOUtils {
      * then closes input and flushed output
      */
     public static void copyStream(
-        java.io.InputStream inputStream,
-        java.io.OutputStream outputStream,
+        @NotNull InputStream inputStream,
+        @NotNull OutputStream outputStream,
         int bufferSize
-    )
-    throws IOException {
-        try {
+    ) throws IOException {
+        try (inputStream) {
             byte[] writeBuffer = new byte[bufferSize];
             for (int br = inputStream.read(writeBuffer); br != -1; br = inputStream.read(writeBuffer)) {
                 outputStream.write(writeBuffer, 0, br);
             }
             outputStream.flush();
-        } finally {
-            // Close input stream
-            inputStream.close();
-        }
-    }
-
-    /**
-     * Read entire input stream portion and writes it data to output stream
-     */
-    public static void copyStreamPortion(
-        java.io.InputStream inputStream,
-        java.io.OutputStream outputStream,
-        int portionSize,
-        int bufferSize
-    )
-    throws IOException {
-        if (bufferSize > portionSize) {
-            bufferSize = portionSize;
-        }
-        byte[] writeBuffer = new byte[bufferSize];
-        int totalRead = 0;
-        while (totalRead < portionSize) {
-            int bytesToRead = bufferSize;
-            if (bytesToRead > portionSize - totalRead) {
-                bytesToRead = portionSize - totalRead;
-            }
-            int bytesRead = inputStream.read(writeBuffer, 0, bytesToRead);
-            outputStream.write(writeBuffer, 0, bytesRead);
-            totalRead += bytesRead;
-        }
-
-        // Close input stream
-        outputStream.flush();
-    }
-
-    public static String toString(File file, String encoding) throws IOException {
-        try (InputStream is = new FileInputStream(file)) {
-            try (Reader reader = new InputStreamReader(is, encoding)) {
-                StringWriter writer = new StringWriter();
-                copyText(reader, writer, DEFAULT_BUFFER_SIZE);
-                return writer.toString();
-            }
         }
     }
 
@@ -184,11 +152,10 @@ public final class IOUtils {
      * then closes reader and flushed output.
      */
     public static void copyText(
-        java.io.Reader reader,
-        java.io.Writer writer,
+        @NotNull Reader reader,
+        @NotNull Writer writer,
         int bufferSize
-    )
-    throws IOException {
+    ) throws IOException {
         char[] writeBuffer = new char[bufferSize];
         for (int br = reader.read(writeBuffer); br != -1; br = reader.read(writeBuffer)) {
             writer.write(writeBuffer, 0, br);
@@ -197,55 +164,18 @@ public final class IOUtils {
     }
 
     public static void copyText(
-        java.io.Reader reader,
-        java.io.Writer writer
-    )
-    throws IOException {
+        @NotNull Reader reader,
+        @NotNull Writer writer
+    ) throws IOException {
         copyText(reader, writer, DEFAULT_BUFFER_SIZE);
     }
 
-    public static byte[] readFileToBuffer(File file) throws IOException {
-        byte[] buffer = new byte[(int) file.length()];
-        try (InputStream is = new FileInputStream(file)) {
-            readStreamToBuffer(is, buffer);
-        }
-        return buffer;
-    }
-
-    public static void writeFileFromBuffer(File file, byte[] buffer) throws IOException {
-        try (OutputStream os = new FileOutputStream(file)) {
-            os.write(buffer);
-        }
-    }
-
-    public static void writeFileFromString(File file, String str) throws IOException {
-        try (Writer os = new FileWriter(file)) {
-            os.write(str);
-        }
-    }
-
-    public static int readStreamToBuffer(
-        java.io.InputStream inputStream,
-        byte[] buffer
-    )
-    throws IOException {
-        int totalRead = 0;
-        while (totalRead != buffer.length) {
-            int br = inputStream.read(buffer, totalRead, buffer.length - totalRead);
-            if (br == -1) {
-                break;
-            }
-            totalRead += br;
-        }
-        return totalRead;
-    }
-
-    public static String readLine(java.io.InputStream input)
-    throws IOException {
+    @Nullable
+    public static String readLine(@NotNull InputStream input) throws IOException {
         StringBuilder linebuf = new StringBuilder();
         for (int b = input.read(); b != '\n'; b = input.read()) {
             if (b == -1) {
-                if (linebuf.length() == 0) {
+                if (linebuf.isEmpty()) {
                     return null;
                 } else {
                     break;
@@ -253,25 +183,6 @@ public final class IOUtils {
             }
             if (b != '\r') {
                 linebuf.append((char) b);
-            }
-        }
-        return linebuf.toString();
-    }
-
-    public static String readFullLine(java.io.InputStream input)
-    throws IOException {
-        StringBuilder linebuf = new StringBuilder();
-        for (int b = input.read(); ; b = input.read()) {
-            if (b == -1) {
-                if (linebuf.length() == 0) {
-                    return null;
-                } else {
-                    break;
-                }
-            }
-            linebuf.append((char) b);
-            if (b == '\n') {
-                break;
             }
         }
         return linebuf.toString();
@@ -295,7 +206,8 @@ public final class IOUtils {
         }
     }
 
-    public static String readToString(Reader is) throws IOException {
+    @NotNull
+    public static String readToString(@NotNull Reader is) throws IOException {
         StringBuilder result = new StringBuilder(4000);
         char[] buffer = new char[4000];
         for (; ; ) {
@@ -308,8 +220,7 @@ public final class IOUtils {
         return result.toString();
     }
 
-    static void copyZipStream(InputStream inputStream, OutputStream outputStream)
-    throws IOException {
+    static void copyZipStream(@NotNull InputStream inputStream, @NotNull OutputStream outputStream) throws IOException {
         byte[] writeBuffer = new byte[IOUtils.DEFAULT_BUFFER_SIZE];
         for (int br = inputStream.read(writeBuffer); br != -1; br = inputStream.read(writeBuffer)) {
             outputStream.write(writeBuffer, 0, br);
@@ -366,44 +277,20 @@ public final class IOUtils {
     }
 
 
-    public static void zipFolder(final File folder, final OutputStream outputStream) throws IOException {
-        try (ZipOutputStream zipOutputStream = new ZipOutputStream(outputStream)) {
-            processFolder(folder, zipOutputStream, folder.getPath().length() + 1);
-        }
-    }
-
-    private static void processFolder(final File folder, final ZipOutputStream zipOutputStream, final int prefixLength) throws IOException {
-        File[] folderFiles = folder.listFiles();
-        if (folderFiles == null) {
-            return;
-        }
-        for (File file : folderFiles) {
-            BasicFileAttributes fAttrs = Files.readAttributes(file.toPath(), BasicFileAttributes.class);
-            if (fAttrs.isRegularFile()) {
-                final ZipEntry zipEntry = new ZipEntry(file.getPath().substring(prefixLength));
-                zipOutputStream.putNextEntry(zipEntry);
-                try (FileInputStream inputStream = new FileInputStream(file)) {
-                    IOUtils.copyStream(inputStream, zipOutputStream);
-                }
-                zipOutputStream.closeEntry();
-            } else if (fAttrs.isDirectory()) {
-                processFolder(file, zipOutputStream, prefixLength);
-            }
-        }
-    }
-
     public static void deleteDirectory(@NotNull Path path) throws IOException {
         Files.walkFileTree(
             path,
             new SimpleFileVisitor<>() {
+                @NotNull
                 @Override
-                public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
+                public FileVisitResult postVisitDirectory(@NotNull Path dir, IOException exc) throws IOException {
                     Files.delete(dir);
                     return FileVisitResult.CONTINUE;
                 }
 
+                @NotNull
                 @Override
-                public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+                public FileVisitResult visitFile(@NotNull Path file, BasicFileAttributes attrs) throws IOException {
                     Files.delete(file);
                     return FileVisitResult.CONTINUE;
                 }

@@ -18,23 +18,14 @@ package org.jkiss.api;
 
 import org.jkiss.code.NotNull;
 
-import java.util.Objects;
-
 /**
  * Represents a complex reference to an object.
  * Consists of primary and secondary elements delimited with semicolon.
  */
-public final class CompositeObjectId {
-    @NotNull
-    private final String primaryId;
-    @NotNull
-    private final String secondaryId;
-
-    public CompositeObjectId(@NotNull String primaryId, @NotNull String secondaryId) {
-        this.primaryId = primaryId;
-        this.secondaryId = secondaryId;
-    }
-
+public record CompositeObjectId(
+    @NotNull String primaryId,
+    @NotNull String secondaryId
+) {
     @NotNull
     public static CompositeObjectId of(@NotNull String shortId) {
         String[] parts = shortId.split(":");
@@ -52,37 +43,10 @@ public final class CompositeObjectId {
         return primaryId + ':' + secondaryId;
     }
 
+    @NotNull
     @Override
     public String toString() {
         return shortId();
-    }
-
-    @NotNull
-    public String primaryId() {
-        return primaryId;
-    }
-
-    @NotNull
-    public String secondaryId() {
-        return secondaryId;
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (obj == this) {
-            return true;
-        }
-        if (obj == null || obj.getClass() != this.getClass()) {
-            return false;
-        }
-        var that = (CompositeObjectId) obj;
-        return Objects.equals(this.primaryId, that.primaryId) &&
-            Objects.equals(this.secondaryId, that.secondaryId);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(primaryId, secondaryId);
     }
 
 }
