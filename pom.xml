@@ -61,7 +61,8 @@
                             <publishingServerId>central</publishingServerId>
                             <autoPublish>false</autoPublish>
                             <waitUntil>validated</waitUntil>
-                            <excludeArtifacts>com.dbeaver.common.modules,com.dbeaver.common.main,com.dbeaver.spring.utils</excludeArtifacts>                        </configuration>
+                            <excludeArtifacts>com.dbeaver.common.modules,com.dbeaver.common.main,com.dbeaver.spring.utils,com.dbeaver.rest.client</excludeArtifacts>
+                        </configuration>
                     </plugin>
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
