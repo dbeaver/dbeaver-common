@@ -28,11 +28,7 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Future;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 
 /**
  * Handles the temporary HTTP server that listens for OAuth callback requests.
@@ -47,6 +43,8 @@ public class OAuthCodeResponseHandler implements IOAuthCodeResponseHandler {
     private final String callbackEndpoint;
     @Nullable
     private final String expectedState;
+    @Nullable
+    private final String successHtml;
     @NotNull
     private final CompletableFuture<String> authorizationCode = new CompletableFuture<>();
     @NotNull
@@ -69,9 +67,22 @@ public class OAuthCodeResponseHandler implements IOAuthCodeResponseHandler {
      * Creates a response handler that validates the state returned by the authorization server.
      */
     public OAuthCodeResponseHandler(int port, @NotNull String callbackEndpoint, @Nullable String expectedState) {
+        this(port, callbackEndpoint, expectedState, null);
+    }
+
+    /**
+     * Creates a response handler that returns the supplied HTML after successful authorization.
+     */
+    public OAuthCodeResponseHandler(
+        int port,
+        @NotNull String callbackEndpoint,
+        @Nullable String expectedState,
+        @Nullable String successHtml
+    ) {
         this.port = port;
         this.callbackEndpoint = callbackEndpoint;
         this.expectedState = expectedState;
+        this.successHtml = successHtml;
         this.serverExecutor = new ThreadPoolExecutor(
             1,
             10,
@@ -116,7 +127,7 @@ public class OAuthCodeResponseHandler implements IOAuthCodeResponseHandler {
             } else if (CommonUtils.isNotEmpty(code)) {
                 httpServer.removeContext(callbackEndpoint);
                 receivedCode = code;
-                answer = SUCCESSFUL_ANSWER_FOR_AUTH;
+                answer = successHtml == null ? SUCCESSFUL_ANSWER_FOR_AUTH : successHtml;
                 statusCode = HttpConstants.CODE_OK;
             } else {
                 httpServer.removeContext(callbackEndpoint);
@@ -128,7 +139,9 @@ public class OAuthCodeResponseHandler implements IOAuthCodeResponseHandler {
             byte[] response = answer.getBytes(StandardCharsets.UTF_8);
             exchange.getResponseHeaders().set(
                 HttpConstants.HEADER_CONTENT_TYPE,
-                HttpConstants.CONTENT_TYPE_TEXT_PLAIN + "; charset=UTF-8"
+                successHtml != null && receivedCode != null
+                    ? HttpConstants.CONTENT_TYPE_TEXT_HTML + "; charset=UTF-8"
+                    : HttpConstants.CONTENT_TYPE_TEXT_PLAIN + "; charset=UTF-8"
             );
             exchange.sendResponseHeaders(statusCode, response.length);
             try (var body = exchange.getResponseBody()) {

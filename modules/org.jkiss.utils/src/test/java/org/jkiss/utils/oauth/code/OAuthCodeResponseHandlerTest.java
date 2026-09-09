@@ -42,6 +42,23 @@ class OAuthCodeResponseHandlerTest {
     }
 
     @Test
+    void returnsCustomSuccessHtml() throws Exception {
+        int port = getFreePort();
+        String successHtml = "<html><body>Authentication complete</body></html>";
+        try (OAuthCodeResponseHandler handler =
+                 new OAuthCodeResponseHandler(port, "/callback", "expected", successHtml)) {
+            handler.initServer();
+
+            HttpResponse<String> response = sendCallback(port, "?code=auth-code&state=expected");
+
+            assertEquals(200, response.statusCode());
+            assertEquals("text/html; charset=UTF-8", response.headers().firstValue("Content-Type").orElseThrow());
+            assertEquals(successHtml, response.body());
+            assertEquals("auth-code", handler.requestCode().get(1, TimeUnit.SECONDS));
+        }
+    }
+
+    @Test
     void ignoresUnexpectedState() throws Exception {
         int port = getFreePort();
         try (OAuthCodeResponseHandler handler = new OAuthCodeResponseHandler(port, "/callback", "expected")) {
