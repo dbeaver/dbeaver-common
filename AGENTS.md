@@ -32,8 +32,7 @@ source tree or add OSGi packaging to the Spring module.
 ## Dependencies, API, and utilities
 
 - Shared dependency and plugin versions belong in `root/pom.xml`; use managed versions in modules.
-- Before adding a dependency, prefer the JDK and existing utilities; review license, security, Java 17, OSGi, and
-  downstream impact.
+- Before adding a dependency, prefer the JDK and existing utilities; review license, security, OSGi, and downstream impact.
 - Assume exported packages and public/protected members have external consumers.
 - Preserve source/binary compatibility, null behavior, exceptions, ordering, equality, mutability, encoding, and thread
   safety. New overloads must not make existing calls ambiguous.
@@ -42,3 +41,8 @@ source tree or add OSGi packaging to the Spring module.
 - Add generic, tested helpers to the narrowest appropriate class.
 - Use `@NotNull`, `@Nullable`, and `@NotNullWhen` from `org.jkiss.code` where applicable.
 - Preserve exception causes. Low-level modules use `java.util.logging`, not SLF4J, Log4j, product logging, or `System.out/err`.
+
+## Java versions
+
+- For dbeaver-common classes and JDBC drivers implementations use Java 17
+- For everything else use Java 21
