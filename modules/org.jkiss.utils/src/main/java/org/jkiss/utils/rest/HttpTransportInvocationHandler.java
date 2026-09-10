@@ -35,7 +35,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.net.ssl.SSLContext;
@@ -43,6 +45,9 @@ import javax.net.ssl.SSLContext;
 public abstract class HttpTransportInvocationHandler extends RpcInvocationHandler {
 
     private static final Pattern ST_LINE_PATTERN = Pattern.compile("\\s*at\\s+([\\w/.$]+)\\((.+)\\)");
+
+    private static final int HTTP_EXECUTOR_THREADS = 2;
+    private static final long HTTP_EXECUTOR_KEEP_ALIVE_SECONDS = 60;
 
     private final ExecutorService httpExecutor;
     private final HttpClient client;
@@ -57,7 +62,7 @@ public abstract class HttpTransportInvocationHandler extends RpcInvocationHandle
         @NotNull Map<String, String> headers
     ) {
         super(clientClass, uri, gson, userAgent);
-        this.httpExecutor = Executors.newSingleThreadExecutor();
+        this.httpExecutor = createHttpExecutor();
         var clientBuilder = HttpClient.newBuilder()
             .executor(httpExecutor)
             .cookieHandler(new CookieManager());
@@ -68,10 +73,23 @@ public abstract class HttpTransportInvocationHandler extends RpcInvocationHandle
         this.headers = headers;
     }
 
+    @NotNull
+    private static ExecutorService createHttpExecutor() {
+        ThreadPoolExecutor executor = new ThreadPoolExecutor(
+            HTTP_EXECUTOR_THREADS,
+            HTTP_EXECUTOR_THREADS,
+            HTTP_EXECUTOR_KEEP_ALIVE_SECONDS, TimeUnit.SECONDS,
+            new LinkedBlockingQueue<>()
+        );
+        executor.allowCoreThreadTimeOut(true);
+        return executor;
+    }
+
+    @Nullable
     protected String invokeRemoteMethodOverHttp(
         @NotNull URI methodURI,
         @NotNull String requestString,
-        RequestMapping methodMapping
+        @Nullable RequestMapping methodMapping
     ) throws IOException, InterruptedException {
         HttpResponse.BodyHandler<String> readerBodyHandler =
             info -> HttpResponse.BodySubscribers.ofString(StandardCharsets.UTF_8);
