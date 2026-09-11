@@ -33,6 +33,10 @@
            default="checkstyle-suppressions.xml" />
     <property name="optional" value="true"/>
   </module>
+  <module name="SuppressionSingleFilter">
+    <property name="files" value="[/\\]src[/\\]test[/\\]"/>
+    <property name="checks" value="AvoidStaticImport"/>
+  </module>
 
   <!-- Checks for whitespace                               -->
   <!-- See http://checkstyle.org/config_whitespace.html -->
