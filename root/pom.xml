@@ -17,7 +17,8 @@
     </organization>
 
     <properties>
-        <dbeaver-version>26.2.1</dbeaver-version>
+        <dbeaver-version>26.2.2.0</dbeaver-version>
+        <dbeaver-base-version>26.2.2</dbeaver-base-version>
 
         <tycho-version>5.0.4</tycho-version>
         <eclipse-version>2026-09</eclipse-version>
@@ -31,7 +32,7 @@
         <eclipse-repo-url>https://download.eclipse.org/releases</eclipse-repo-url>
         <repo.p2.eclipse.url>${eclipse-repo-url}/${eclipse-version}/</repo.p2.eclipse.url>
 
-        <repo.p2.dbeaver.version>${dbeaver-version}</repo.p2.dbeaver.version>
+        <repo.p2.dbeaver.version>${dbeaver-base-version}</repo.p2.dbeaver.version>
         <repo.p2.dbeaver-ce.url>https://repo.dbeaver.net/p2/ce/${repo.p2.dbeaver.version}</repo.p2.dbeaver-ce.url>
         <repo.p2.dbeaver-pro.url>https://repo.dbeaver.net/p2/pro/${repo.p2.dbeaver.version}</repo.p2.dbeaver-pro.url>
 
