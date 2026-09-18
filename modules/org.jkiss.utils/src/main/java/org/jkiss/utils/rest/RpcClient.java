@@ -26,6 +26,22 @@ public abstract class RpcClient {
         // prevents instantiation
     }
 
+    /**
+     * Releases a client's transport resources without requiring the service interface to extend {@link AutoCloseable}.
+     * Waits for an ongoing invocation to finish. Subsequent remote calls will fail with {@link RpcException}.
+     *
+     * @throws IllegalArgumentException if the object is not a client created by this factory
+     */
+    public static void close(@NotNull Object client) {
+        var handler = Proxy.getInvocationHandler(client);
+        if (!(handler instanceof RpcInvocationHandler rpcHandler)) {
+            throw new IllegalArgumentException("Not an RPC client");
+        }
+        synchronized (rpcHandler) {
+            rpcHandler.closeClient();
+        }
+    }
+
     @NotNull
     protected static <T> T createProxy(
         @NotNull Class<T> cls,
