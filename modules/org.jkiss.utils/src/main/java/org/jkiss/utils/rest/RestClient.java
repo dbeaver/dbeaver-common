@@ -24,6 +24,7 @@ import org.jkiss.utils.CommonUtils;
 
 import java.lang.reflect.Method;
 import java.net.URI;
+import java.util.Arrays;
 import java.util.Map;
 import javax.net.ssl.SSLContext;
 
@@ -121,7 +122,14 @@ public class RestClient extends RpcClient {
                 if (url.charAt(url.length() - 1) != '/') url.append('/');
                 url.append(endpoint);
 
-                String requestString = gson.toJson(values);
+                boolean requestBody = Arrays.stream(method.getParameters())
+                    .anyMatch(parameter -> parameter.isAnnotationPresent(RequestBody.class));
+                if (requestBody && method.getParameterCount() != 1) {
+                    throw new RpcException("@RequestBody requires exactly one method parameter");
+                }
+                String requestString = requestBody
+                    ? gson.toJson(values.values().iterator().next())
+                    : gson.toJson(values);
 
                 return super.invokeRemoteMethodOverHttp(URI.create(url.toString()), requestString, mapping);
             } catch (RuntimeException e) {
