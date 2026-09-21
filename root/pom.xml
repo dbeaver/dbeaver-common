@@ -23,7 +23,7 @@
         <dbeaver.version.patch>0</dbeaver.version.patch>
         <dbeaver-version>${dbeaver.version.year}.${dbeaver.version.major}.${dbeaver.version.minor}.${dbeaver.version.patch}</dbeaver-version>
         <dbeaver.version.annual-release-number>14</dbeaver.version.annual-release-number>
-        <dbeaver-internal-three-part-version>${dbeaver.version.year}.${dbeaver.version.annual-release-number}.${dbeaver.version.patch}</<dbeaver-internal-three-part-version>
+        <dbeaver-internal-three-part-version>${dbeaver.version.year}.${dbeaver.version.annual-release-number}.${dbeaver.version.patch}</dbeaver-internal-three-part-version>
 
         <tycho-version>5.0.4</tycho-version>
         <eclipse-version>2026-09</eclipse-version>
