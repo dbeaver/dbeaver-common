@@ -162,6 +162,14 @@ public class OAuthCodeResponseHandler implements IOAuthCodeResponseHandler {
         return authorizationCode;
     }
 
+    /** Returns the bound port after initialization, including the port allocated when zero was requested. */
+    public int getLocalPort() {
+        if (httpServer == null) {
+            throw new IllegalStateException("Callback server has not been initialized");
+        }
+        return httpServer.getAddress().getPort();
+    }
+
     @Override
     public void addStabContext() {
         if (httpServer == null) {
