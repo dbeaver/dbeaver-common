@@ -25,9 +25,25 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.concurrent.TimeUnit;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 
 class OAuthCodeResponseHandlerTest {
+    @Test
+    void allocatesIndependentLoopbackPorts() throws Exception {
+        try (OAuthCodeResponseHandler first = new OAuthCodeResponseHandler(0, "/callback", "first");
+             OAuthCodeResponseHandler second = new OAuthCodeResponseHandler(0, "/callback", "second")) {
+            first.initServer();
+            second.initServer();
+            assertTrue(first.getLocalPort() > 0);
+            assertTrue(second.getLocalPort() > 0);
+            assertNotEquals(first.getLocalPort(), second.getLocalPort());
+            assertEquals(200, sendCallback(first.getLocalPort(), "?code=first-code&state=first").statusCode());
+            assertEquals(200, sendCallback(second.getLocalPort(), "?code=second-code&state=second").statusCode());
+            assertEquals("first-code", first.requestCode().get(1, TimeUnit.SECONDS));
+            assertEquals("second-code", second.requestCode().get(1, TimeUnit.SECONDS));
+        }
+    }
+
     @Test
     void returnsAuthorizationCode() throws Exception {
         int port = getFreePort();
