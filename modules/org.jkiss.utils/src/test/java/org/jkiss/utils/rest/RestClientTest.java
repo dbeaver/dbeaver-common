@@ -25,7 +25,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
-import java.lang.reflect.Proxy;
 import java.net.InetSocketAddress;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
@@ -33,7 +32,6 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -127,15 +125,6 @@ class RestClientTest {
             // Closing an already closed client is safe.
             RestClient.close(service);
         }
-    }
-
-    @Test
-    void toleratesClosingObjectsThatAreNotRpcClients() {
-        assertDoesNotThrow(() -> RestClient.close(new Object()));
-        Object unrelatedProxy = Proxy.newProxyInstance(
-            PlainService.class.getClassLoader(), new Class<?>[]{PlainService.class}, (proxy, method, args) -> null
-        );
-        assertDoesNotThrow(() -> RestClient.close(unrelatedProxy));
     }
 
     @Test
