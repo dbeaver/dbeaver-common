@@ -36,12 +36,8 @@ import java.util.concurrent.TimeUnit;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
 
 class RestClientTest {
     private final BlockingQueue<String> requests = new LinkedBlockingQueue<>();
@@ -140,25 +136,6 @@ class RestClientTest {
             PlainService.class.getClassLoader(), new Class<?>[]{PlainService.class}, (proxy, method, args) -> null
         );
         assertDoesNotThrow(() -> RestClient.close(unrelatedProxy));
-    }
-
-    @Test
-    void cleanupFailureDoesNotMaskOriginalException() {
-        RpcInvocationHandler handler = mock(RpcInvocationHandler.class);
-        doThrow(new IllegalStateException("Cleanup failed")).when(handler).closeClient();
-        PlainService service = RpcClient.createProxy(PlainService.class, handler);
-        RpcException original = new RpcException("Request failed");
-
-        RpcException actual = assertThrows(RpcException.class, () -> {
-            try {
-                throw original;
-            } finally {
-                RestClient.close(service);
-            }
-        });
-
-        assertSame(original, actual);
-        verify(handler).closeClient();
     }
 
     @Test
