@@ -44,6 +44,11 @@ public class HttpConstants {
 
     public static final int CODE_OK = 200;
     public static final int CODE_ACCEPTED = 202;
+    public static final int CODE_MOVED_PERMANENTLY = 301;
+    public static final int CODE_FOUND = 302;
+    public static final int CODE_SEE_OTHER = 303;
+    public static final int CODE_TEMPORARY_REDIRECT = 307;
+    public static final int CODE_PERMANENT_REDIRECT = 308;
     public static final int CODE_BAD_REQUEST = 400;
     public static final int CODE_UNAUTHORIZED = 401;
     public static final int CODE_FORBIDDEN = 403;
