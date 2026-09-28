@@ -19,6 +19,8 @@ package org.jkiss.utils;
 import org.jkiss.code.NotNull;
 import org.jkiss.code.Nullable;
 
+import java.util.stream.Collectors;
+
 public final class StringUtils {
 
     private static final char[] HEX_DIGITS = "0123456789ABCDEF".toCharArray();
@@ -44,8 +46,16 @@ public final class StringUtils {
         return isQuoted ? value : "'" + value + "'";
     }
 
+    @NotNull
+    public static String wrap(@NotNull String str, int wrapLength) {
+        return str.lines()
+            .map(line -> wrapLine(line, wrapLength))
+            .collect(Collectors.joining("\n"));
+    }
+
     // Originally taken from https://stackoverflow.com/questions/5662094/can-i-wrap-text-to-a-given-width-with-guava
-    public static String wrap(String str, int wrapLength) {
+    @NotNull
+    public static String wrapLine(@NotNull String str, int wrapLength) {
         int offset = 0;
         StringBuilder resultBuilder = new StringBuilder();
 

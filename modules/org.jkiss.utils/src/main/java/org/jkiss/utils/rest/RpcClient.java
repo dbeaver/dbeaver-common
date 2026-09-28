@@ -19,11 +19,35 @@ package org.jkiss.utils.rest;
 import org.jkiss.code.NotNull;
 
 import java.lang.reflect.Proxy;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public abstract class RpcClient {
 
+    private static final Logger log = Logger.getLogger(RpcClient.class.getName());
+
     protected RpcClient() {
         // prevents instantiation
+    }
+
+    /**
+     * Releases a client's transport resources without requiring the service interface to extend {@link AutoCloseable}.
+     * Waits for an ongoing invocation to finish. After successful closure, remote calls will fail with {@link RpcException}.
+     * Invalid clients and runtime failures during cleanup are logged rather than thrown.
+     */
+    public static void close(@NotNull Object client) {
+        try {
+            var handler = Proxy.getInvocationHandler(client);
+            if (handler instanceof RpcInvocationHandler rpcHandler) {
+                synchronized (rpcHandler) {
+                    rpcHandler.closeClient();
+                }
+            } else {
+                log.warning("Cannot close client: not an RPC client");
+            }
+        } catch (RuntimeException e) {
+            log.log(Level.WARNING, "Error closing RPC client", e);
+        }
     }
 
     @NotNull
