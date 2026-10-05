@@ -939,9 +939,13 @@ public class CommonUtils {
         return toString(o1).compareTo(toString(o2));
     }
 
-    public static int compareNumbers(Number value1, Number value2) {
-        double numDiff = value1.doubleValue() - value2.doubleValue();
-        return numDiff < 0 ? -1 : (numDiff > 0 ? 1 : 0);
+    @SuppressWarnings("unchecked")
+    public static int compareNumbers(@NotNull Number value1, @NotNull Number value2) {
+        if (value1.getClass() == value2.getClass() && value1 instanceof Comparable<?> comparable) {
+            // Preserve native precision instead of converting numbers to double
+            return ((Comparable<Number>) comparable).compareTo(value2);
+        }
+        return Double.compare(value1.doubleValue(), value2.doubleValue());
     }
 
     public static String cutExtraLines(String message, int maxLines) {
