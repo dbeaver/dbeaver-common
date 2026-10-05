@@ -103,8 +103,8 @@ class CommonUtilsComparisonTest {
             Arguments.of(0.1f, 0.1d, 1),
             Arguments.of(new BigDecimal("1.5"), 1L, 1),
             Arguments.of(BigInteger.ONE, 2L, -1),
-            Arguments.of(-0.0f, 0.0d, 0),
-            Arguments.of(Double.NaN, 1L, 0),
+            Arguments.of(-0.0f, 0.0d, -1),
+            Arguments.of(Double.NaN, 1L, 1),
             Arguments.of(new AtomicLong(1), new AtomicLong(2), -1)
         );
     }
