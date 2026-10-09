@@ -26,6 +26,7 @@ public class HttpConstants {
     public static final String HEADER_X_REFERRER = "X-Referrer";
     public static final String HEADER_CONTENT_TYPE = "Content-Type";
     public static final String HEADER_CACHE_CONTROL = "Cache-Control";
+    public static final String HEADER_REFERRER_POLICY = "Referrer-Policy";
     public static final String HEADER_HOST = "Host";
     public static final String HEADER_AUTHORIZATION = "Authorization";
     public static final String HEADER_API_KEY = "X-API-Key";
@@ -49,6 +50,7 @@ public class HttpConstants {
     public static final String CONTENT_TYPE_CSV = "text/csv";
 
     public static final String CACHE_CONTROL_NO_STORE = "no-store";
+    public static final String REFERRER_POLICY_NO_REFERRER = "no-referrer";
 
     public static final int CODE_OK = 200;
     public static final int CODE_ACCEPTED = 202;
