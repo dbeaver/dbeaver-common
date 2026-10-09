@@ -43,6 +43,7 @@ import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 public abstract class AbstractRestClient {
 
@@ -80,10 +81,20 @@ public abstract class AbstractRestClient {
         int readTimeoutMs,
         @NotNull List<HttpInterceptor> interceptors
     ) {
+        this(apiUrl, connectTimeoutMs, readTimeoutMs, interceptors, HttpClient.Redirect.NORMAL);
+    }
+
+    protected AbstractRestClient(
+        @NotNull String apiUrl,
+        int connectTimeoutMs,
+        int readTimeoutMs,
+        @NotNull List<HttpInterceptor> interceptors,
+        @NotNull HttpClient.Redirect redirectPolicy
+    ) {
         this.apiUrl = apiUrl;
         this.readTimeoutMs = readTimeoutMs > 0 ? readTimeoutMs : DEFAULT_READ_TIMEOUT;
 
-        this.httpClient = buildClient(connectTimeoutMs);
+        this.httpClient = buildClient(connectTimeoutMs, redirectPolicy);
         this.interceptors = prepareInterceptors(interceptors);
     }
 
@@ -93,11 +104,11 @@ public abstract class AbstractRestClient {
     }
 
     @NotNull
-    private HttpClient buildClient(int connectTimeoutMs) {
+    private HttpClient buildClient(int connectTimeoutMs, @NotNull HttpClient.Redirect redirectPolicy) {
         return HttpClient.newBuilder()
             .connectTimeout(Duration.ofMillis(connectTimeoutMs > 0 ? connectTimeoutMs : DEFAULT_CONNECT_TIMEOUT))
             .sslContext(HttpClientUtils.createSSLContext())
-            .followRedirects(HttpClient.Redirect.NORMAL)
+            .followRedirects(redirectPolicy)
             .build();
     }
 
@@ -408,6 +419,14 @@ public abstract class AbstractRestClient {
         }
 
         return switch (mediaType) {
+            case FORM_URLENCODED -> {
+                String form = gson.toJsonTree(body).getAsJsonObject().entrySet().stream()
+                    .filter(entry -> !entry.getValue().isJsonNull())
+                    .map(entry -> URLEncoder.encode(entry.getKey(), StandardCharsets.UTF_8) + "="
+                        + URLEncoder.encode(entry.getValue().getAsString(), StandardCharsets.UTF_8))
+                    .collect(Collectors.joining("&"));
+                yield HttpRequest.BodyPublishers.ofString(form, StandardCharsets.UTF_8);
+            }
             case JSON -> {
                 String json = gson.toJson(body);
                 yield HttpRequest.BodyPublishers.ofString(json, StandardCharsets.UTF_8);

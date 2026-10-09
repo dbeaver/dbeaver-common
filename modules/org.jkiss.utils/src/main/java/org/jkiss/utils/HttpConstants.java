@@ -17,11 +17,16 @@
 package org.jkiss.utils;
 
 public class HttpConstants {
+    public static final String METHOD_GET = "GET";
+    public static final String METHOD_POST = "POST";
+
     public static final String HEADER_USER_AGENT = "User-Agent";
 
     public static final String HEADER_ACCEPT = "Accept";
     public static final String HEADER_X_REFERRER = "X-Referrer";
     public static final String HEADER_CONTENT_TYPE = "Content-Type";
+    public static final String HEADER_CACHE_CONTROL = "Cache-Control";
+    public static final String HEADER_HOST = "Host";
     public static final String HEADER_AUTHORIZATION = "Authorization";
     public static final String HEADER_API_KEY = "X-API-Key";
     public static final String HEADER_AUTHENTICATE = "WWW-Authenticate";
@@ -38,9 +43,12 @@ public class HttpConstants {
     public static final String CONTENT_TYPE_APP_FORM = "application/x-www-form-urlencoded";
     public static final String CONTENT_TYPE_OCTET_STREAM = "application/octet-stream";
     public static final String CONTENT_TYPE_TEXT_HTML = "text/html";
+    public static final String CONTENT_TYPE_TEXT_HTML_UTF8 = CONTENT_TYPE_TEXT_HTML + "; charset=utf-8";
     public static final String CONTENT_TYPE_TEXT_PLAIN = "text/plain";
     public static final String CONTENT_TYPE_TEXT_XML = "text/xml";
     public static final String CONTENT_TYPE_CSV = "text/csv";
+
+    public static final String CACHE_CONTROL_NO_STORE = "no-store";
 
     public static final int CODE_OK = 200;
     public static final int CODE_ACCEPTED = 202;
