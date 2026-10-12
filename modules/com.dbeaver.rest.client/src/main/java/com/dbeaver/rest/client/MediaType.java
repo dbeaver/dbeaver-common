@@ -22,7 +22,8 @@ public enum MediaType {
     JSON(HttpConstants.CONTENT_TYPE_JSON),
     TEXT(HttpConstants.CONTENT_TYPE_TEXT_PLAIN),
     OCTET_STREAM(HttpConstants.CONTENT_TYPE_OCTET_STREAM),
-    XML(HttpConstants.CONTENT_TYPE_TEXT_XML);
+    XML(HttpConstants.CONTENT_TYPE_TEXT_XML),
+    FORM_URLENCODED(HttpConstants.CONTENT_TYPE_APP_FORM);
 
     private final String value;
 

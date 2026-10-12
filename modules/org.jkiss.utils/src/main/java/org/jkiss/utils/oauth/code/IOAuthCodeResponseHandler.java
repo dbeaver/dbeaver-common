@@ -17,14 +17,22 @@
 package org.jkiss.utils.oauth.code;
 
 import org.jkiss.code.NotNull;
+import org.jkiss.code.Nullable;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.net.URI;
 import java.util.concurrent.Future;
 
 public interface IOAuthCodeResponseHandler extends Closeable {
 
     void initServer() throws IOException;
+
+    /** The bound loopback URI, when this handler owns a local callback server. */
+    @Nullable
+    default URI getCallbackUri() throws IOException {
+        return null;
+    }
 
     @NotNull
     Future<String> requestCode();
