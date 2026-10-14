@@ -16,25 +16,45 @@
  */
 package org.jkiss.utils;
 
+import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.net.Proxy;
 import java.net.ProxySelector;
+import java.net.SocketAddress;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.WebSocket;
 import java.nio.ByteBuffer;
 import java.time.Duration;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.IdentityHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Consumer;
 
 public final class BaseWebSocketClient implements AutoCloseable {
+    private static final long CLOSE_TIMEOUT_SECONDS = 5;
+    private static final ProxySelector DIRECT_PROXY = new ProxySelector() {
+        @Override
+        public List<Proxy> select(URI uri) {
+            return List.of(Proxy.NO_PROXY);
+        }
+
+        @Override
+        public void connectFailed(URI uri, SocketAddress address, IOException error) {
+        }
+    };
+
     private final HttpClient client;
-    private final Set<WebSocket> sockets = ConcurrentHashMap.newKeySet();
+    private final Map<WebSocket, Listener> sockets = new HashMap<>();
+    private final Set<Attempt> pending = new HashSet<>();
+    private boolean closed;
 
     public BaseWebSocketClient() {
         this(true);
@@ -46,41 +66,183 @@ public final class BaseWebSocketClient implements AutoCloseable {
             WSClientUtils.ProxyInfo proxy = WSClientUtils.findProxyInfo();
             if (proxy.exists()) {
                 builder.proxy(ProxySelector.of(new InetSocketAddress(proxy.getHost(), proxy.getPort())));
+            } else {
+                builder.proxy(DIRECT_PROXY);
             }
+        } else {
+            builder.proxy(DIRECT_PROXY);
         }
         client = builder.build();
     }
 
     public WebSocket connect(URI uri, Map<String, String> headers, Listener listener)
         throws ExecutionException, InterruptedException {
-        WebSocket.Builder builder = client.newWebSocketBuilder().connectTimeout(Duration.ofSeconds(30));
-        headers.forEach(builder::header);
-        listener.onTermination = sockets::remove;
-        WebSocket socket = builder.buildAsync(uri, listener).get();
-        if (listener.isOpen()) {
-            sockets.add(socket);
+        Attempt attempt = new Attempt(this, listener);
+        synchronized (this) {
+            if (closed) {
+                throw new IllegalStateException("WebSocket client is closed");
+            }
+            pending.add(attempt);
         }
-        return socket;
+        CompletableFuture<WebSocket> handshake;
+        try {
+            WebSocket.Builder builder = client.newWebSocketBuilder().connectTimeout(Duration.ofSeconds(30));
+            headers.forEach(builder::header);
+            handshake = builder.buildAsync(uri, attempt);
+        } catch (RuntimeException e) {
+            synchronized (this) {
+                pending.remove(attempt);
+            }
+            throw e;
+        }
+        attempt.handshake = handshake;
+        if (attempt.cancelled) {
+            handshake.cancel(true);
+        }
+        handshake.whenComplete((socket, error) -> {
+            synchronized (this) {
+                pending.remove(attempt);
+            }
+            if (socket != null && attempt.cancelled) {
+                listener.abort(socket);
+            }
+        });
+        try {
+            WebSocket socket = handshake.get();
+            if (attempt.cancelled || !listener.isOpen(socket)) {
+                listener.abort(socket);
+                throw new ExecutionException(new IOException("WebSocket connection closed during handshake"));
+            }
+            return socket;
+        } catch (InterruptedException e) {
+            attempt.cancelled = true;
+            handshake.cancel(true);
+            WebSocket socket = attempt.socket;
+            if (socket != null) {
+                listener.abort(socket);
+            }
+            throw e;
+        }
+    }
+
+    private synchronized boolean register(Attempt attempt, WebSocket socket, Listener listener) {
+        attempt.socket = socket;
+        if (closed || attempt.cancelled) {
+            return false;
+        }
+        sockets.put(socket, listener);
+        return true;
+    }
+
+    private synchronized void unregister(WebSocket socket) {
+        sockets.remove(socket);
     }
 
     @Override
     public void close() {
-        sockets.forEach(WebSocket::abort);
-        sockets.clear();
+        List<Map.Entry<WebSocket, Listener>> connections;
+        List<Attempt> handshakes;
+        synchronized (this) {
+            closed = true;
+            connections = new ArrayList<>(sockets.entrySet());
+            handshakes = new ArrayList<>(pending);
+        }
+        for (Attempt attempt : handshakes) {
+            attempt.cancelled = true;
+            CompletableFuture<WebSocket> handshake = attempt.handshake;
+            if (handshake != null) {
+                handshake.cancel(true);
+            }
+            if (attempt.socket != null) {
+                attempt.listener.abort(attempt.socket);
+            }
+        }
+        for (Map.Entry<WebSocket, Listener> entry : connections) {
+            entry.getValue().abort(entry.getKey());
+        }
+    }
+
+    private static final class Attempt implements WebSocket.Listener {
+        private final BaseWebSocketClient owner;
+        private final Listener listener;
+        private volatile CompletableFuture<WebSocket> handshake;
+        private volatile WebSocket socket;
+        private volatile boolean cancelled;
+
+        private Attempt(BaseWebSocketClient owner, Listener listener) {
+            this.owner = owner;
+            this.listener = listener;
+        }
+
+        @Override
+        public void onOpen(WebSocket socket) {
+            if (cancelled) {
+                socket.abort();
+                return;
+            }
+            listener.opening.set(this);
+            try {
+                listener.onOpen(socket);
+            } finally {
+                listener.opening.remove();
+            }
+        }
+
+        @Override
+        public CompletionStage<?> onText(WebSocket socket, CharSequence data, boolean last) {
+            return listener.onText(socket, data, last);
+        }
+
+        @Override
+        public CompletionStage<?> onBinary(WebSocket socket, ByteBuffer data, boolean last) {
+            return listener.onBinary(socket, data, last);
+        }
+
+        @Override
+        public CompletionStage<?> onPing(WebSocket socket, ByteBuffer message) {
+            return listener.onPing(socket, message);
+        }
+
+        @Override
+        public CompletionStage<?> onPong(WebSocket socket, ByteBuffer message) {
+            return listener.onPong(socket, message);
+        }
+
+        @Override
+        public CompletionStage<?> onClose(WebSocket socket, int statusCode, String reason) {
+            return listener.onClose(socket, statusCode, reason);
+        }
+
+        @Override
+        public void onError(WebSocket socket, Throwable error) {
+            listener.onError(socket, error);
+        }
     }
 
     public abstract static class Listener implements WebSocket.Listener {
-        private final StringBuilder text = new StringBuilder();
-        private ByteBuffer binary = ByteBuffer.allocate(0);
-        private volatile boolean closed;
-        private volatile WebSocket activeSocket;
-        private volatile long lastActivity;
+        private final Map<WebSocket, Connection> connections = java.util.Collections.synchronizedMap(new IdentityHashMap<>());
+        private final ThreadLocal<Attempt> opening = new ThreadLocal<>();
+        private volatile Connection active;
         private Duration idleTimeout;
         private int maxBinaryMessageSize = Integer.MAX_VALUE;
-        private Consumer<WebSocket> onTermination = socket -> {};
+
+        private static final class Connection {
+            private final WebSocket socket;
+            private final BaseWebSocketClient owner;
+            private final StringBuilder text = new StringBuilder();
+            private ByteBuffer binary = ByteBuffer.allocate(0);
+            private volatile long lastActivity = System.nanoTime();
+            private volatile boolean closed;
+            private boolean notified;
+
+            private Connection(WebSocket socket, BaseWebSocketClient owner) {
+                this.socket = socket;
+                this.owner = owner;
+            }
+        }
 
         public void setIdleTimeout(Duration idleTimeout) {
-            this.idleTimeout = idleTimeout;
+            this.idleTimeout = idleTimeout != null && idleTimeout.toMillis() > 0 ? idleTimeout : null;
         }
 
         public void setMaxBinaryMessageSize(int maxBinaryMessageSize) {
@@ -89,74 +251,123 @@ public final class BaseWebSocketClient implements AutoCloseable {
 
         @Override
         public void onOpen(WebSocket socket) {
-            activeSocket = socket;
-            closed = false;
-            text.setLength(0);
-            binary = ByteBuffer.allocate(0);
-            lastActivity = System.nanoTime();
+            open(socket, opening.get());
+        }
+
+        private void open(WebSocket socket, Attempt attempt) {
+            Connection connection = new Connection(socket, attempt == null ? null : attempt.owner);
+            connections.put(socket, connection);
+            active = connection;
+            if (attempt != null && !attempt.owner.register(attempt, socket, this)) {
+                abort(socket);
+                return;
+            }
             if (idleTimeout != null) {
-                checkIdle(socket);
+                checkIdle(connection);
             }
             socket.request(1);
         }
 
-        private void checkIdle(WebSocket socket) {
-            long remaining = Math.max(1, idleTimeout.toNanos() - (System.nanoTime() - lastActivity));
+        private void checkIdle(Connection connection) {
+            long remaining = Math.max(1, idleTimeout.toNanos() - (System.nanoTime() - connection.lastActivity));
             CompletableFuture.delayedExecutor(remaining, TimeUnit.NANOSECONDS).execute(() -> {
-                if (!closed && activeSocket == socket) {
-                    if (System.nanoTime() - lastActivity >= idleTimeout.toNanos()) {
-                        close(socket);
-                    } else {
-                        checkIdle(socket);
+                boolean expired;
+                synchronized (connection) {
+                    if (connection.closed) {
+                        return;
                     }
+                    expired = System.nanoTime() - connection.lastActivity >= idleTimeout.toNanos();
+                    if (expired) {
+                        connection.closed = true;
+                    }
+                }
+                if (expired) {
+                    startClose(connection);
+                } else {
+                    checkIdle(connection);
                 }
             });
         }
 
+        public void activity(WebSocket socket) {
+            Connection connection = connections.get(socket);
+            if (connection != null) {
+                synchronized (connection) {
+                    if (!connection.closed) {
+                        connection.lastActivity = System.nanoTime();
+                    }
+                }
+            }
+        }
+
         @Override
         public CompletionStage<?> onText(WebSocket socket, CharSequence data, boolean last) {
-            if (activeSocket != socket) {
+            Connection connection = connections.get(socket);
+            if (connection == null || connection.closed) {
                 return null;
             }
-            lastActivity = System.nanoTime();
-            text.append(data);
+            activity(socket);
+            connection.text.append(data);
             if (last) {
-                String message = text.toString();
-                text.setLength(0);
-                text(message);
+                String message = connection.text.toString();
+                connection.text.setLength(0);
+                if (active == connection && !connection.closed) {
+                    text(message);
+                }
             }
-            socket.request(1);
+            if (!connection.closed) {
+                socket.request(1);
+            }
             return null;
         }
 
         @Override
         public CompletionStage<?> onBinary(WebSocket socket, ByteBuffer data, boolean last) {
-            if (activeSocket != socket) {
+            Connection connection = connections.get(socket);
+            if (connection == null || connection.closed) {
                 return null;
             }
-            lastActivity = System.nanoTime();
-            if (data.remaining() > maxBinaryMessageSize - binary.remaining()) {
+            activity(socket);
+            if (data.remaining() > maxBinaryMessageSize - connection.binary.position()) {
                 throw new IllegalStateException("WebSocket binary message exceeds the configured limit");
             }
-            if (binary.remaining() == 0 && last) {
-                binary(data);
+            int size = connection.binary.position() + data.remaining();
+            if (connection.binary.position() == 0 && last) {
+                if (active == connection && !connection.closed) {
+                    binary(data);
+                }
             } else {
-                ByteBuffer message = ByteBuffer.allocate(binary.remaining() + data.remaining());
-                message.put(binary).put(data).flip();
-                binary = message;
+                if (connection.binary.capacity() < size) {
+                    int capacity = Math.max(1024, connection.binary.capacity());
+                    while (capacity < size) {
+                        capacity = capacity > maxBinaryMessageSize / 2 ? size : capacity * 2;
+                    }
+                    ByteBuffer grown = ByteBuffer.allocate(capacity);
+                    connection.binary.flip();
+                    grown.put(connection.binary);
+                    connection.binary = grown;
+                }
+                connection.binary.put(data);
                 if (last) {
-                    binary(binary);
-                    binary = ByteBuffer.allocate(0);
+                    connection.binary.flip();
+                    ByteBuffer message = connection.binary;
+                    connection.binary = ByteBuffer.allocate(0);
+                    if (active == connection && !connection.closed) {
+                        binary(message);
+                    }
                 }
             }
-            socket.request(1);
+            if (!connection.closed) {
+                socket.request(1);
+            }
             return null;
         }
 
         @Override
         public CompletionStage<?> onPing(WebSocket socket, ByteBuffer message) {
-            if (activeSocket == socket) {
-                lastActivity = System.nanoTime();
+            Connection connection = connections.get(socket);
+            if (connection != null && !connection.closed) {
+                activity(socket);
                 socket.request(1);
             }
             return null;
@@ -164,8 +375,9 @@ public final class BaseWebSocketClient implements AutoCloseable {
 
         @Override
         public CompletionStage<?> onPong(WebSocket socket, ByteBuffer message) {
-            if (activeSocket == socket) {
-                lastActivity = System.nanoTime();
+            Connection connection = connections.get(socket);
+            if (connection != null && !connection.closed) {
+                activity(socket);
                 socket.request(1);
             }
             return null;
@@ -173,34 +385,90 @@ public final class BaseWebSocketClient implements AutoCloseable {
 
         @Override
         public CompletionStage<?> onClose(WebSocket socket, int statusCode, String reason) {
-            onTermination.accept(socket);
-            if (activeSocket == socket && !closed) {
-                closed = true;
-                closed(statusCode, reason);
-            }
+            Connection connection = connections.get(socket);
+            finish(connection, statusCode, reason, null, true);
             return null;
         }
 
         @Override
         public void onError(WebSocket socket, Throwable error) {
-            onTermination.accept(socket);
-            if (activeSocket == socket && !closed) {
-                closed = true;
-                error(error);
-            }
+            finish(connections.get(socket), 0, "", error, true);
         }
 
         public boolean isOpen() {
-            return !closed;
+            Connection connection = active;
+            return connection != null && !connection.closed;
+        }
+
+        private boolean isOpen(WebSocket socket) {
+            Connection connection = connections.get(socket);
+            return connection != null && !connection.closed;
         }
 
         public void close(WebSocket socket) {
-            if (!closed) {
-                closed = true;
-                try {
-                    socket.sendClose(WebSocket.NORMAL_CLOSURE, "");
-                } finally {
-                    closed(WebSocket.NORMAL_CLOSURE, "");
+            Connection connection = connections.get(socket);
+            if (connection == null) {
+                return;
+            }
+            synchronized (connection) {
+                if (connection.closed) {
+                    return;
+                }
+                connection.closed = true;
+            }
+            startClose(connection);
+        }
+
+        private void startClose(Connection connection) {
+            WebSocket socket = connection.socket;
+            CompletableFuture.delayedExecutor(CLOSE_TIMEOUT_SECONDS, TimeUnit.SECONDS).execute(() -> {
+                if (connections.containsKey(socket)) {
+                    abort(socket);
+                }
+            });
+            try {
+                socket.sendClose(WebSocket.NORMAL_CLOSURE, "").whenComplete((ignored, error) -> {
+                    if (error != null) {
+                        abort(socket);
+                    } else {
+                        finish(connection, WebSocket.NORMAL_CLOSURE, "", null, false);
+                    }
+                });
+            } catch (RuntimeException e) {
+                abort(socket);
+            }
+        }
+
+        private void abort(WebSocket socket) {
+            Connection connection = connections.get(socket);
+            try {
+                socket.abort();
+            } finally {
+                finish(connection, WebSocket.NORMAL_CLOSURE, "", null, true);
+            }
+        }
+
+        private void finish(Connection connection, int code, String reason, Throwable error, boolean terminated) {
+            if (connection == null) {
+                return;
+            }
+            boolean notify;
+            synchronized (connection) {
+                connection.closed = true;
+                notify = !connection.notified;
+                connection.notified = true;
+            }
+            if (terminated) {
+                connections.remove(connection.socket);
+                if (connection.owner != null) {
+                    connection.owner.unregister(connection.socket);
+                }
+            }
+            if (notify && active == connection) {
+                if (error != null) {
+                    error(error);
+                } else {
+                    closed(code, reason);
                 }
             }
         }
