@@ -16,6 +16,9 @@
  */
 package org.jkiss.utils;
 
+import org.jkiss.code.NotNull;
+import org.jkiss.code.Nullable;
+
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Proxy;
@@ -42,12 +45,13 @@ public final class BaseWebSocketClient implements AutoCloseable {
     private static final long CLOSE_TIMEOUT_SECONDS = 5;
     private static final ProxySelector DIRECT_PROXY = new ProxySelector() {
         @Override
-        public List<Proxy> select(URI uri) {
+        @NotNull
+        public List<Proxy> select(@NotNull URI uri) {
             return List.of(Proxy.NO_PROXY);
         }
 
         @Override
-        public void connectFailed(URI uri, SocketAddress address, IOException error) {
+        public void connectFailed(@NotNull URI uri, @NotNull SocketAddress address, @NotNull IOException error) {
         }
     };
 
@@ -75,8 +79,12 @@ public final class BaseWebSocketClient implements AutoCloseable {
         client = builder.build();
     }
 
-    public WebSocket connect(URI uri, Map<String, String> headers, Listener listener)
-        throws ExecutionException, InterruptedException {
+    @NotNull
+    public WebSocket connect(
+        @NotNull URI uri,
+        @NotNull Map<String, String> headers,
+        @NotNull Listener listener
+    ) throws ExecutionException, InterruptedException {
         Attempt attempt = new Attempt(this, listener);
         synchronized (this) {
             if (closed) {
@@ -125,7 +133,7 @@ public final class BaseWebSocketClient implements AutoCloseable {
         }
     }
 
-    private synchronized boolean register(Attempt attempt, WebSocket socket, Listener listener) {
+    private synchronized boolean register(@NotNull Attempt attempt, @NotNull WebSocket socket, @NotNull Listener listener) {
         attempt.socket = socket;
         if (closed || attempt.cancelled) {
             return false;
@@ -134,7 +142,7 @@ public final class BaseWebSocketClient implements AutoCloseable {
         return true;
     }
 
-    private synchronized void unregister(WebSocket socket) {
+    private synchronized void unregister(@NotNull WebSocket socket) {
         sockets.remove(socket);
     }
 
@@ -165,17 +173,19 @@ public final class BaseWebSocketClient implements AutoCloseable {
     private static final class Attempt implements WebSocket.Listener {
         private final BaseWebSocketClient owner;
         private final Listener listener;
+        @Nullable
         private volatile CompletableFuture<WebSocket> handshake;
+        @Nullable
         private volatile WebSocket socket;
         private volatile boolean cancelled;
 
-        private Attempt(BaseWebSocketClient owner, Listener listener) {
+        private Attempt(@NotNull BaseWebSocketClient owner, @NotNull Listener listener) {
             this.owner = owner;
             this.listener = listener;
         }
 
         @Override
-        public void onOpen(WebSocket socket) {
+        public void onOpen(@NotNull WebSocket socket) {
             if (cancelled) {
                 socket.abort();
                 return;
@@ -189,32 +199,37 @@ public final class BaseWebSocketClient implements AutoCloseable {
         }
 
         @Override
-        public CompletionStage<?> onText(WebSocket socket, CharSequence data, boolean last) {
+        @Nullable
+        public CompletionStage<?> onText(@NotNull WebSocket socket, @NotNull CharSequence data, boolean last) {
             return listener.onText(socket, data, last);
         }
 
         @Override
-        public CompletionStage<?> onBinary(WebSocket socket, ByteBuffer data, boolean last) {
+        @Nullable
+        public CompletionStage<?> onBinary(@NotNull WebSocket socket, @NotNull ByteBuffer data, boolean last) {
             return listener.onBinary(socket, data, last);
         }
 
         @Override
-        public CompletionStage<?> onPing(WebSocket socket, ByteBuffer message) {
+        @Nullable
+        public CompletionStage<?> onPing(@NotNull WebSocket socket, @NotNull ByteBuffer message) {
             return listener.onPing(socket, message);
         }
 
         @Override
-        public CompletionStage<?> onPong(WebSocket socket, ByteBuffer message) {
+        @Nullable
+        public CompletionStage<?> onPong(@NotNull WebSocket socket, @NotNull ByteBuffer message) {
             return listener.onPong(socket, message);
         }
 
         @Override
-        public CompletionStage<?> onClose(WebSocket socket, int statusCode, String reason) {
+        @Nullable
+        public CompletionStage<?> onClose(@NotNull WebSocket socket, int statusCode, @NotNull String reason) {
             return listener.onClose(socket, statusCode, reason);
         }
 
         @Override
-        public void onError(WebSocket socket, Throwable error) {
+        public void onError(@NotNull WebSocket socket, @NotNull Throwable error) {
             listener.onError(socket, error);
         }
     }
@@ -222,12 +237,15 @@ public final class BaseWebSocketClient implements AutoCloseable {
     public abstract static class Listener implements WebSocket.Listener {
         private final Map<WebSocket, Connection> connections = java.util.Collections.synchronizedMap(new IdentityHashMap<>());
         private final ThreadLocal<Attempt> opening = new ThreadLocal<>();
+        @Nullable
         private volatile Connection active;
+        @Nullable
         private Duration idleTimeout;
         private int maxBinaryMessageSize = Integer.MAX_VALUE;
 
         private static final class Connection {
             private final WebSocket socket;
+            @Nullable
             private final BaseWebSocketClient owner;
             private final StringBuilder text = new StringBuilder();
             private ByteBuffer binary = ByteBuffer.allocate(0);
@@ -235,13 +253,13 @@ public final class BaseWebSocketClient implements AutoCloseable {
             private volatile boolean closed;
             private boolean notified;
 
-            private Connection(WebSocket socket, BaseWebSocketClient owner) {
+            private Connection(@NotNull WebSocket socket, @Nullable BaseWebSocketClient owner) {
                 this.socket = socket;
                 this.owner = owner;
             }
         }
 
-        public void setIdleTimeout(Duration idleTimeout) {
+        public void setIdleTimeout(@Nullable Duration idleTimeout) {
             this.idleTimeout = idleTimeout != null && idleTimeout.toMillis() > 0 ? idleTimeout : null;
         }
 
@@ -250,11 +268,11 @@ public final class BaseWebSocketClient implements AutoCloseable {
         }
 
         @Override
-        public void onOpen(WebSocket socket) {
+        public void onOpen(@NotNull WebSocket socket) {
             open(socket, opening.get());
         }
 
-        private void open(WebSocket socket, Attempt attempt) {
+        private void open(@NotNull WebSocket socket, @Nullable Attempt attempt) {
             Connection connection = new Connection(socket, attempt == null ? null : attempt.owner);
             connections.put(socket, connection);
             active = connection;
@@ -268,7 +286,7 @@ public final class BaseWebSocketClient implements AutoCloseable {
             socket.request(1);
         }
 
-        private void checkIdle(Connection connection) {
+        private void checkIdle(@NotNull Connection connection) {
             long remaining = Math.max(1, idleTimeout.toNanos() - (System.nanoTime() - connection.lastActivity));
             CompletableFuture.delayedExecutor(remaining, TimeUnit.NANOSECONDS).execute(() -> {
                 boolean expired;
@@ -289,7 +307,7 @@ public final class BaseWebSocketClient implements AutoCloseable {
             });
         }
 
-        public void activity(WebSocket socket) {
+        public void activity(@NotNull WebSocket socket) {
             Connection connection = connections.get(socket);
             if (connection != null) {
                 synchronized (connection) {
@@ -301,7 +319,8 @@ public final class BaseWebSocketClient implements AutoCloseable {
         }
 
         @Override
-        public CompletionStage<?> onText(WebSocket socket, CharSequence data, boolean last) {
+        @Nullable
+        public CompletionStage<?> onText(@NotNull WebSocket socket, @NotNull CharSequence data, boolean last) {
             Connection connection = connections.get(socket);
             if (connection == null || connection.closed) {
                 return null;
@@ -322,7 +341,8 @@ public final class BaseWebSocketClient implements AutoCloseable {
         }
 
         @Override
-        public CompletionStage<?> onBinary(WebSocket socket, ByteBuffer data, boolean last) {
+        @Nullable
+        public CompletionStage<?> onBinary(@NotNull WebSocket socket, @NotNull ByteBuffer data, boolean last) {
             Connection connection = connections.get(socket);
             if (connection == null || connection.closed) {
                 return null;
@@ -364,7 +384,8 @@ public final class BaseWebSocketClient implements AutoCloseable {
         }
 
         @Override
-        public CompletionStage<?> onPing(WebSocket socket, ByteBuffer message) {
+        @Nullable
+        public CompletionStage<?> onPing(@NotNull WebSocket socket, @NotNull ByteBuffer message) {
             Connection connection = connections.get(socket);
             if (connection != null && !connection.closed) {
                 activity(socket);
@@ -374,7 +395,8 @@ public final class BaseWebSocketClient implements AutoCloseable {
         }
 
         @Override
-        public CompletionStage<?> onPong(WebSocket socket, ByteBuffer message) {
+        @Nullable
+        public CompletionStage<?> onPong(@NotNull WebSocket socket, @NotNull ByteBuffer message) {
             Connection connection = connections.get(socket);
             if (connection != null && !connection.closed) {
                 activity(socket);
@@ -384,14 +406,15 @@ public final class BaseWebSocketClient implements AutoCloseable {
         }
 
         @Override
-        public CompletionStage<?> onClose(WebSocket socket, int statusCode, String reason) {
+        @Nullable
+        public CompletionStage<?> onClose(@NotNull WebSocket socket, int statusCode, @NotNull String reason) {
             Connection connection = connections.get(socket);
             finish(connection, statusCode, reason, null, true);
             return null;
         }
 
         @Override
-        public void onError(WebSocket socket, Throwable error) {
+        public void onError(@NotNull WebSocket socket, @NotNull Throwable error) {
             finish(connections.get(socket), 0, "", error, true);
         }
 
@@ -400,12 +423,12 @@ public final class BaseWebSocketClient implements AutoCloseable {
             return connection != null && !connection.closed;
         }
 
-        private boolean isOpen(WebSocket socket) {
+        private boolean isOpen(@NotNull WebSocket socket) {
             Connection connection = connections.get(socket);
             return connection != null && !connection.closed;
         }
 
-        public void close(WebSocket socket) {
+        public void close(@NotNull WebSocket socket) {
             Connection connection = connections.get(socket);
             if (connection == null) {
                 return;
@@ -419,7 +442,7 @@ public final class BaseWebSocketClient implements AutoCloseable {
             startClose(connection);
         }
 
-        private void startClose(Connection connection) {
+        private void startClose(@NotNull Connection connection) {
             WebSocket socket = connection.socket;
             CompletableFuture.delayedExecutor(CLOSE_TIMEOUT_SECONDS, TimeUnit.SECONDS).execute(() -> {
                 if (connections.containsKey(socket)) {
@@ -439,7 +462,7 @@ public final class BaseWebSocketClient implements AutoCloseable {
             }
         }
 
-        private void abort(WebSocket socket) {
+        private void abort(@NotNull WebSocket socket) {
             Connection connection = connections.get(socket);
             try {
                 socket.abort();
@@ -448,7 +471,13 @@ public final class BaseWebSocketClient implements AutoCloseable {
             }
         }
 
-        private void finish(Connection connection, int code, String reason, Throwable error, boolean terminated) {
+        private void finish(
+            @Nullable Connection connection,
+            int code,
+            @NotNull String reason,
+            @Nullable Throwable error,
+            boolean terminated
+        ) {
             if (connection == null) {
                 return;
             }
@@ -473,16 +502,16 @@ public final class BaseWebSocketClient implements AutoCloseable {
             }
         }
 
-        protected void text(String message) {
+        protected void text(@NotNull String message) {
         }
 
-        protected void binary(ByteBuffer message) {
+        protected void binary(@NotNull ByteBuffer message) {
         }
 
-        protected void closed(int statusCode, String reason) {
+        protected void closed(int statusCode, @NotNull String reason) {
         }
 
-        protected void error(Throwable cause) {
+        protected void error(@NotNull Throwable cause) {
         }
     }
 }

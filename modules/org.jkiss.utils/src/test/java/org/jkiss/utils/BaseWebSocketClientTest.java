@@ -16,6 +16,7 @@
  */
 package org.jkiss.utils;
 
+import org.jkiss.code.NotNull;
 import org.junit.jupiter.api.Test;
 
 import java.io.BufferedReader;
@@ -62,12 +63,12 @@ class BaseWebSocketClientTest {
         List<byte[]> binaries = new ArrayList<>();
         var listener = new BaseWebSocketClient.Listener() {
             @Override
-            protected void text(String message) {
+            protected void text(@NotNull String message) {
                 texts.add(message);
             }
 
             @Override
-            protected void binary(ByteBuffer message) {
+            protected void binary(@NotNull ByteBuffer message) {
                 byte[] bytes = new byte[message.remaining()];
                 message.get(bytes);
                 binaries.add(bytes);
@@ -119,7 +120,7 @@ class BaseWebSocketClientTest {
         List<String> messages = new ArrayList<>();
         var listener = new BaseWebSocketClient.Listener() {
             @Override
-            protected void text(String message) {
+            protected void text(@NotNull String message) {
                 messages.add(message);
             }
         };
@@ -139,7 +140,7 @@ class BaseWebSocketClientTest {
         List<byte[]> messages = new ArrayList<>();
         var listener = new BaseWebSocketClient.Listener() {
             @Override
-            protected void binary(ByteBuffer data) {
+            protected void binary(@NotNull ByteBuffer data) {
                 byte[] message = new byte[data.remaining()];
                 data.get(message);
                 messages.add(message);
@@ -195,7 +196,7 @@ class BaseWebSocketClientTest {
             CountDownLatch closed = new CountDownLatch(1);
             var listener = new BaseWebSocketClient.Listener() {
                 @Override
-                protected void closed(int statusCode, String reason) {
+                protected void closed(int statusCode, @NotNull String reason) {
                     closed.countDown();
                 }
             };
@@ -233,7 +234,7 @@ class BaseWebSocketClientTest {
             AtomicInteger opens = new AtomicInteger();
             var listener = new BaseWebSocketClient.Listener() {
                 @Override
-                public void onOpen(WebSocket socket) {
+                public void onOpen(@NotNull WebSocket socket) {
                     opens.incrementAndGet();
                     super.onOpen(socket);
                 }
@@ -268,7 +269,7 @@ class BaseWebSocketClientTest {
         }
     }
 
-    private static void sendHandshake(Socket socket) throws Exception {
+    private static void sendHandshake(@NotNull Socket socket) throws Exception {
         BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream(), StandardCharsets.US_ASCII));
         String key = null;
         String line;
@@ -286,6 +287,7 @@ class BaseWebSocketClientTest {
         socket.getOutputStream().flush();
     }
 
+    @NotNull
     private static WebSocket socket() {
         return (WebSocket) Proxy.newProxyInstance(
             WebSocket.class.getClassLoader(),
@@ -311,7 +313,7 @@ class BaseWebSocketClientTest {
         );
         var listener = new BaseWebSocketClient.Listener() {
             @Override
-            protected void closed(int statusCode, String reason) {
+            protected void closed(int statusCode, @NotNull String reason) {
                 closed.countDown();
             }
         };
@@ -333,7 +335,7 @@ class BaseWebSocketClientTest {
         );
         var listener = new BaseWebSocketClient.Listener() {
             @Override
-            protected void closed(int statusCode, String reason) {
+            protected void closed(int statusCode, @NotNull String reason) {
                 closed.countDown();
             }
         };
@@ -358,7 +360,7 @@ class BaseWebSocketClientTest {
         );
         var listener = new BaseWebSocketClient.Listener() {
             @Override
-            protected void closed(int statusCode, String reason) {
+            protected void closed(int statusCode, @NotNull String reason) {
                 callbacks.incrementAndGet();
             }
         };
