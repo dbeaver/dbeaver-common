@@ -259,6 +259,7 @@ public final class BaseWebSocketClient implements AutoCloseable {
             }
         }
 
+        /** Applies to connections opened after this call. */
         public void setIdleTimeout(@Nullable Duration idleTimeout) {
             this.idleTimeout = idleTimeout != null && idleTimeout.toMillis() > 0 ? idleTimeout : null;
         }
@@ -280,21 +281,22 @@ public final class BaseWebSocketClient implements AutoCloseable {
                 abort(socket);
                 return;
             }
-            if (idleTimeout != null) {
-                checkIdle(connection);
+            Duration timeout = idleTimeout;
+            if (timeout != null) {
+                checkIdle(connection, timeout);
             }
             socket.request(1);
         }
 
-        private void checkIdle(@NotNull Connection connection) {
-            long remaining = Math.max(1, idleTimeout.toNanos() - (System.nanoTime() - connection.lastActivity));
+        private void checkIdle(@NotNull Connection connection, @NotNull Duration timeout) {
+            long remaining = Math.max(1, timeout.toNanos() - (System.nanoTime() - connection.lastActivity));
             CompletableFuture.delayedExecutor(remaining, TimeUnit.NANOSECONDS).execute(() -> {
                 boolean expired;
                 synchronized (connection) {
                     if (connection.closed) {
                         return;
                     }
-                    expired = System.nanoTime() - connection.lastActivity >= idleTimeout.toNanos();
+                    expired = System.nanoTime() - connection.lastActivity >= timeout.toNanos();
                     if (expired) {
                         connection.closed = true;
                     }
@@ -302,7 +304,7 @@ public final class BaseWebSocketClient implements AutoCloseable {
                 if (expired) {
                     startClose(connection);
                 } else {
-                    checkIdle(connection);
+                    checkIdle(connection, timeout);
                 }
             });
         }

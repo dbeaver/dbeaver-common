@@ -319,6 +319,7 @@ class BaseWebSocketClientTest {
         };
         listener.setIdleTimeout(Duration.ofMillis(50));
         listener.onOpen(socket);
+        listener.setIdleTimeout(null);
         assertTrue(closeFrame.await(2, TimeUnit.SECONDS));
         assertTrue(closed.await(2, TimeUnit.SECONDS));
         assertFalse(listener.isOpen());
