@@ -15,24 +15,22 @@ jobs:
 
     steps:
       - name: 'checkstyle: checkout target repository'
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: 'checkstyle: checkout configuration'
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           repository: dbeaver/dbeaver-common
           path: dbeaver-common
-          cache: maven
 
       - name: 'checkstyle-nullability-annotations: checkout plugin'
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           repository: dbeaver/checkstyle-nullability-annotations
           path: checkstyle-nullability-annotations
-          cache: maven
 
       - name: 'checkstyle-nullability-annotations: set up JDK 17'
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           java-version: '21'
           distribution: 'temurin'
@@ -48,4 +46,3 @@ jobs:
           filter_mode: diff_context
           checkstyle_config: dbeaver-common/.github/dbeaver-checkstyle-config.xml
           checkstyle_classpath: checkstyle-nullability-annotations/target/checkstyle-nullability-annotations-latest.jar
-          fail_on_error: false
