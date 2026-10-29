@@ -103,6 +103,11 @@ public abstract class AbstractRestClient {
         return interceptors;
     }
 
+    @Nullable
+    protected String getUserAgent() {
+        return null;
+    }
+
     @NotNull
     private HttpClient buildClient(int connectTimeoutMs, @NotNull HttpClient.Redirect redirectPolicy) {
         return HttpClient.newBuilder()
@@ -515,6 +520,10 @@ public abstract class AbstractRestClient {
         HttpRequest request = builder
             .timeout(Duration.ofMillis(readTimeoutMs))
             .build();
+        String userAgent = getUserAgent();
+        if (userAgent != null && request.headers().firstValue(HttpConstants.HEADER_USER_AGENT).isEmpty()) {
+            request = builder.header(HttpConstants.HEADER_USER_AGENT, userAgent).build();
+        }
 
         URI uri = request.uri();
 
