@@ -1,0 +1,12 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: DBeaver Spring utils
+Bundle-Vendor: DBeaver Corp
+Bundle-SymbolicName: com.dbeaver.spring.utils
+Bundle-Version: 2.9.0.qualifier
+Bundle-Release-Date: 20240205
+Bundle-RequiredExecutionEnvironment: JavaSE-17
+Bundle-ActivationPolicy: lazy
+Require-Bundle: org.jkiss.utils;visibility:=reexport
+Export-Package: com.dbeaver.spring.utils
+Automatic-Module-Name: com.dbeaver.spring.utils

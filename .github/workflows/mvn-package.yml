@@ -31,6 +31,7 @@ on:
 
     secrets:
       DEVOPS_ISSUE_RO_TOKEN:
+        description: GitHub PAT without a username prefix
         required: false
 
 jobs:
@@ -57,6 +58,14 @@ jobs:
         id: prepare-custom-p2
         if: ${{ github.event_name == 'pull_request' }}
         shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.DEVOPS_ISSUE_RO_TOKEN }}
+          GIT_CONFIG_COUNT: '2'
+          GIT_CONFIG_KEY_0: credential.helper
+          GIT_CONFIG_VALUE_0: ''
+          GIT_CONFIG_KEY_1: credential.https://github.com.helper
+          GIT_CONFIG_VALUE_1: >-
+            !f() { if [ "$1" = get ]; then printf '%s\n' 'username=x-access-token' "password=$GH_TOKEN"; fi; }; f
         run: |
           declare -A p2_map
           if [ ${{ inputs.use-public-p2 }} = 'true' ]; then
@@ -71,7 +80,7 @@ jobs:
           do
               flag="${p2_map[${repo}]}"
               echo "repo: $repo, flag: $flag"
-              if ! git clone --depth 1 -b "$GITHUB_HEAD_REF" "https://${{ secrets.DEVOPS_ISSUE_RO_TOKEN }}@github.com/$GITHUB_REPOSITORY_OWNER/$repo.git"
+              if ! git clone --depth 1 -b "$GITHUB_HEAD_REF" "https://github.com/$GITHUB_REPOSITORY_OWNER/$repo.git"
               then
                   continue
               fi
@@ -80,9 +89,9 @@ jobs:
                       echo "Not cloning $dep_repo since a folder with such a name already exists. Most likely, another step already cloned this repo."
                       continue
                   fi
-                  default_branch=$(git ls-remote --symref "https://$GH_TOKEN@github.com/dbeaver/$dep_repo.git" HEAD | grep '^ref:' | awk '{print $2}' | sed 's|refs/heads/||')
-                  git clone --depth 1 -b "$GITHUB_HEAD_REF" "https://$GH_TOKEN@github.com/$GITHUB_REPOSITORY_OWNER/$dep_repo.git" || \
-                  git clone --depth 1 -b "$default_branch" "https://$GH_TOKEN@github.com/dbeaver/$dep_repo.git"
+                  default_branch=$(git ls-remote --symref "https://github.com/dbeaver/$dep_repo.git" HEAD | grep '^ref:' | awk '{print $2}' | sed 's|refs/heads/||')
+                  git clone --depth 1 -b "$GITHUB_HEAD_REF" "https://github.com/$GITHUB_REPOSITORY_OWNER/$dep_repo.git" || \
+                  git clone --depth 1 -b "$default_branch" "https://github.com/dbeaver/$dep_repo.git"
               done < "$repo/project.deps"
               mvn clean verify -B -T1C -f "$repo"
               mvn clean verify -B -f "$repo/p2"

@@ -12,6 +12,7 @@
     </parent>
 
     <artifactId>com.dbeaver.spring.utils</artifactId>
+    <packaging>eclipse-plugin</packaging>
 
     <dependencies>
         <dependency>

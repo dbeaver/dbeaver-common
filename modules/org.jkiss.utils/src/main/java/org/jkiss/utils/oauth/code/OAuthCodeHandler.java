@@ -27,7 +27,6 @@ import org.jkiss.utils.oauth.IOAuthHandler;
 import org.jkiss.utils.oauth.OAuthConstants;
 import org.jkiss.utils.oauth.OAuthUtils;
 
-import java.awt.*;
 import java.io.IOException;
 import java.net.CookieManager;
 import java.net.URI;
@@ -38,8 +37,10 @@ import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.function.BooleanSupplier;
 
 /**
  * Handles the OAuth 2.0 Authorization Code Flow including PKCE (Proof Key for Code Exchange).
@@ -52,7 +53,10 @@ public class OAuthCodeHandler implements IOAuthHandler {
         .setStrictness(Strictness.LENIENT)
         .setPrettyPrinting()
         .create();
-    public static final int TOKEN_VERIFIER_BYTE_LENGTH = OAuthUtils.TOKEN_VERIFIER_BYTE_LENGTH;
+    private static final int CANCEL_POLL_INTERVAL_MILLIS = 100;
+
+    @Nullable
+    private String resolvedRedirectUri;
 
     @NotNull
     protected final String clientId;
@@ -153,6 +157,22 @@ public class OAuthCodeHandler implements IOAuthHandler {
     @NotNull
     @Override
     public Map<String, String> authorize() throws IOException {
+        try {
+            return authorize(this::exchangeCode, () -> false);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new IOException(e);
+        }
+    }
+
+    /** Runs the browser flow with caller-owned token transport and cancellation. */
+    @NotNull
+    public <T> T authorize(@NotNull TokenExchanger<T> exchanger, @NotNull BooleanSupplier canceled)
+        throws IOException, InterruptedException {
+        if (canceled.getAsBoolean()) {
+            throw new InterruptedException("OAuth authorization was canceled");
+        }
+        resolvedRedirectUri = null;
         if (state == null || generatedState) {
             state = OAuthUtils.generateRandomUrlSafeValue(32);
             generatedState = true;
@@ -161,33 +181,62 @@ public class OAuthCodeHandler implements IOAuthHandler {
             String verifier = OAuthUtils.generateCodeVerifier();
             codeChallenge = OAuthUtils.generateCodeChallenge(verifier);
             startSSO(handler);
-            String code = handler.requestCode().get(timeout, TimeUnit.SECONDS);
-
-            HttpRequest.Builder postBuilder = HttpRequest.newBuilder().uri(URI.create(tokenURL));
-            postBuilder.headers(getHeaderParameters());
-            postBuilder.POST(HttpRequest.BodyPublishers.ofString(createTokenRequestParameters(code, verifier)));
-            postBuilder.timeout(Duration.ofSeconds(timeout));
-
-            HttpRequest postRequest = postBuilder.build();
-            handler.addStabContext();
-            HttpClient client = HttpClient.newBuilder()
-                .cookieHandler(new CookieManager())
-                .version(HttpClient.Version.HTTP_2).build();
-            try {
-                HttpResponse<String> response = client.send(postRequest, HttpResponse.BodyHandlers.ofString());
-                if (response.statusCode() != HttpConstants.CODE_OK) {
-                    throw new IOException("Error getting token info " + response.body());
-                }
-                return extractResponse(response);
-            } finally {
-                IOUtils.tryClose(client);
+            String code = awaitCode(handler.requestCode(), canceled);
+            if (canceled.getAsBoolean()) {
+                throw new InterruptedException("OAuth authorization was canceled");
             }
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            throw new IOException(e);
+            handler.addStabContext();
+            return exchanger.exchange(code, verifier, getRedirectUri());
         } catch (ExecutionException | TimeoutException e) {
             throw new IOException(e);
         }
+    }
+
+    @NotNull
+    private String awaitCode(@NotNull Future<String> code, @NotNull BooleanSupplier canceled)
+        throws InterruptedException, ExecutionException, TimeoutException {
+        long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(timeout);
+        while (!canceled.getAsBoolean()) {
+            long remaining = deadline - System.nanoTime();
+            if (remaining <= 0) {
+                throw new TimeoutException("OAuth authorization was not completed in time");
+            }
+            try {
+                return code.get(Math.min(remaining, TimeUnit.MILLISECONDS.toNanos(CANCEL_POLL_INTERVAL_MILLIS)), TimeUnit.NANOSECONDS);
+            } catch (TimeoutException e) {
+                // Poll cancellation while waiting for the browser.
+            }
+        }
+        throw new InterruptedException("OAuth authorization was canceled");
+    }
+
+    @NotNull
+    protected Map<String, String> exchangeCode(@NotNull String code, @NotNull String verifier, @NotNull String callbackUri)
+        throws IOException, InterruptedException {
+        HttpRequest.Builder postBuilder = HttpRequest.newBuilder().uri(URI.create(tokenURL));
+        postBuilder.headers(getHeaderParameters());
+        postBuilder.POST(HttpRequest.BodyPublishers.ofString(createTokenRequestParameters(code, verifier, callbackUri)));
+        postBuilder.timeout(Duration.ofSeconds(timeout));
+
+        HttpClient client = HttpClient.newBuilder()
+            .cookieHandler(new CookieManager())
+            .version(HttpClient.Version.HTTP_2).build();
+        try {
+            HttpResponse<String> response = client.send(postBuilder.build(), HttpResponse.BodyHandlers.ofString());
+            if (response.statusCode() != HttpConstants.CODE_OK) {
+                throw new IOException("Error getting token info " + response.body());
+            }
+            return extractResponse(response);
+        } finally {
+            IOUtils.tryClose(client);
+        }
+    }
+
+    @FunctionalInterface
+    public interface TokenExchanger<T> {
+        @NotNull
+        T exchange(@NotNull String code, @NotNull String verifier, @NotNull String redirectUri)
+            throws IOException, InterruptedException;
     }
 
     @NotNull
@@ -228,6 +277,12 @@ public class OAuthCodeHandler implements IOAuthHandler {
      */
     protected void startSSO(@NotNull IOAuthCodeResponseHandler handler) throws IOException {
         handler.initServer();
+        if (URI.create(redirectUri).getPort() == 0) {
+            URI callbackUri = handler.getCallbackUri();
+            if (callbackUri != null) {
+                resolvedRedirectUri = callbackUri.toString();
+            }
+        }
         String authorizationUrl = buildAuthUrl();
         URI uri = URI.create(authorizationUrl);
         if (!HttpUtils.parseQuery(uri.getRawQuery()).containsKey(OAuthConstants.PARAM_STATE)) {
@@ -244,11 +299,7 @@ public class OAuthCodeHandler implements IOAuthHandler {
      * @throws IOException if Desktop API is not supported
      */
     protected void createBrowser(@NotNull String url) throws IOException {
-        if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
-            Desktop.getDesktop().browse(URI.create(url));
-        } else {
-            throw new IOException("Desktop BROWSER interface is not supported");
-        }
+        OAuthUtils.openBrowser(url);
     }
 
     /**
@@ -261,7 +312,8 @@ public class OAuthCodeHandler implements IOAuthHandler {
     @NotNull
     private String createTokenRequestParameters(
         @NotNull String code,
-        @NotNull String verifier
+        @NotNull String verifier,
+        @NotNull String callbackUri
     ) {
         Map<String, String> parameters = new HashMap<>();
         parameters.put(OAuthConstants.PARAM_GRANT_TYPE, OAuthConstants.GRANT_TYPE_AUTH_CODE);
@@ -273,7 +325,7 @@ public class OAuthCodeHandler implements IOAuthHandler {
         parameters.put(OAuthConstants.PARAM_CODE_VERIFIER, verifier);
         parameters.put(
             OAuthConstants.PARAM_REDIRECT_URI,
-            getRedirectUri()
+            callbackUri
         );
         return OAuthRequestURLBuilder.buildURLParameters(parameters);
     }
@@ -287,7 +339,7 @@ public class OAuthCodeHandler implements IOAuthHandler {
     protected String buildAuthUrl() throws IOException {
         var builder = new OAuthRequestURLBuilder(authUrl)
             .withClientId(clientId)
-            .withRedirectURI(redirectUri);
+            .withRedirectURI(getRedirectUri());
         if (codeChallenge != null) {
             builder.withCodeChallenge(codeChallenge);
         }
@@ -302,7 +354,7 @@ public class OAuthCodeHandler implements IOAuthHandler {
 
     @NotNull
     protected String getRedirectUri() {
-        return redirectUri;
+        return resolvedRedirectUri == null ? redirectUri : resolvedRedirectUri;
     }
 
     @NotNull

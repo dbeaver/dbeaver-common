@@ -23,6 +23,7 @@ import org.jkiss.utils.HttpConstants;
 import org.jkiss.utils.IOUtils;
 import org.jkiss.utils.oauth.code.OAuthRequestURLBuilder;
 
+import java.awt.Desktop;
 import java.io.IOException;
 import java.net.CookieManager;
 import java.net.URI;
@@ -42,6 +43,14 @@ public class OAuthUtils {
 
     public static final int TOKEN_VERIFIER_BYTE_LENGTH = 64;
     private static final SecureRandom SECURE_RANDOM = new SecureRandom();
+
+    public static void openBrowser(@NotNull String url) throws IOException {
+        if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
+            Desktop.getDesktop().browse(URI.create(url));
+        } else {
+            throw new IOException("Desktop BROWSER interface is not supported");
+        }
+    }
 
     @NotNull
     public static String generateCodeVerifier() {
