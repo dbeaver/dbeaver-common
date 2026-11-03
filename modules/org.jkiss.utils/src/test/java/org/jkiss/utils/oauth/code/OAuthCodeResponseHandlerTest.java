@@ -38,14 +38,20 @@ import java.time.Duration;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 @Timeout(10)
 class OAuthCodeResponseHandlerTest {
+    @Test
+    void localPortRequiresInitializationAndMatchesCallbackUri() throws Exception {
+        try (OAuthCodeResponseHandler handler = new OAuthCodeResponseHandler(0, "/callback", "expected")) {
+            assertThrows(IllegalStateException.class, handler::getLocalPort);
+            handler.initServer();
+            assertTrue(handler.getLocalPort() > 0);
+            assertEquals(handler.getCallbackUri().getPort(), handler.getLocalPort());
+        }
+    }
+
     @Test
     void returnsAuthorizationCode() throws Exception {
         int port = getFreePort();
