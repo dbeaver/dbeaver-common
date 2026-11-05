@@ -1,18 +1,18 @@
 /*
  * DBeaver - Universal Database Manager
- * Copyright (C) 2010-2026 DBeaver Corp and others
+ * Copyright (C) 2010-2026 DBeaver Corp
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * All Rights Reserved.
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * NOTICE:  All information contained herein is, and remains
+ * the property of DBeaver Corp and its suppliers, if any.
+ * The intellectual and technical concepts contained
+ * herein are proprietary to DBeaver Corp and its suppliers
+ * and may be covered by U.S. and Foreign Patents,
+ * patents in process, and are protected by trade secret or copyright law.
+ * Dissemination of this information or reproduction of this material
+ * is strictly forbidden unless prior written permission is obtained
+ * from DBeaver Corp.
  */
 package com.dbeaver.rest.client;
 
@@ -43,6 +43,7 @@ import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 public abstract class AbstractRestClient {
 
@@ -80,10 +81,20 @@ public abstract class AbstractRestClient {
         int readTimeoutMs,
         @NotNull List<HttpInterceptor> interceptors
     ) {
+        this(apiUrl, connectTimeoutMs, readTimeoutMs, interceptors, HttpClient.Redirect.NORMAL);
+    }
+
+    protected AbstractRestClient(
+        @NotNull String apiUrl,
+        int connectTimeoutMs,
+        int readTimeoutMs,
+        @NotNull List<HttpInterceptor> interceptors,
+        @NotNull HttpClient.Redirect redirectPolicy
+    ) {
         this.apiUrl = apiUrl;
         this.readTimeoutMs = readTimeoutMs > 0 ? readTimeoutMs : DEFAULT_READ_TIMEOUT;
 
-        this.httpClient = buildClient(connectTimeoutMs);
+        this.httpClient = buildClient(connectTimeoutMs, redirectPolicy);
         this.interceptors = prepareInterceptors(interceptors);
     }
 
@@ -92,12 +103,17 @@ public abstract class AbstractRestClient {
         return interceptors;
     }
 
+    @Nullable
+    protected String getUserAgent() {
+        return null;
+    }
+
     @NotNull
-    private HttpClient buildClient(int connectTimeoutMs) {
+    private HttpClient buildClient(int connectTimeoutMs, @NotNull HttpClient.Redirect redirectPolicy) {
         return HttpClient.newBuilder()
             .connectTimeout(Duration.ofMillis(connectTimeoutMs > 0 ? connectTimeoutMs : DEFAULT_CONNECT_TIMEOUT))
             .sslContext(HttpClientUtils.createSSLContext())
-            .followRedirects(HttpClient.Redirect.NORMAL)
+            .followRedirects(redirectPolicy)
             .build();
     }
 
@@ -408,6 +424,14 @@ public abstract class AbstractRestClient {
         }
 
         return switch (mediaType) {
+            case FORM_URLENCODED -> {
+                String form = gson.toJsonTree(body).getAsJsonObject().entrySet().stream()
+                    .filter(entry -> !entry.getValue().isJsonNull())
+                    .map(entry -> URLEncoder.encode(entry.getKey(), StandardCharsets.UTF_8) + "="
+                        + URLEncoder.encode(entry.getValue().getAsString(), StandardCharsets.UTF_8))
+                    .collect(Collectors.joining("&"));
+                yield HttpRequest.BodyPublishers.ofString(form, StandardCharsets.UTF_8);
+            }
             case JSON -> {
                 String json = gson.toJson(body);
                 yield HttpRequest.BodyPublishers.ofString(json, StandardCharsets.UTF_8);
@@ -496,6 +520,10 @@ public abstract class AbstractRestClient {
         HttpRequest request = builder
             .timeout(Duration.ofMillis(readTimeoutMs))
             .build();
+        String userAgent = getUserAgent();
+        if (userAgent != null && request.headers().firstValue(HttpConstants.HEADER_USER_AGENT).isEmpty()) {
+            request = builder.header(HttpConstants.HEADER_USER_AGENT, userAgent).build();
+        }
 
         URI uri = request.uri();
 
@@ -559,7 +587,7 @@ public abstract class AbstractRestClient {
 
             String message;
 
-            if (code == 404) {
+            if (code == HttpConstants.CODE_NOT_FOUND) {
                 message = "Endpoint '" + getLoggableUri(uri) + "' not recognized by remote server";
             } else {
                 String body = resp.bodyString();
