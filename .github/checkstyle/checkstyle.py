@@ -11,7 +11,23 @@ from pathlib import Path
 import re
 import subprocess
 import tempfile
-import xml.etree.ElementTree as ET
+from xml.etree import ElementTree
+
+
+class ReportTreeBuilder(ElementTree.TreeBuilder):
+    """Accept Checkstyle reports without permitting DTDs or entity declarations."""
+
+    def doctype(self, name, pubid, system):
+        raise ValueError("DTDs are not permitted in Checkstyle reports")
+
+
+def read_report(output):
+    parser = ElementTree.XMLParser(target=ReportTreeBuilder())
+    parser.feed(output.read_bytes())
+    document = parser.close()
+    if document.tag != "checkstyle":
+        raise ValueError("Checkstyle did not produce a Checkstyle XML report")
+    return document
 
 
 def git(root, *args):
@@ -85,7 +101,7 @@ def analyze(jar, plugin, config, root):
              if not (root / path).is_symlink() and (root / path).is_file()
              and (root / path).resolve().is_relative_to(root)]
     if not files:
-        return ET.Element("checkstyle")
+        return ElementTree.Element("checkstyle")
     with tempfile.TemporaryDirectory(prefix="checkstyle-") as directory:
         arguments = Path(directory) / "files.txt"
         output = Path(directory) / "report.xml"
@@ -100,10 +116,7 @@ def analyze(jar, plugin, config, root):
         # The shared rules use warning severity, so violations are advisory, while
         # nonzero exits indicate failures that must not be hidden by the reporter.
         result.check_returncode()
-        document = ET.parse(output).getroot()
-        if document.tag != "checkstyle":
-            raise ValueError("Checkstyle did not produce a Checkstyle XML report")
-        return document
+        return read_report(output)
 
 
 def main():

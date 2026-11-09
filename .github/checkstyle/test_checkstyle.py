@@ -8,14 +8,14 @@ from pathlib import Path
 import subprocess
 import tempfile
 import unittest
-import xml.etree.ElementTree as ET
+from xml.etree import ElementTree
 
 import checkstyle
 
 
 class ReporterTest(unittest.TestCase):
     def test_annotation_escapes_untrusted_message_and_path(self):
-        error = ET.Element("error", line="3", column="4", severity="warning",
+        error = ElementTree.Element("error", line="3", column="4", severity="warning",
                            message="100%\n::error::injected\r", source="example.CustomCheck")
         text = checkstyle.annotation("a,b:c.java", error)
         self.assertIn("file=a%2Cb%3Ac.java,line=3,title=Checkstyle,col=4", text)
@@ -25,10 +25,10 @@ class ReporterTest(unittest.TestCase):
     def test_filter_and_annotation_limit_preserve_all_matching_results(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory).resolve()
-            document = ET.Element("checkstyle")
-            file = ET.SubElement(document, "file", name=str(root / "Sample.java"))
+            document = ElementTree.Element("checkstyle")
+            file = ElementTree.SubElement(document, "file", name=str(root / "Sample.java"))
             for line in range(1, 16):
-                ET.SubElement(file, "error", line=str(line), severity="warning",
+                ElementTree.SubElement(file, "error", line=str(line), severity="warning",
                               message="violation", source="example.CustomCheck")
             output = io.StringIO()
             with redirect_stdout(output):
@@ -37,6 +37,19 @@ class ReporterTest(unittest.TestCase):
             self.assertEqual(10, output.getvalue().count("::warning "))
             self.assertIn("Sample.java:14: violation", output.getvalue())
             self.assertNotIn("line=1,", output.getvalue())
+
+    def test_report_rejects_dtd_entities_and_wrong_root(self):
+        with tempfile.TemporaryDirectory() as directory:
+            output = Path(directory) / "report.xml"
+            for xml in (
+                '<!DOCTYPE checkstyle [<!ENTITY injected "expanded">]><checkstyle>&injected;</checkstyle>',
+                '<!DOCTYPE checkstyle SYSTEM "file:///etc/passwd"><checkstyle/>',
+                '<other/>',
+            ):
+                with self.subTest(xml=xml):
+                    output.write_text(xml, encoding="utf-8")
+                    with self.assertRaises(ValueError):
+                        checkstyle.read_report(output)
 
 
 class RepositoryTest(unittest.TestCase):
