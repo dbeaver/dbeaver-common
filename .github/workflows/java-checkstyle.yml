@@ -42,10 +42,10 @@ jobs:
       - name: 'checkstyle-nullability-annotations: build using Maven'
         run: dbeaver-common/mvnw -B package -f checkstyle-nullability-annotations/pom.xml -DskipTests=true
 
-      - uses: dbeaver/action-java-checkstyle@b4e54be8402de609f964a6eac5f11dc1250ca35d
+      - uses: dbeaver/action-java-checkstyle@94a3ba9bcd0dc6b33090cc357052fc6ae7e6b8fb
         with:
           reporter: github-pr-annotations
           filter_mode: diff_context
           checkstyle_config: dbeaver-common/.github/dbeaver-checkstyle-config.xml
           checkstyle_classpath: checkstyle-nullability-annotations/target/checkstyle-nullability-annotations-latest.jar
-          fail_on_error: false
+          fail_level: none
