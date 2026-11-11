@@ -41,6 +41,7 @@
 
         <!-- Component versions -->
         <java.version>25</java.version> <!-- Default Java version -->
+        <java.version.runtime>25</java.version.runtime> <!-- Product runtime and target-platform resolution -->
         <java.version.drivers>17</java.version.drivers> <!-- Java version for JDBC drivers and other public artifacts -->
         <java.version.min>17</java.version.min> <!-- Java version artifacts which must be deployed in legacy environment -->
 
@@ -349,6 +350,7 @@
                 <version>${tycho-version}</version>
                 <configuration>
                     <pomDependencies>consider</pomDependencies>
+                    <executionEnvironment>JavaSE-${java.version.runtime}</executionEnvironment>
                 </configuration>
             </plugin>
             <plugin>
