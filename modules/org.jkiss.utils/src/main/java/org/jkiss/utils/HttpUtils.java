@@ -26,6 +26,17 @@ import java.util.Map;
 
 public class HttpUtils {
 
+    @Nullable
+    public static String clientAddress(@Nullable String forwardedFor, @Nullable String remoteAddress) {
+        if (forwardedFor != null) {
+            String address = forwardedFor.split(",", 2)[0].trim();
+            if (!address.isEmpty()) {
+                return address;
+            }
+        }
+        return remoteAddress;
+    }
+
     @NotNull
     public static Map<String, String> parseQuery(@Nullable String query) {
         Map<String, String> parameters = new LinkedHashMap<>();
