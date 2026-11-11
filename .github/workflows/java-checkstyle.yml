@@ -1,51 +1,80 @@
 name: Lint
 
+permissions: {}
+
 on:
-  # Allows you to reuse workflows by referencing their YAML files
   workflow_call:
+    inputs:
+      common-ref:
+        description: DBeaver Common revision containing the lint configuration and scripts
+        type: string
+        default: ''
 
 jobs:
   lint:
     name: Lint
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 10
     permissions:
       contents: read
-      pull-requests: read
+
+    env:
+      CHECKSTYLE_VERSION: '14.4.0'
+      CHECKSTYLE_SHA256: c0a521e54eabd1ece4ff7bd84cf231b012615745ed3aa4fb27ab0ca73097250c
 
     steps:
       - name: 'checkstyle: checkout target repository'
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          # A PR merge commit and its parents are sufficient for diff-context filtering.
+          fetch-depth: 2
+          persist-credentials: false
 
-      - name: 'checkstyle: checkout configuration'
-        uses: actions/checkout@v4
+      - name: 'checkstyle: checkout configuration and scripts'
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           repository: dbeaver/dbeaver-common
-          path: dbeaver-common
-          cache: maven
+          ref: ${{ inputs.common-ref || (github.repository == 'dbeaver/dbeaver-common' && github.sha) || 'devel' }}
+          path: .checkstyle/common
+          persist-credentials: false
 
-      - name: 'checkstyle-nullability-annotations: checkout plugin'
-        uses: actions/checkout@v4
+      - name: 'checkstyle: checkout nullability plugin'
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           repository: dbeaver/checkstyle-nullability-annotations
-          path: checkstyle-nullability-annotations
-          cache: maven
+          ref: a1c3e402ed99a9698f8fe7bb0440b3aab2a596da
+          path: .checkstyle/nullability
+          persist-credentials: false
 
-      - name: 'checkstyle-nullability-annotations: set up JDK 17'
-        uses: actions/setup-java@v4
+      - name: 'checkstyle: set up Java'
+        uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3 # v4
         with:
           java-version: '21'
-          distribution: 'temurin'
-          cache: maven
-          cache-dependency-path: checkstyle-nullability-annotations/pom.xml
+          distribution: temurin
 
-      - name: 'checkstyle-nullability-annotations: build using Maven'
-        run: dbeaver-common/mvnw -B package -f checkstyle-nullability-annotations/pom.xml -DskipTests=true
+      - name: 'checkstyle: download and verify CLI'
+        shell: bash
+        run: |
+          curl --fail --silent --show-error --location --proto '=https' --proto-redir '=https' \
+            --retry 3 --connect-timeout 30 \
+            "https://github.com/checkstyle/checkstyle/releases/download/checkstyle-${CHECKSTYLE_VERSION}/checkstyle-${CHECKSTYLE_VERSION}-all.jar" \
+            --output "$RUNNER_TEMP/checkstyle.jar"
+          echo "$CHECKSTYLE_SHA256  $RUNNER_TEMP/checkstyle.jar" | sha256sum --check --strict
 
-      - uses: dbeaver/action-java-checkstyle@94a3ba9bcd0dc6b33090cc357052fc6ae7e6b8fb
-        with:
-          reporter: github-pr-annotations
-          filter_mode: diff_context
-          checkstyle_config: dbeaver-common/.github/dbeaver-checkstyle-config.xml
-          checkstyle_classpath: checkstyle-nullability-annotations/target/checkstyle-nullability-annotations-latest.jar
-          fail_level: none
+      - name: 'checkstyle: build and test nullability plugin'
+        run: .checkstyle/common/mvnw -B -ntp package -f .checkstyle/nullability/pom.xml
+
+      - name: 'checkstyle: test CLI integration and reporting'
+        env:
+          CHECKSTYLE_JAR: ${{ runner.temp }}/checkstyle.jar
+          CHECKSTYLE_PLUGIN: ${{ github.workspace }}/.checkstyle/nullability/target/checkstyle-nullability-annotations-latest.jar
+        run: python3 -m unittest discover -s .checkstyle/common/.github/checkstyle -p 'test_*.py' -v
+
+      - name: 'checkstyle: analyze and annotate'
+        env:
+          CHECKSTYLE_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: >-
+          python3 .checkstyle/common/.github/checkstyle/checkstyle.py
+          --jar "$RUNNER_TEMP/checkstyle.jar"
+          --plugin .checkstyle/nullability/target/checkstyle-nullability-annotations-latest.jar
+          --config .checkstyle/common/.github/dbeaver-checkstyle-config.xml
