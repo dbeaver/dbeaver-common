@@ -49,6 +49,48 @@
 
     <profiles>
         <profile>
+            <!-- Opt-in configuration for standalone shaded distributions. -->
+            <id>full-jar</id>
+            <build>
+                <pluginManagement>
+                    <plugins>
+                        <plugin>
+                            <groupId>org.apache.maven.plugins</groupId>
+                            <artifactId>maven-shade-plugin</artifactId>
+                            <executions>
+                                <execution>
+                                    <id>build-main-jar</id>
+                                    <phase>package</phase>
+                                    <goals>
+                                        <goal>shade</goal>
+                                    </goals>
+                                    <configuration>
+                                        <!-- The full JAR is separate; keep dependencies in the plain artifact's POM. -->
+                                        <createDependencyReducedPom>false</createDependencyReducedPom>
+                                        <artifactSet>
+                                            <excludes>
+                                                <exclude>junit:junit</exclude>
+                                                <exclude>jmock:jmock</exclude>
+                                            </excludes>
+                                        </artifactSet>
+                                        <filters>
+                                            <filter>
+                                                <artifact>*:*</artifact>
+                                                <excludes>
+                                                    <exclude>module-info.class</exclude>
+                                                    <exclude>META-INF/versions/*/module-info.class</exclude>
+                                                </excludes>
+                                            </filter>
+                                        </filters>
+                                    </configuration>
+                                </execution>
+                            </executions>
+                        </plugin>
+                    </plugins>
+                </pluginManagement>
+            </build>
+        </profile>
+        <profile>
             <!-- Sonatype deploy -->
             <id>sonatypeDeploy</id>
             <build>
