@@ -34,6 +34,12 @@ def git(root, *args):
     return subprocess.check_output(["git", *args], cwd=root).decode("utf-8")
 
 
+def diff_base(root, base):
+    """Use the checked-out PR merge commit's first parent as its base."""
+    parents = git(root, "rev-list", "--parents", "-n", "1", "HEAD").split()
+    return parents[1] if len(parents) > 2 else base
+
+
 def diff_context(root, base):
     """Map changed paths to new-side hunk ranges, including three context lines."""
     paths = git(root, "diff", "--no-renames", "--name-only", "-z", "--diff-filter=ACM", base, "HEAD", "--").split("\0")
@@ -127,7 +133,7 @@ def main():
     args = parser.parse_args()
     root = Path.cwd().resolve()
     base = os.environ.get("CHECKSTYLE_BASE_SHA")
-    ranges = diff_context(root, base) if base else None
+    ranges = diff_context(root, diff_base(root, base)) if base else None
     document = analyze(args.jar.resolve(), args.plugin.resolve(), args.config.resolve(), root)
     report(document, root, ranges)
 
