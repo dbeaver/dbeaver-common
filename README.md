@@ -14,6 +14,34 @@ What is inside:
 - root: root Maven module for all projects. Defines base properties and dependencies (such as Tycho)
 - modules: base Java utilities
 
+## Using local P2 dependencies
+
+The `local-p2` Maven profile, defined in `root/pom.xml` and inherited by product builds,
+uses locally built DBeaver dependencies instead of the published dependency repository.
+
+Before enabling the profile:
+
+1. Set the `DBEAVER_DEV_HOME` environment variable to the absolute path of the directory containing
+   your DBeaver repository checkouts. The variable must be set and nonblank; Maven Enforcer checks it
+   during the `validate` phase.
+2. Build the dependency repositories required by your product. The profile consumes existing P2
+   build outputs; it does not build them automatically.
+
+For Community builds, the profile sets `repo.p2.dbeaver-ce.url` to
+`file:${env.DBEAVER_DEV_HOME}/dbeaver-deps-ce/p2/repository/target/repository/`.
+
+Enable it explicitly with `-Plocal-p2`, alongside any product profiles. For example, from the
+`dbeaver` checkout:
+
+```sh
+export DBEAVER_DEV_HOME=/path/to/development
+../dbeaver-common/mvnw -f product/aggregate/pom.xml \
+  -Plocal-p2,product-dbeaver-ce,product-dbeaver-eclipse-ce package
+```
+
+Without `local-p2`, Maven uses the published dependency repositories. The Eclipse P2 repository
+is not changed by this profile.
+
 ## Modules:
 
 ### [org.jkiss.utils](modules%2Forg.jkiss.utils)

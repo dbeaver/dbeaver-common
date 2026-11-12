@@ -374,4 +374,43 @@
         </plugins>
     </build>
 
+    <profiles>
+        <!-- Use locally built dependency repositories: mvn -Plocal-p2 ... -->
+        <profile>
+            <id>local-p2</id>
+            <properties>
+                <repo.p2.dbeaver-ce.url>file:${env.DBEAVER_DEV_HOME}/dbeaver-deps-ce/p2/repository/target/repository/</repo.p2.dbeaver-ce.url>
+                <repo.p2.dbeaver-pro.url>file:${env.DBEAVER_DEV_HOME}/dbeaver-deps-pro/p2/repository/target/repository/</repo.p2.dbeaver-pro.url>
+            </properties>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-enforcer-plugin</artifactId>
+                        <version>3.5.0</version>
+                        <executions>
+                            <execution>
+                                <id>require-local-p2-home</id>
+                                <phase>validate</phase>
+                                <goals>
+                                    <goal>enforce</goal>
+                                </goals>
+                                <configuration>
+                                    <rules>
+                                        <requireEnvironmentVariable>
+                                            <variableName>DBEAVER_DEV_HOME</variableName>
+                                            <regex>.*\S.*</regex>
+                                            <message>Set DBEAVER_DEV_HOME to the parent directory of dbeaver-deps-ce and dbeaver-deps-pro before using -Plocal-p2.</message>
+                                            <regexMessage>DBEAVER_DEV_HOME must not be empty.</regexMessage>
+                                        </requireEnvironmentVariable>
+                                    </rules>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+
 </project>
