@@ -82,6 +82,28 @@ class RepositoryTest(unittest.TestCase):
         self.assertEqual([(1, 20)], ranges["New.java"])
         self.assertNotIn("Deleted.java", ranges)
 
+    def test_merge_commit_uses_first_parent_when_event_base_is_unavailable(self):
+        (self.root / "Sample.java").write_text("original\n", encoding="utf-8")
+        base = self.commit()
+        branch = checkstyle.git(self.root, "branch", "--show-current").strip()
+        checkstyle.git(self.root, "checkout", "-qb", "feature")
+        (self.root / "Sample.java").write_text("changed\n", encoding="utf-8")
+        self.commit()
+        checkstyle.git(self.root, "checkout", "-q", branch)
+        checkstyle.git(self.root, "-c", "user.name=Checkstyle test", "-c", "user.email=test@example.invalid",
+                       "-c", "commit.gpgsign=false", "merge", "-q", "--no-ff", "feature")
+
+        selected = checkstyle.diff_base(self.root, "b33d43e8434c8e04cf48cb612edbaa4a8454f227")
+        self.assertEqual(base, selected)
+        self.assertEqual([(1, 1)], checkstyle.diff_context(self.root, selected)["Sample.java"])
+
+    def test_non_merge_commit_keeps_event_base(self):
+        (self.root / "Sample.java").write_text("original\n", encoding="utf-8")
+        base = self.commit()
+        (self.root / "Sample.java").write_text("changed\n", encoding="utf-8")
+        self.commit()
+        self.assertEqual(base, checkstyle.diff_base(self.root, base))
+
 
 @unittest.skipUnless(os.environ.get("CHECKSTYLE_JAR") and os.environ.get("CHECKSTYLE_PLUGIN"),
                      "Set CHECKSTYLE_JAR and CHECKSTYLE_PLUGIN to run the CLI integration tests")
