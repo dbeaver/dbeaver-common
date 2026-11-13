@@ -60,7 +60,8 @@ public abstract class HttpTransportInvocationHandler extends RpcInvocationHandle
         this.httpExecutor = Executors.newSingleThreadExecutor();
         var clientBuilder = HttpClient.newBuilder()
             .executor(httpExecutor)
-            .cookieHandler(new CookieManager());
+            .cookieHandler(new CookieManager())
+            .version(HttpClient.Version.HTTP_1_1);
         if (sslContext != null) {
             clientBuilder.sslContext(sslContext);
         }
