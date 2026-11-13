@@ -3,7 +3,7 @@ Bundle-ManifestVersion: 2
 Bundle-Name: DBeaver Spring utils
 Bundle-Vendor: DBeaver Corp
 Bundle-SymbolicName: com.dbeaver.spring.utils
-Bundle-Version: 2.9.0.qualifier
+Bundle-Version: 2.9.0
 Bundle-Release-Date: 20240205
 Bundle-RequiredExecutionEnvironment: JavaSE-17
 Bundle-ActivationPolicy: lazy
