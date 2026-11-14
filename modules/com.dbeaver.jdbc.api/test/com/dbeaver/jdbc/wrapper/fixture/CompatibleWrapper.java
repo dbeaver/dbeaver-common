@@ -21,5 +21,6 @@ import com.dbeaver.jdbc.wrapper.JDBCDriverWrapper;
 public class CompatibleWrapper implements JDBCDriverWrapper {
     @Override
     public void checkCompatibility() throws java.sql.SQLException {
+        // This fixture represents a compatible driver and deliberately accepts it without validation.
     }
 }
