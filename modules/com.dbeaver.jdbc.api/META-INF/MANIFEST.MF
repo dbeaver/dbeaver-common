@@ -8,5 +8,6 @@ Bundle-Release-Date: 20240205
 Bundle-RequiredExecutionEnvironment: JavaSE-17
 Bundle-ActivationPolicy: lazy
 Require-Bundle: org.jkiss.utils;visibility:=reexport
-Export-Package: com.dbeaver.jdbc.model
+Export-Package: com.dbeaver.jdbc.model,
+ com.dbeaver.jdbc.wrapper
 Automatic-Module-Name: com.dbeaver.jdbc.api
