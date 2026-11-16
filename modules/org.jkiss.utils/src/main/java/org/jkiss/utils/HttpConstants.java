@@ -28,6 +28,7 @@ public class HttpConstants {
     public static final String HEADER_CACHE_CONTROL = "Cache-Control";
     public static final String HEADER_REFERRER_POLICY = "Referrer-Policy";
     public static final String HEADER_HOST = "Host";
+    public static final String HEADER_X_FORWARDED_FOR = "X-Forwarded-For";
     public static final String HEADER_AUTHORIZATION = "Authorization";
     public static final String HEADER_API_KEY = "X-API-Key";
     public static final String HEADER_AUTHENTICATE = "WWW-Authenticate";

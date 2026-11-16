@@ -84,15 +84,26 @@ jobs:
               then
                   continue
               fi
-              while IFS= read -r dep_repo; do
-                  if [ -d "$dep_repo" ]; then
-                      echo "Not cloning $dep_repo since a folder with such a name already exists. Most likely, another step already cloned this repo."
-                      continue
+              deps=()
+              mapfile -t deps < "$repo/project.deps"
+              declare -A visited=()
+              for ((i=0; i<${#deps[@]}; i++)); do
+                  dep_repo=${deps[i]//$'\r'/}
+                  dep_repo=${dep_repo#"${dep_repo%%[![:space:]]*}"}
+                  dep_repo=${dep_repo%"${dep_repo##*[![:space:]]}"}
+                  [[ -z $dep_repo || $dep_repo == \#* ]] && continue
+                  [[ -v visited[$dep_repo] ]] && continue
+                  visited[$dep_repo]=1
+                  if [ ! -d "$dep_repo" ]; then
+                      default_branch=$(git ls-remote --symref "https://github.com/dbeaver/$dep_repo.git" HEAD | grep '^ref:' | awk '{print $2}' | sed 's|refs/heads/||')
+                      git clone --depth 1 -b "$GITHUB_HEAD_REF" "https://github.com/$GITHUB_REPOSITORY_OWNER/$dep_repo.git" || \
+                      git clone --depth 1 -b "$default_branch" "https://github.com/dbeaver/$dep_repo.git"
                   fi
-                  default_branch=$(git ls-remote --symref "https://github.com/dbeaver/$dep_repo.git" HEAD | grep '^ref:' | awk '{print $2}' | sed 's|refs/heads/||')
-                  git clone --depth 1 -b "$GITHUB_HEAD_REF" "https://github.com/$GITHUB_REPOSITORY_OWNER/$dep_repo.git" || \
-                  git clone --depth 1 -b "$default_branch" "https://github.com/dbeaver/$dep_repo.git"
-              done < "$repo/project.deps"
+                  if [ -f "$dep_repo/project.deps" ]; then
+                      mapfile -t children < "$dep_repo/project.deps"
+                      deps+=("${children[@]}")
+                  fi
+              done
               mvn clean verify -B -T1C -f "$repo"
               mvn clean verify -B -f "$repo/p2"
               if [ -n "$output" ]; then
