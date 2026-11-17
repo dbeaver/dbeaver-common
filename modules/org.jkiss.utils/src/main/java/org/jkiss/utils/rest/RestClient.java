@@ -24,6 +24,7 @@ import org.jkiss.utils.CommonUtils;
 
 import java.lang.reflect.Method;
 import java.net.URI;
+import java.time.Duration;
 import java.util.Map;
 import javax.net.ssl.SSLContext;
 
@@ -43,6 +44,7 @@ public class RestClient extends RpcClient {
         private RestEndpointResolver resolver;
         private String userAgent;
         private SSLContext sslContext;
+        private Duration connectTimeout;
         private Map<String, String> headers = Map.of();
 
         private Builder(@NotNull URI uri, @NotNull Class<T> cls) {
@@ -74,6 +76,12 @@ public class RestClient extends RpcClient {
             return this;
         }
 
+        @NotNull
+        public Builder<T> setConnectTimeout(@NotNull Duration connectTimeout) {
+            this.connectTimeout = connectTimeout;
+            return this;
+        }
+
         public Builder<T> setHeaders(@NotNull Map<String, String> headers) {
             this.headers = headers;
             return this;
@@ -83,7 +91,7 @@ public class RestClient extends RpcClient {
         public T create() {
             return createProxy(
                 cls,
-                new RestInvocationHandler(cls, uri, gson, resolver, userAgent, sslContext, headers)
+                new RestInvocationHandler(cls, uri, gson, resolver, userAgent, sslContext, connectTimeout, headers)
             );
         }
     }
@@ -99,9 +107,10 @@ public class RestClient extends RpcClient {
             @NotNull RestEndpointResolver resolver,
             @NotNull String userAgent,
             @Nullable SSLContext sslContext,
+            @Nullable Duration connectTimeout,
             @NotNull Map<String, String> headers
         ) {
-            super(clientClass, uri, gson, userAgent, sslContext, headers);
+            super(clientClass, uri, gson, userAgent, sslContext, connectTimeout, headers);
             this.resolver = resolver;
         }
 

@@ -28,6 +28,7 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
@@ -125,6 +126,16 @@ class RestClientTest {
             // Closing an already closed client is safe.
             RestClient.close(service);
         }
+    }
+
+    @Test
+    void rejectsZeroConnectTimeout() {
+        assertThrows(
+            IllegalArgumentException.class,
+            () -> RestClient.builder(URI.create("http://127.0.0.1"), PlainService.class)
+                .setConnectTimeout(Duration.ZERO)
+                .create()
+        );
     }
 
     @Test
