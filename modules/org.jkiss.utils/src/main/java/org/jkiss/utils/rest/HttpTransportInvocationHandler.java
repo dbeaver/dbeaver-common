@@ -54,6 +54,7 @@ public abstract class HttpTransportInvocationHandler extends RpcInvocationHandle
         @NotNull Gson gson,
         @NotNull String userAgent,
         @Nullable SSLContext sslContext,
+        @Nullable Duration connectTimeout,
         @NotNull Map<String, String> headers
     ) {
         super(clientClass, uri, gson, userAgent);
@@ -63,6 +64,9 @@ public abstract class HttpTransportInvocationHandler extends RpcInvocationHandle
             .cookieHandler(new CookieManager());
         if (sslContext != null) {
             clientBuilder.sslContext(sslContext);
+        }
+        if (connectTimeout != null) {
+            clientBuilder.connectTimeout(connectTimeout);
         }
         this.client = clientBuilder.build();
         this.headers = headers;
