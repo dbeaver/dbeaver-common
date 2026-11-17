@@ -54,6 +54,17 @@ public abstract class HttpTransportInvocationHandler extends RpcInvocationHandle
         @NotNull Gson gson,
         @NotNull String userAgent,
         @Nullable SSLContext sslContext,
+        @NotNull Map<String, String> headers
+    ) {
+        this(clientClass, uri, gson, userAgent, sslContext, null, headers);
+    }
+
+    protected HttpTransportInvocationHandler(
+        @NotNull Class<?> clientClass,
+        @NotNull URI uri,
+        @NotNull Gson gson,
+        @NotNull String userAgent,
+        @Nullable SSLContext sslContext,
         @Nullable Duration connectTimeout,
         @NotNull Map<String, String> headers
     ) {
