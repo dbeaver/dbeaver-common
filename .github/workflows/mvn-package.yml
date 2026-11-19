@@ -80,7 +80,8 @@ jobs:
           do
               flag="${p2_map[${repo}]}"
               echo "repo: $repo, flag: $flag"
-              if ! git clone --depth 1 -b "$GITHUB_HEAD_REF" "https://github.com/$GITHUB_REPOSITORY_OWNER/$repo.git"
+              if ! git clone --depth 1 -b "$GITHUB_HEAD_REF" "https://github.com/$GITHUB_REPOSITORY_OWNER/$repo.git" && \
+                 ! git clone --depth 1 -b "$GITHUB_BASE_REF" "https://github.com/$GITHUB_REPOSITORY_OWNER/$repo.git"
               then
                   continue
               fi
@@ -97,6 +98,7 @@ jobs:
                   if [ ! -d "$dep_repo" ]; then
                       default_branch=$(git ls-remote --symref "https://github.com/dbeaver/$dep_repo.git" HEAD | grep '^ref:' | awk '{print $2}' | sed 's|refs/heads/||')
                       git clone --depth 1 -b "$GITHUB_HEAD_REF" "https://github.com/$GITHUB_REPOSITORY_OWNER/$dep_repo.git" || \
+                      git clone --depth 1 -b "$GITHUB_BASE_REF" "https://github.com/$GITHUB_REPOSITORY_OWNER/$dep_repo.git" || \
                       git clone --depth 1 -b "$default_branch" "https://github.com/dbeaver/$dep_repo.git"
                   fi
                   if [ -f "$dep_repo/project.deps" ]; then
