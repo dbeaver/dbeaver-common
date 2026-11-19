@@ -82,7 +82,11 @@ jobs:
               echo "repo: $repo, flag: $flag"
               if ! git clone --depth 1 -b "$GITHUB_HEAD_REF" "https://github.com/$GITHUB_REPOSITORY_OWNER/$repo.git"
               then
-                  default_branch=$(git ls-remote --symref "https://github.com/$GITHUB_REPOSITORY_OWNER/$repo.git" HEAD | grep '^ref:' | awk '{print $2}' | sed 's|refs/heads/||')
+                  if ! default_branch=$(git ls-remote --symref "https://github.com/$GITHUB_REPOSITORY_OWNER/$repo.git" HEAD | grep '^ref:' | awk '{print $2}' | sed 's|refs/heads/||') || [[ -z "$default_branch" ]]
+                  then
+                      echo "::warning::Cannot resolve default branch for $repo; using published P2."
+                      continue
+                  fi
                   # The default branch already has a published P2 repository.
                   if [[ "$GITHUB_BASE_REF" == "$default_branch" ]] || \
                      ! git clone --depth 1 -b "$GITHUB_BASE_REF" "https://github.com/$GITHUB_REPOSITORY_OWNER/$repo.git"
