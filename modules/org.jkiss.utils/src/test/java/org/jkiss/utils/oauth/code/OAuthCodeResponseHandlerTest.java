@@ -25,7 +25,6 @@ import org.junit.jupiter.params.provider.ValueSource;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
-import java.io.Writer;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -113,7 +112,7 @@ class OAuthCodeResponseHandlerTest {
                 "?code=auth-code&state=wrong",
                 validQuery + "&state=wrong",
                 validQuery + "&%73tate=wrong",
-                "?code=auth-code&state=%"
+                "?code=auth-code&state=%25"
             }) {
                 assertEquals(400, sendRaw(callback, "GET", "/callback" + query, callback.getRawAuthority()));
                 assertFalse(handler.requestCode().isDone());
@@ -188,11 +187,10 @@ class OAuthCodeResponseHandlerTest {
         try (Socket socket = new Socket(callback.getHost(), callback.getPort())) {
             socket.setSoTimeout(2000);
             socket.getOutputStream().write((method + " " + path + " HTTP/1.1\r\nHost: " + host
-                + "\r\nConnection: close\r\nContent-Length: 0\r\n\r\n").getBytes(StandardCharsets.US_ASCII));
+                + "\r\nContent-Length: 0\r\n\r\n").getBytes(StandardCharsets.US_ASCII));
             socket.getOutputStream().flush();
             BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream(), StandardCharsets.US_ASCII));
             String status = reader.readLine();
-            reader.transferTo(Writer.nullWriter());
             return Integer.parseInt(status.split(" ")[1]);
         }
     }

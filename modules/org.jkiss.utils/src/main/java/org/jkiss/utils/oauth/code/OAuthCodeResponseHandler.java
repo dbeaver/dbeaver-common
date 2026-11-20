@@ -32,6 +32,7 @@ import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Handles the temporary HTTP server that listens for OAuth callback requests.
@@ -228,9 +229,12 @@ public class OAuthCodeResponseHandler implements IOAuthCodeResponseHandler {
         if (httpServer == null) {
             return;
         }
+        var acknowledgeRequest = new AtomicBoolean(true);
         httpServer.createContext(callbackEndpoint, exchange -> {
-            exchange.sendResponseHeaders(HttpConstants.CODE_OK, 0);
-            httpServer.removeContext(callbackEndpoint);
+            exchange.sendResponseHeaders(
+                acknowledgeRequest.getAndSet(false) ? HttpConstants.CODE_OK : HttpConstants.CODE_NOT_FOUND,
+                -1
+            );
             exchange.close();
         });
     }

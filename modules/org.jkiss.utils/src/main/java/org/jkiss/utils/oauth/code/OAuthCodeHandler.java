@@ -220,7 +220,7 @@ public class OAuthCodeHandler implements IOAuthHandler {
 
         HttpClient client = HttpClient.newBuilder()
             .cookieHandler(new CookieManager())
-            .version(HttpClient.Version.HTTP_2).build();
+            .version(HttpClient.Version.HTTP_1_1).build();
         try {
             HttpResponse<String> response = client.send(postBuilder.build(), HttpResponse.BodyHandlers.ofString());
             if (response.statusCode() != HttpConstants.CODE_OK) {
