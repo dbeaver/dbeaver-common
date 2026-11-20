@@ -20,4 +20,3 @@ jobs:
   lint:
     uses: ./.github/workflows/java-checkstyle.yml
     name: Check
-    secrets: inherit

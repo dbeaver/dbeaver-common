@@ -56,6 +56,18 @@ public abstract class HttpTransportInvocationHandler extends RpcInvocationHandle
         @Nullable SSLContext sslContext,
         @NotNull Map<String, String> headers
     ) {
+        this(clientClass, uri, gson, userAgent, sslContext, null, headers);
+    }
+
+    protected HttpTransportInvocationHandler(
+        @NotNull Class<?> clientClass,
+        @NotNull URI uri,
+        @NotNull Gson gson,
+        @NotNull String userAgent,
+        @Nullable SSLContext sslContext,
+        @Nullable Duration connectTimeout,
+        @NotNull Map<String, String> headers
+    ) {
         super(clientClass, uri, gson, userAgent);
         this.httpExecutor = Executors.newSingleThreadExecutor();
         var clientBuilder = HttpClient.newBuilder()
@@ -63,6 +75,9 @@ public abstract class HttpTransportInvocationHandler extends RpcInvocationHandle
             .cookieHandler(new CookieManager());
         if (sslContext != null) {
             clientBuilder.sslContext(sslContext);
+        }
+        if (connectTimeout != null) {
+            clientBuilder.connectTimeout(connectTimeout);
         }
         this.client = clientBuilder.build();
         this.headers = headers;
