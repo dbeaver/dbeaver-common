@@ -44,6 +44,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
+import javax.net.ssl.SSLException;
 
 public abstract class AbstractRestClient {
 
@@ -552,8 +553,9 @@ public abstract class AbstractRestClient {
                 handler.handle(e);
             }
 
-            String message = e instanceof DBException && e.getMessage() != null ?
-                e.getMessage() : "Error connecting to " + getLoggableUri(uri);
+            Throwable messageCause = e instanceof DBException ? e : CommonUtils.getCauseOfType(e, SSLException.class);
+            String message = messageCause != null && messageCause.getMessage() != null ?
+                messageCause.getMessage() : "Error connecting to " + getLoggableUri(uri);
             handleRequestException(message, e);
 
             throw new DBException(message, e);

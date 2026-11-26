@@ -25,6 +25,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.URLDecoder;
 import java.net.http.HttpClient;
@@ -34,6 +35,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
+import javax.net.ssl.SSLHandshakeException;
 
 class AbstractRestClientTest {
     private final AtomicReference<String> receivedBody = new AtomicReference<>();
@@ -111,6 +113,60 @@ class AbstractRestClientTest {
         Assertions.assertEquals(1, redirectTargets.get());
     }
 
+    @Test
+    void certificateErrorsKeepTheirMessageAndCause() {
+        var failure = new SSLHandshakeException("PKIX path building failed");
+        var client = new Client(url, List.of(chain -> {
+            throw failure;
+        }));
+
+        DBException error = Assertions.assertThrows(DBException.class, client::redirect);
+
+        Assertions.assertEquals(failure.getMessage(), error.getMessage());
+        Assertions.assertSame(failure, error.getCause());
+    }
+
+    @Test
+    void wrappedCertificateErrorsKeepTheTlsMessageAndOriginalCause() {
+        var certificateFailure = new SSLHandshakeException("No subject alternative DNS name matching server found");
+        var failure = new IOException("HTTP request failed", certificateFailure);
+        var client = new Client(url, List.of(chain -> {
+            throw failure;
+        }));
+
+        DBException error = Assertions.assertThrows(DBException.class, client::redirect);
+
+        Assertions.assertEquals(certificateFailure.getMessage(), error.getMessage());
+        Assertions.assertSame(failure, error.getCause());
+    }
+
+    @Test
+    void certificateErrorsWithoutAMessageUseTheConnectionError() {
+        var failure = new SSLHandshakeException(null);
+        var client = new Client(url, List.of(chain -> {
+            throw failure;
+        }));
+
+        DBException error = Assertions.assertThrows(DBException.class, client::redirect);
+
+        Assertions.assertEquals("Error connecting to " + url + "/redirect", error.getMessage());
+        Assertions.assertSame(failure, error.getCause());
+    }
+
+    @Test
+    void otherNetworkErrorsKeepTheSanitizedConnectionMessage() {
+        var failure = new IOException("Request with token=test-secret failed");
+        var client = new Client(url, List.of(chain -> {
+            throw failure;
+        }));
+
+        DBException error = Assertions.assertThrows(DBException.class,
+            () -> client.request(Map.of("token", "test-secret")));
+
+        Assertions.assertEquals("Error connecting to " + url + "/form", error.getMessage());
+        Assertions.assertSame(failure, error.getCause());
+    }
+
     private record Result(boolean ok) {
     }
 
@@ -126,6 +182,11 @@ class AbstractRestClientTest {
         @NotNull
         String redirect() throws DBException {
             return executeGetRequest("redirect", String.class);
+        }
+
+        @NotNull
+        String request(@NotNull Map<String, ?> parameters) throws DBException {
+            return executeGetRequest("form", parameters, String.class);
         }
 
         @NotNull
