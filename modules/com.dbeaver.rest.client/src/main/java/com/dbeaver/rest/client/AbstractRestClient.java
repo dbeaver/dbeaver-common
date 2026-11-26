@@ -553,9 +553,14 @@ public abstract class AbstractRestClient {
                 handler.handle(e);
             }
 
-            Throwable messageCause = e instanceof DBException ? e : CommonUtils.getCauseOfType(e, SSLException.class);
-            String message = messageCause != null && messageCause.getMessage() != null ?
-                messageCause.getMessage() : "Error connecting to " + getLoggableUri(uri);
+            String message = e instanceof DBException && e.getMessage() != null ?
+                e.getMessage() : "Error connecting to " + getLoggableUri(uri);
+            if (!(e instanceof DBException)) {
+                SSLException sslException = CommonUtils.getCauseOfType(e, SSLException.class);
+                if (sslException != null && !CommonUtils.isEmpty(sslException.getMessage())) {
+                    message = sslException.getMessage();
+                }
+            }
             handleRequestException(message, e);
 
             throw new DBException(message, e);

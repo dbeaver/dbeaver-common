@@ -154,6 +154,19 @@ class AbstractRestClientTest {
     }
 
     @Test
+    void emptyCertificateMessagesUseTheConnectionError() {
+        var failure = new SSLHandshakeException("");
+        var client = new Client(url, List.of(chain -> {
+            throw failure;
+        }));
+
+        DBException error = Assertions.assertThrows(DBException.class, client::redirect);
+
+        Assertions.assertEquals("Error connecting to " + url + "/redirect", error.getMessage());
+        Assertions.assertSame(failure, error.getCause());
+    }
+
+    @Test
     void otherNetworkErrorsKeepTheSanitizedConnectionMessage() {
         var failure = new IOException("Request with token=test-secret failed");
         var client = new Client(url, List.of(chain -> {
